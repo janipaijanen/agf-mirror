@@ -142,8 +142,9 @@ guaranteed to exist.
 - The codebase is exploratory or disposable.
 - You expect the AI to self-regulate without a human governor. AGF makes
   human accountability explicit; it does not remove it.
-- You expect a hosted service or a runtime. This framework is files,
-  rules, and conventions that your existing tools load and enforce.
+- You expect a hosted service or an agent runtime. AGF supplies files,
+  rules, and conventions for your existing tools, with optional local
+  tooling for summaries and validation.
 
 ## What adoption asks of you
 
@@ -200,7 +201,8 @@ and applicable to any governance design, not only AGF — see
 
 ## Next
 
-Decided to try it → [Install the `agf/` directory](../adopt/install-and-layouts.md).
+Decided to try it → [Set up AGF](commission.md).
+Want concrete examples → [Use cases](../../use-cases.md).
 Still unsure about overhead → [Downstream impact](../adopt/downstream-impact.md).
 Recognized a non-fit → stop here; AGF is not a prerequisite for responsible AI
 use.

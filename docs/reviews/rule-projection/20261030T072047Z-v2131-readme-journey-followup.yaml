@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+plan_id: 20261030T072047Z-v2131-readme-journey-followup
+changed_pages_or_runbooks:
+  - README.md
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/always/tool-authority-boundary-rule.md
+      - agf/rules/docs/implementation-honesty-rule.md
+    reason: >-
+      A two-paragraph README projection correction changes no governed authority,
+      capability or evidence standard. Tool output remains advisory and
+      compatibility remains unestablished. Ordinary coordination records are
+      evidence, not a source of binding authority.
+  adopter_facing_explanation:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/docs/site/docs/start/commission.md
+      - agf/docs/site/docs/adopt/install-and-layouts.md
+      - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+    reason: >-
+      These canonical pages already own the ordered prompt, detailed layout
+      reference and dated coexistence evidence. README links to them instead of
+      maintaining a competing setup or compatibility claim.
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/operate/runbook.md
+    reason: Existing operation procedures are unchanged by this entry-point correction.
+  ai_landing_loaders:
+    disposition: existing pointer sufficient
+    path: agf/templates/AGENTS.md
+    reason: >-
+      No new operating rule or loader behavior is introduced. Root AGENTS.md,
+      the shipped template and .claude/CLAUDE.md remain unchanged; canonical
+      rule and setup pointers already exist.
+  validation_drift_evidence:
+    disposition: advisory only
+    paths:
+      - tooling/tests/test_public_feature_summary.py
+      - tooling/tests/test_operations_runbook_cross_surface.py
+    reason: >-
+      Existing tests preserve the governed shared summary and cross-surface
+      pointers. Exact paragraph/diff/link review and independent evidence-
+      boundary assessment supply the semantic check, not automated authority.
+  distribution:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/docs/site/docs/start/commission.md
+      - agf/docs/site/docs/adopt/install-and-layouts.md
+      - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+    reason: >-
+      Canonical destinations already ship in the AGF archive. Root README,
+      this plan and projection file are project entry/audit surfaces, not new
+      adopter artifact files. No distribution layout changes.

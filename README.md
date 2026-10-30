@@ -54,7 +54,9 @@ Pin a release and let your AI coding assistant do the mechanical work:
    a diff for you to review — it does not commit or claim adoption is
    complete on its own.
 
-Full mechanics, prerequisites, and the longer commissioning prompt:
+For ordered setup, prerequisites, and the full commissioning prompt, use
+[Commission AGF](agf/docs/site/docs/start/commission.md). For layout,
+customization, and validation details, see
 [Install the `agf/` directory](agf/docs/site/docs/adopt/install-and-layouts.md).
 Then run one valid example:
 [Your first governed change](agf/docs/site/docs/start/first-governed-change.md).
@@ -68,12 +70,13 @@ supported path. Recommended for MCP-capable assistants: connect
 
 ## Using AGF with other assistant tooling
 
-AGF is designed to sit above tools that work inside the approved change and do
-not edit AGF's governance files. AGF is probably compatible with tools of that
-kind; [some evidence exists](agf/docs/site/docs/adopt/third-party-plugin-coexistence.md),
-and it is limited. Keep AGF's human decisions, gates, and coordination records
-authoritative, and review installers, hooks, and data flows before enabling
-another tool.
+Assistant tooling may help inside an approved change. It cannot approve AGF
+gates or override applicable rules or human governor decisions. Required
+coordination records remain part of the evidence. This is a proposed pattern:
+Level 2 — Surface-defined, with Theoretical evidence;
+compatibility has not been established. Review installers, hooks, and data
+flows before enabling another tool. Read the
+[dated evidence and limits](agf/docs/site/docs/adopt/third-party-plugin-coexistence.md).
 
 ## Evidence and maturity
 

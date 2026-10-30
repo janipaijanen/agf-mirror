@@ -12,9 +12,10 @@ AGF is the governance layer: it records who may decide what, the gates a change
 must cross, and the coordination evidence behind those decisions. Coding-style
 tools work inside an approved change, below that layer.
 
-AGF is designed to sit above tools that work inside the approved change and do
-not edit AGF's governance files. AGF is probably compatible with tools of that
-kind; [some evidence exists](#evidence-and-limits), and it is limited.
+Tools may assist work inside an approved change while AGF retains the authority
+and evidence boundary. That is a proposed coexistence pattern, not demonstrated
+compatibility. The [dated evidence below](#evidence-and-limits) records what was
+inspected or tried and what remains untested.
 
 This boundary is the whole claim. It does not cover a tool that replaces an
 assistant loader, edits plans or coordination records, changes gate criteria,
@@ -25,6 +26,12 @@ endorsement, or a promise that two instruction sets cannot conflict.
 | --- | --- | --- |
 | AGF governance | Roles, plans, gates, decisions, coordination records | Binding only where the applicable AGF rule or human governor says so |
 | Assistant tooling | How work is drafted or reviewed inside approved scope | Advisory; it cannot approve Gate 1 or Gate 2 |
+
+The official [agov MCP server](mcp-server.md) is a local adapter for AGF's
+own CLI commands. It is Level 4 — Validated, with the documented `dir` argument
+limitation on its reference page. An external MCP server, plugin, hook, or
+coding-style tool is a separate trust surface; it does not inherit that status
+or gain approval authority by using the same protocol.
 
 ## Keep the boundary explicit
 

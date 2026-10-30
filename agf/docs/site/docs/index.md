@@ -2,11 +2,14 @@
 
 *Status: Released. Current framework version: see [Release information](../reference/release-info.md). Looking for current release status and what's next instead of a learning path? See the [roadmap](../roadmap.md).*
 
-AGF adds human-approved checkpoints and a durable decision trail around
-AI-assisted changes; it does not run the assistant. This documentation is a
-learning path, not a pile of pages. If you are deciding whether that trade is
-worth it, start at **1. Start**. If AGF is already installed, jump to the stage
-that matches the work in front of you, then follow the path forward.
+Follow **Decide → Set up → First governed change → Operate**. AGF adds
+human-approved checkpoints and repository records around AI-assisted changes.
+Your existing assistant executes the work; optional local `agov` tooling
+supplies summaries and validation evidence.
+
+**[Decide whether AGF fits](start/should-you-adopt.md)** ·
+**[Set up AGF](start/commission.md)** ·
+[Already using AGF? Open the operations runbook](operate/runbook.md).
 
 !!! info "AGF in a Nutshell — one-page orientation flyer"
     The short version: an assistant proposes work, a human decides whether it
@@ -59,85 +62,80 @@ not a personal to-do list:
 
 ## The path
 
-```
-Start ──► Concepts ──► Adopt ──► Operate ──► Advanced ──► Evolution
- (decide)   (mental      (impact,    (daily      (contracts,   (future,
-             model)       install,    loop,       customize)    non-binding)
-                          exit path)  release)
-```
+### 1. Decide
 
-### 1. Start — decide
+<span id="1-start-decide"></span>
 
-- [Should you adopt?](start/should-you-adopt.md) — an honest decision page:
-  who benefits now, who should wait, who should skip.
-- [Adopter FAQ](start/adopter-faq.md) — plain answers to the questions that
-  usually appear while commissioning the framework: tooling, learnings,
-  upstreaming evidence, and multi-agent team use.
+Use [Should you adopt?](start/should-you-adopt.md) for Adopt / Wait / Skip.
+Read [Use cases](../use-cases.md) for examples and
+[Downstream impact](adopt/downstream-impact.md) for files, costs, privacy, and
+ongoing obligations. The [FAQ](start/adopter-faq.md) answers follow-up questions.
 
-### 2. Concepts — the mental model
+### 2. Set up
 
-- [AGF and agent runtimes](concepts/position.md) — how AGF relates to
-  orchestrators (Claude Code, Codex CLI, Cursor, LangGraph, CrewAI);
-  per-tool setup notes.
-- [Roles and gates](concepts/roles-and-gates.md) — agents, authority
-  boundaries, Gate 1/Gate 2, the coordination channel.
-- [Coordination protocol](concepts/coordination-protocol.md) — message kinds,
-  handoffs, acknowledgements, and the communication map that keeps roles
-  reconstructible across sessions.
-- [Learning loop and evidence](concepts/evidence-and-learnings.md) — the
-  learning system; upstream-owned vs adopter-owned records; anonymization.
+<span id="3-adopt-install-with-eyes-open"></span>
 
-### 3. Adopt — install with eyes open
+[Commission AGF](start/commission.md) is the ordered first-time setup path for
+new and existing repositories, with optional tooling and a manual route.
+[Install and layouts](adopt/install-and-layouts.md) supplies the detailed
+layout, customization, validator, and evidence reference.
+Verify [assistant loader configuration](adopt/assistant-loader-configuration.md)
+before trusting a loader merely because its file exists.
 
-- [Downstream impact](adopt/downstream-impact.md) — **read before
-  adopting**: every file, CI job, obligation, and ongoing cost adoption
-  introduces.
-- [Install the `agf/` directory](adopt/install-and-layouts.md) — commissioning
-  the files into the single supported v2.0 layout with an assistant-prepared
-  diff.
-- [Your first governed change](start/first-governed-change.md) — one small
-  change through plan approval, implementation, and review.
-- [Tooling and token savings](adopt/tooling-and-tokens.md) — how the `agov`
-  CLI replaces repeated AI reads with deterministic tool output, current
-  command maturity, and how to wire it into CI.
-- [Exit and decommission](adopt/exit-and-decommission.md) — how to leave
-  cleanly, so you know adoption is reversible.
+### 3. First governed change
 
-### 4. Operate — the daily loop
+[Run one small real change](start/first-governed-change.md) through both gates.
+A copied framework and a green validator are setup evidence; they do not
+replace a governor's plan or merge decision.
 
-- [Operations runbook](operate/runbook.md) — choose the right procedure for
-  session continuity, polling, ordinary work, review, upgrades, and exit.
-- [Session continuity](operate/session-continuity.md) — checkpoint before
-  compaction or reboot and recover honestly after abrupt loss.
-- [Poll and coordinate](operate/poll-and-coordinate.md) — scan coordination,
-  changes and comments, issues and comments, then advance authorized work.
-- [Day-to-day operation](operate/day-to-day.md) — claims, handoffs, gates,
-  completions in an active project.
-- [Run AGF in real situations](operate/run-agf-in-real-situations.md) —
-  choose the right AGF move for common and less-common project moments.
-- [Review and release](operate/review-and-release.md) — Gate 2 practice,
-  release via merge request, upgrades, audit trail hygiene.
+### 4. Operate
 
-### 5. Advanced — integration and customization
+<span id="4-operate-the-daily-loop"></span>
 
-- [Contracts and validators](advanced/contracts-and-validators.md) —
-  JSON schemas, binding contracts, wiring `agf` checks into CI.
-- [Customizing the framework](advanced/customizing-the-framework.md) —
-  what you may tune freely, and where customization breaks contract
-  semantics.
-- [Tooling conformance](../reference/tooling-conformance.md) — how the
-  `agf` command surface remains language-neutral as implementations evolve.
+Use the [operations runbook](operate/runbook.md) to choose your next procedure:
+[day-to-day work](operate/day-to-day.md),
+[session continuity](operate/session-continuity.md),
+[polling and coordination](operate/poll-and-coordinate.md),
+[real situations](operate/run-agf-in-real-situations.md), or
+[review and release](operate/review-and-release.md).
+[Upgrade from v1](adopt/upgrade-from-v1.md) and
+[exit and decommission](adopt/exit-and-decommission.md) cover transitions.
 
-### 6. Contribute
+### Tools and customization
 
-- [Contribute](../contribute.md) — three paths for feeding evidence back:
-  submit a learning, propose a rule, propose an agent. Evidence thresholds,
-  anonymization requirement, and independent-adopter gaps.
+<span id="5-advanced-integration-and-customization"></span>
 
-### 7. Evolution — explicitly non-binding
+The [agov CLI](adopt/tooling-and-tokens.md) provides compact summaries and
+validators. The official [agov MCP server](adopt/mcp-server.md) exposes local
+CLI operations to an assistant; its page records the `dir` limitation.
+[Third-party tooling](adopt/third-party-plugin-coexistence.md), including the
+dated Ponytail and Caveman evidence, has a separate trust and authority review.
+Use the [applicability catalog](adopt/applicability-catalog.md) and
+[customization guide](advanced/customizing-the-framework.md) when choosing
+local rules and roles.
 
-- [Where v2 could evolve](../future/evolution.md) — hypotheses under
-  consideration, labelled as such. Nothing on that page is a commitment.
+### Concepts and reference
+
+<span id="2-concepts-the-mental-model"></span>
+
+Start with [roles and gates](concepts/roles-and-gates.md), then
+[AGF and agent runtimes](concepts/position.md), the
+[coordination protocol](concepts/coordination-protocol.md), and
+[learning and evidence](concepts/evidence-and-learnings.md).
+The [framework map](start/framework-map.md),
+[contracts and validators](advanced/contracts-and-validators.md), and
+[tooling conformance](../reference/tooling-conformance.md) give deeper detail.
+
+### About AGF
+
+<span id="6-contribute"></span>
+<span id="7-evolution-explicitly-non-binding"></span>
+
+[Evaluate the framework](../evaluate.md), inspect the
+[AI evaluation dossier](../ai-evaluation-dossier.md), or
+[contribute evidence](../contribute.md). The [roadmap](../roadmap.md) records
+release direction; [evolution](../future/evolution.md) contains explicitly
+non-binding hypotheses. Nothing there is an implementation commitment.
 
 ## Reference
 
@@ -149,4 +147,4 @@ Start ──► Concepts ──► Adopt ──► Operate ──► Advanced �
 
 Still deciding → [Should you adopt?](start/should-you-adopt.md). Already using
 AGF → [Operations runbook](operate/runbook.md). Ready to install →
-[Install the `agf/` directory](adopt/install-and-layouts.md).
+[Set up AGF](start/commission.md).
