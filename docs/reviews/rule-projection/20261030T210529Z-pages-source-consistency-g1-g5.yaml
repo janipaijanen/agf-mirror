@@ -9,58 +9,23 @@
   ],
   "surfaces": {
     "normative_owner": {
-      "disposition": "updated",
+      "disposition": "updated for agf/ADOPTING.md and agf/agents/MANIFEST.example.yaml; existing pointer sufficient (applicable owners, unchanged) for the other paths",
       "paths": [
         "agf/ADOPTING.md",
-        "agf/agents/MANIFEST.example.yaml"
+        "agf/agents/MANIFEST.example.yaml",
+        "agf/framework.md",
+        "agf/rules/workflow/deputy-governor-rule.md",
+        "agf/schemas/agent.schema.json",
+        "agf/agents/planner-architect.yaml",
+        "agf/agents/coder-tester.yaml",
+        "agf/agents/governor-reviewer.yaml",
+        "agf/agents/build-engineer.yaml",
+        "agf/agents/infosec-sentinel.yaml",
+        "agf/agents/contribution-auditor.yaml",
+        "agf/agents/fact-checker.yaml",
+        "agf/agents/documentation-estate-steward.yaml"
       ],
-      "reason": "G1 and G2 edit the role-selection table in agf/ADOPTING.md. G3 adds one skipped entry to agf/agents/MANIFEST.example.yaml. Only these two owners are edited. Each edit has a recorded semantic comparison and impact class in the plan. G1 is not editorial. Any comparison that cannot keep the owner's meaning stops and returns to the governor.",
-      "not_applicable": [
-        {
-          "path": "agf/framework.md",
-          "reason": "Read-only owner of the three core roles. Unchanged."
-        },
-        {
-          "path": "agf/rules/workflow/deputy-governor-rule.md",
-          "reason": "Read-only owner of bounded delegation for G5. Unchanged. Not updated by this plan."
-        },
-        {
-          "path": "agf/schemas/agent.schema.json",
-          "reason": "Read-only owner of the optional activation_condition field for G4. Unchanged."
-        },
-        {
-          "path": "agf/agents/planner-architect.yaml",
-          "reason": "Inspected role definition for G1. Unchanged."
-        },
-        {
-          "path": "agf/agents/coder-tester.yaml",
-          "reason": "Inspected role definition for G1. Unchanged."
-        },
-        {
-          "path": "agf/agents/governor-reviewer.yaml",
-          "reason": "Inspected role definition for G5 (self-approval prohibition). Unchanged."
-        },
-        {
-          "path": "agf/agents/build-engineer.yaml",
-          "reason": "Inspected role definition and trigger for G2. Unchanged."
-        },
-        {
-          "path": "agf/agents/infosec-sentinel.yaml",
-          "reason": "Inspected role definition and trigger for G2. Unchanged."
-        },
-        {
-          "path": "agf/agents/contribution-auditor.yaml",
-          "reason": "Inspected role definition and trigger for G2. Unchanged."
-        },
-        {
-          "path": "agf/agents/fact-checker.yaml",
-          "reason": "Inspected role definition and trigger for G2. Unchanged."
-        },
-        {
-          "path": "agf/agents/documentation-estate-steward.yaml",
-          "reason": "Role definition behind the G3 example entry. Unchanged."
-        }
-      ]
+      "reason": "Only agf/ADOPTING.md (G1, G2) and agf/agents/MANIFEST.example.yaml (G3) are edited. agf/framework.md owns the three core roles and the conditional Build Engineer activation. The deputy rule owns bounded Gate 2 delegation (G5). The agent schema owns the optional activation_condition field (G4). The eight role definitions hold the triggers and prohibitions the new text quotes. These are applicable owners that stay unchanged, and they are not marked updated. Fidelity: each edit has a sentence-level comparison and a PREVENTIVE classification with a stop clause in the plan. Distribution: all listed paths ship in the AGF distribution; the distribution surface rechecks archive inclusion at implementation acceptance."
     },
     "adopter_facing_explanation": {
       "disposition": "updated",
@@ -100,6 +65,16 @@
         "agf/agents/MANIFEST.example.yaml",
         "agf/rules/workflow/deputy-governor-rule.md",
         "agf/templates/AGENTS.md",
+        "agf/framework.md",
+        "agf/schemas/agent.schema.json",
+        "agf/agents/planner-architect.yaml",
+        "agf/agents/coder-tester.yaml",
+        "agf/agents/governor-reviewer.yaml",
+        "agf/agents/build-engineer.yaml",
+        "agf/agents/infosec-sentinel.yaml",
+        "agf/agents/contribution-auditor.yaml",
+        "agf/agents/fact-checker.yaml",
+        "agf/agents/documentation-estate-steward.yaml",
         "agf/docs/site/docs/concepts/roles-and-gates.md",
         "agf/docs/site/docs/operate/day-to-day.md",
         "agf/docs/site/docs/advanced/customizing-the-framework.md"

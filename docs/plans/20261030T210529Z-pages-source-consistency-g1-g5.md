@@ -59,9 +59,12 @@ canonical source contradicts.
 ## Rule for every item
 
 Compare each old and new sentence with its owner. Record what it requires, forbids and permits.
-If the new sentence changes any of the three, the item is **not editorial**. Classify it under
-`downstream-impact-rule.md`, write the migration note that classification needs, and return the
-choice to the governor. Do not label a change editorial to move it faster.
+If the new sentence changes any of the three, the item is **not editorial**. G1, G2 and G5 are
+classified PREVENTIVE under governor decision `20261030T215549Z-governor-reviewer-gpqq`, only
+because the existing canonical owners already hold the constraint and the comparison below keeps
+previously valid behavior. If a sentence-level comparison shows a real contract restriction, stop
+that item and return it as BREAKING with ADR, migration note and major-release sequencing. The
+classification cannot be used to label an actual breaking change non-breaking.
 
 ## Items and semantic comparison
 
@@ -71,42 +74,60 @@ Facts below were read on main `68f0dc57` (site and `agf/` unchanged since `ea23d
 
 | | Text | Requires / forbids / permits |
 |---|---|---|
-| Owner | `agf/framework.md` line 1448: "Core agents, always active from the first governed change" (planner-architect, coder-tester, governor-reviewer). | Requires planning and Gate 1 authorship from the first governed change. |
-| Old | `agf/ADOPTING.md` "Pick the minimum role set": solo trial row = `coder-tester`, `governor-reviewer`. | A reader can conclude that no planner is needed in the solo case, so planning and Gate 1 authorship may be skipped. |
-| New | Solo trial row = `planner-architect`, `coder-tester`, `governor-reviewer`, with a sentence: one assistant may perform both the planner and coder responsibilities; planning and Gate 1 plan authorship still happen; the human governor decides Gate 1. | Matches the owner. Does not require three people or sessions. |
+| Owner | `agf/framework.md` line 1448: "Core agents, always active from the first governed change": planner-architect, coder-tester, governor-reviewer. `agf/agents/planner-architect.yaml` `local_deactivation`: not meaningfully deactivatable while using the gate model, because Gate 1 authorship has no other owner in the minimum system. | Requires planning and Gate 1 authorship from the first governed change. No exception for a solo trial. |
+| Old | `agf/ADOPTING.md` "Pick the minimum role set": solo trial row = `coder-tester`, `governor-reviewer`. | A reader can conclude that governed work may omit planning. The row is not an explicit exception, so it contradicts its owner. |
+| New | Solo trial row = `planner-architect`, `coder-tester`, `governor-reviewer`, plus a sentence: one assistant may perform both the planner and coder responsibilities; planning and Gate 1 plan authorship still happen; the human governor decides Gate 1. | Matches the owner. Requires no new person or session. |
 
-Result: the new row differs from the old row in what a reader is told to activate. It is **not
-editorial**. It is the governor's intended reconciliation with the owner, and it is not evidence
-of zero adopter impact.
+Classification: **PREVENTIVE**, on this unchanged-owner basis only: the owner already required the
+three core roles, so no previously compliant adopter loses permitted behavior. The old row was the
+contradictory projection. Per `downstream-impact-rule.md`, PREVENTIVE is treated as ADDITIVE unless
+it restricts previously permitted behavior.
 
-Impact (`downstream-impact-rule.md`), proposed classification **BREAKING (conservative)**; the
-governor may reclassify:
+Stop condition: if the sentence-level comparison shows a real contract restriction (for example an
+existing adopter practice the owner allowed and the new row forbids), stop this item and return it as
+BREAKING, with ADR, migration note and major-release sequencing. This plan's classification cannot be
+used to label an actual breaking change non-breaking.
 
 ```
 Impact:
   Foundry:          no. Foundry already runs all three core roles.
-  Direct adopters:  BREAKING for a solo adopter who followed the old row and left planner-architect
-                    unassigned. They must assign it. The same assistant may play it.
-  Downstream:       Plans and Gate 1 records appear for solo adopters who skipped them. No change
-                    to artifact shape.
-  Migration:        Solo adopters: in the manifest, list planner-architect with the same player
-                    as coder-tester. Write a plan and a Gate 1 decision for the next non-trivial
-                    change. No new person or session is needed.
-  Evidence:         framework.md line 1448; baseline question 10 (AMBIGUOUS) in
-                    docs/reviews/pages-structure-and-voice/20261030-baseline.md.
+  Direct adopters:  PREVENTIVE. The old row misled some solo readers. No compliant adopter loses
+                    permitted behavior. No completed adopter work is invalidated retroactively.
+  Downstream:       none. No change to artifact shape.
+  Migration:        not required. Remediation for a reader misled by the old row: when the project
+                    uses a manifest, name planner-architect there, with the same player as
+                    coder-tester if one assistant does both. A manifest is not required universally.
+                    Write the plan and Gate 1 record for the next non-trivial change. No new person
+                    or session is needed.
+  Evidence:         framework.md line 1448; planner-architect.yaml local_deactivation; baseline
+                    question 10 (AMBIGUOUS) in docs/reviews/pages-structure-and-voice/20261030-baseline.md.
 ```
 
 ### G2: CI ownership, security and review roles
 
 | | Text | Requires / forbids / permits |
 |---|---|---|
-| Old | `ADOPTING.md` row "CI/security-conscious project": standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` "as needed". | Permits activating those three as needed. `build-engineer` is not named. The row title calls the group CI/security. |
-| Triggers in the role files | `build-engineer`: `activation_condition` "project has a CI pipeline". `infosec-sentinel`: "project submits learning records" (screens learning records for credential and cross-record leaks). `contribution-auditor`: "first contribution to the framework or an adopter project". `fact-checker`: no `activation_condition`; the header says "recommended from first release". | Each role has its own trigger. |
-| New | Separate entries, each with its own trigger and "as needed" kept: CI ownership by `build-engineer` when the project has a CI pipeline; learning-record security by `infosec-sentinel`; contribution integrity by `contribution-auditor`; fact checking by `fact-checker`. The words "security review" apply only to `infosec-sentinel`. | Permits the same activations as before and adds a named `build-engineer` entry. Requires nothing new. |
+| Owner | `agf/framework.md` line 1486: "Activate Build Engineer when the project has a CI pipeline." `agf/agents/build-engineer.yaml` `activation_condition`: "project has a CI pipeline". | Requires CI ownership by `build-engineer` when the project has CI. Not optional in that case. |
+| Other triggers in the role files | `infosec-sentinel`: "project submits learning records" (screens learning records for credential and cross-record leaks). `contribution-auditor`: "first contribution to the framework or an adopter project". `fact-checker`: no `activation_condition`; the header says "recommended from first release". | Each role has its own trigger. |
+| Old | `ADOPTING.md` row "CI/security-conscious project": standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` "as needed". `build-engineer` is not named. The row groups the three as CI/security. | A reader can conclude that CI ownership is optional or covered by a security role. |
+| New | Separate entries, each with its own trigger and the existing "as needed" kept where the owner says so: CI ownership by `build-engineer` when the project has a CI pipeline; learning-record security by `infosec-sentinel`; contribution integrity by `contribution-auditor`; fact checking by `fact-checker`. The words "security review" apply only to `infosec-sentinel`. | Makes the existing conditional obligation for CI explicit. Adds no new obligation. |
 
-Result: the new text names a role the old row omitted and removes the label that grouped
-contribution and fact checks as security. Proposed classification **ADDITIVE** (a named optional
-entry, no obligation). The comparison above is the evidence; the governor may reclassify.
+Classification: **PREVENTIVE**, a clarification of the existing conditional CI obligation. The earlier
+"optional, requires nothing" wording is withdrawn. The same stop condition as G1 applies.
+
+```
+Impact:
+  Foundry:          no. Foundry has CI and an active build-engineer.
+  Direct adopters:  PREVENTIVE. An adopter with a CI pipeline and no assigned CI owner was already out
+                    of line with the owner. No compliant adopter loses permitted behavior.
+  Downstream:       none.
+  Migration:        not required. Assignment check for CI adopters: if the project has a CI pipeline,
+                    confirm a named player for build-engineer (a manifest entry when a manifest is
+                    used). Learning security, contribution integrity and fact checking keep their
+                    own triggers.
+  Evidence:         framework.md lines 1486; build-engineer.yaml activation_condition; the three
+                    other role files cited above.
+```
 
 ### G3: example manifest
 
@@ -127,28 +148,39 @@ the six omissions. Classification **EDITORIAL** if the sentence adds no obligati
 
 | | Text | Requires / forbids / permits |
 |---|---|---|
-| Owner | `agf/rules/workflow/deputy-governor-rule.md`. Delegation is off by default and opt-in. A written Delegation Artifact needs Delegator, Deputy, Scope, Severity ceiling, Expiry, Audit trigger and Revocation conditions. Every deputized decision is logged. The red list is never delegable: irreversible or destructive operations, security-boundary changes, architecture or data-model changes, critical-severity items, delegation scope itself, rule and agent definitions, and compliance, licensing or legal artifacts. The rule is marked provisional (single-project evidence). | Permits bounded, time-limited delegation by the human governor. |
+| Owner | `agf/rules/workflow/deputy-governor-rule.md`. Scope: approval authority at Gate 2, and elsewhere where the Governor-Reviewer signs off, may be delegated to a Deputy Governor. Delegation is off by default and opt-in. A written Delegation Artifact needs Delegator, Deputy, Scope, Severity ceiling, Expiry, Audit trigger and Revocation conditions. Every deputized decision is logged. The red list is never delegable: irreversible or destructive operations, security-boundary changes, architecture or data-model changes, critical-severity items, delegation scope itself, rule and agent definitions, and compliance, licensing or legal artifacts. The rule is marked provisional (single-project evidence). | Permits a bounded, time-limited Gate 2 route. Other categories need express canonical coverage and a valid matching artifact. |
 | Role definition | `agf/agents/governor-reviewer.yaml` line 180 lists "Self-approve its own decisions" among prohibitions. | Forbids self-approval by role. |
-| Old (a) | `roles-and-gates.md` lines 72 to 75: "The human governor still owns Gate 1, Gate 2, release approval, and binding risk acceptance." | Silent on the opt-in deputy rule. |
-| Old (b) | `roles-and-gates.md` lines 196 to 199: these approvals "remain non-delegable unless a future AGF version explicitly changes the role model." | Reads as no delegation at all. The deputy rule already permits bounded Gate 2 delegation. |
-| New | One short, explicitly non-exhaustive pointer at each place, saying: approvals belong to the human governor; the optional deputy rule is the only route for delegating any of that authority and is off by default; it needs a written artifact with scope, severity ceiling, expiry, audit trigger, revocation and per-decision logging; it never covers its red list; role definitions still forbid self-approval; the rule is provisional and its logging and audit duties apply; the summary does not replace the rule. | Matches the owner. Adds no approval, activation, manifest-edit or release authority. |
+| Old (a) | `roles-and-gates.md` lines 72 to 75: "The human governor still owns Gate 1, Gate 2, release approval, and binding risk acceptance." | Silent on the opt-in deputy route. |
+| Old (b) | `roles-and-gates.md` lines 196 to 199: these approvals "remain non-delegable unless a future AGF version explicitly changes the role model." | Reads as no delegation at all, while the owner permits the narrow Gate 2 route. |
+| New | One short, explicitly non-exhaustive pointer at each place. It names the narrow Gate 2 route of the deputy rule. It does not say the rule delegates "any" Gate 1, release or binding-risk authority. Anything the canonical rule does not expressly cover, with a valid matching artifact, stays with the human governor. | Matches the owner. Adds no new delegable category, approval, activation, manifest-edit or release authority. |
 
 Candidate sentence for (a) and (b), for the reviewers to correct:
 
-> Approvals stay with the human governor. A project may opt in to the narrow, time-limited
-> delegation described in the optional deputy-governor rule (`deputy-governor-rule.md`). That
-> rule is off by default, requires a written delegation with scope, severity ceiling, expiry,
-> audit trigger and revocation, logs every deputized decision, and never covers its red list.
-> Role definitions still forbid self-approval. This is a summary, not the rule; the rule governs.
+> Approvals stay with the human governor. The optional deputy-governor rule
+> (`deputy-governor-rule.md`) describes one narrow route: a named deputy may approve certain Gate 2
+> items for a limited time under a written delegation. The rule is off by default, is provisional,
+> requires a scope, severity ceiling, expiry, audit trigger and revocation, logs every deputized
+> decision, and never covers its red list. Anything it does not expressly cover, including Gate 1,
+> release approval and binding risk acceptance, stays with the human governor unless the rule and a
+> valid matching delegation say otherwise. Role definitions still forbid self-approval. This is a
+> summary, not the rule; the rule governs.
 
-Result: (b) changes what the page tells a reader is permitted. **Not editorial.** Proposed
-classification **BREAKING for readers of (b)** if the governor treats the old text as a
-commitment, otherwise PREVENTIVE. Migration: none for existing adopters, because the deputy rule
-text is unchanged; the public page now matches it. The governor decides. Foundry's direct full
-human grant is not an adopter default, and the sentence must not imply it.
+Classification: **PREVENTIVE**, only while the sentence preserves the current owner's full limits,
+provisional status and role prohibitions. No new delegable category is approved. The same stop
+condition applies: if any sentence widens or narrows who may approve, stop that item and return it
+as BREAKING.
 
-If a reviewer finds that any G5 sentence widens or narrows who may approve, that item stops here
-and returns to the governor.
+```
+Impact:
+  Foundry:          no. Foundry's direct full human grant is not an adopter default and the sentence
+                    does not imply it.
+  Direct adopters:  PREVENTIVE. The public pages now match the canonical rule. No adopter loses a
+                    route the owner already permitted, and none gains one.
+  Downstream:       none.
+  Migration:        not required. The deputy rule text is unchanged.
+  Evidence:         deputy-governor-rule.md; governor-reviewer.yaml line 180; roles-and-gates.md
+                    lines 72 to 75 and 196 to 199.
+```
 
 ## Exact paths
 
@@ -211,11 +243,14 @@ apply. Any new validator behavior becomes a separate gated plan.
 
 ## Decisions to return to the governor
 
-1. Is "BREAKING (conservative)" the right class for G1, and is the migration note enough?
-2. Does the G3 `skipped` entry fall under the high-risk manifest-edit stop, and is Gate 1 on this
+1. Does the G3 `skipped` entry fall under the high-risk manifest-edit stop, and is Gate 1 on this
    plan the stop-and-plan step?
-3. Is G2 ADDITIVE, and is G5 (b) BREAKING or PREVENTIVE?
-4. Does G5 stay inside the deputy rule after the reviewers read the candidate sentence?
+2. After the reviewers read the candidate sentence, does G5 stay PREVENTIVE? If any sentence widens or
+   narrows who may approve, which reading does the governor choose?
+3. Are the remediation notes for G1 and G2 enough, or does the governor want them in the adopter
+   documents as well?
+
+Decision gpqq already fixed the classification basis for G1, G2 and G5 (PREVENTIVE with a stop clause).
 
 ## Not in scope
 
