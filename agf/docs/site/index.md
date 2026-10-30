@@ -3,9 +3,9 @@
 
 <div class="agf-hero__eyebrow">Two gates, one repo</div>
 
-<h1 id="agf-hero-title" class="agf-hero__headline">Plans reviewed before code.<br>Code reviewed before merge.</h1>
+<h1 id="agf-hero-title" class="agf-hero__headline">Govern AI-assisted changes.</h1>
 
-<p class="agf-hero__subhead">For non-trivial changes, a human approves the plan before implementation and decides whether the tested result may merge. These two gates sit inside your normal git workflow. Every governed decision leaves a timestamped, append-only record in your repo.</p>
+<p class="agf-hero__subhead">AGF keeps plans, approvals and handoffs in your repository. For non-trivial changes, a human approves the plan before work starts and decides whether the tested result may merge.</p>
 
 <div class="agf-hero__actions">
   <a class="agf-hero__action agf-hero__action--primary" href="docs/start/should-you-adopt/" aria-label="Decide whether AGF fits your project">Decide whether AGF fits</a>
