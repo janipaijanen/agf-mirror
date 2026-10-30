@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+plan_id: 20261030T064744Z-v2131-release-publication
+# Audit-only phase: these existing live-status surfaces are declared for the
+# later separately gated B-status synchronization. None is changed by this MR.
+# No stage: planned marker is used for existing normative owners.
+changed_pages_or_runbooks:
+  - agf/docs/site/roadmap.md
+  - docs/roadmap.md
+  - agf/docs/governance/manifest.md
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/workflow/release-via-merge-request-rule.md
+      - agf/rules/workflow/immutable-tags-rule.md
+      - agf/rules/always/tool-authority-boundary-rule.md
+    reason: >-
+      Existing owners govern publication, immutable tags and tool authority.
+      Published bmaq supplies exact-cut freeze, conditional risk/header
+      dispositions and phased scope; no rule or approval authority changes.
+  adopter_facing_explanation:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/docs/site/roadmap.md
+      - agf/docs/governance/manifest.md
+    reason: >-
+      These current files correctly state verified v2.13.0 and remain unchanged
+      in this audit MR and the later metadata MR's B cells. Updating the bounded
+      latest-published cells and companions is PLANNED ONLY, after anonymous
+      v2.13.1 verification/completion and its separate exact-head Gate 2. This
+      manifest does not claim that synchronization or artifact publication ran.
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/operate/review-and-release.md
+    reason: >-
+      The existing release procedure remains accurate; no procedure-body change
+      is needed for a documentation patch. Root roadmap live-status updates
+      remain separately planned, without changing unrelated roadmap commitments.
+  ai_landing_loaders:
+    disposition: existing pointer sufficient
+    path: agf/templates/AGENTS.md
+    reason: >-
+      Existing loaders already discover the rules. A later metadata MR may bump
+      only enumerated current-version cells; no loader behavior or new guidance
+      is introduced and no version bump is performed in this audit MR.
+  validation_drift_evidence:
+    disposition: advisory only
+    paths:
+      - docs/reviews/documentation-estate/20261030-v2131-release-content-freeze.md
+      - docs/reviews/next-release-freeze-evidence/20261030-v2131-apk-residual-risk.md
+    reason: >-
+      Exact-source inventories, preserved assessments, independently reviewed
+      source/rendered evidence and dated full-severity scans support bmaq's
+      bounded decisions. They do not supply metadata Gate 2, namespace absence,
+      future APK reproducibility or production/publication/status-sync proof.
+      Mechanical projection checks verify structure and paths, not semantic
+      sufficiency or governor authority.
+  distribution:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/docs/site/roadmap.md
+      - agf/docs/governance/manifest.md
+      - agf/templates/AGENTS.md
+    reason: >-
+      These existing adopter surfaces ship through the framework manifest.
+      Future current-version and verified-status edits stay on their authorized
+      branches. Root docs/roadmap, this projection, the plan and both audit
+      reports are project-local evidence, not new adopter artifact files. No
+      v2.13.1 artifact or changed distribution layout is claimed by this record.
