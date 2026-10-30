@@ -1,0 +1,296 @@
+---
+id: 20261030T163253Z-pages-structure-and-voice
+status: pending-gate1
+topic: public-pages-information-architecture-and-reader-voice
+affected_paths:
+  - agf/docs/site/**
+  - agf/docs/build/mkdocs.yml
+  - agf/docs/build/hooks/**
+  - docs/reviews/pages-structure-and-voice/**
+depends_on:
+  - 20261030T054200Z-pages-reader-journey-patch
+  - 20261030T064744Z-v2131-release-publication
+  - 20261030T072047Z-v2131-readme-journey-followup
+  - 20261030T160040Z-forge-evidence-rule
+advisory_consultation:
+  - role: infosec-sentinel
+    status: pending
+    reason: Review requested for preservation of privacy, trust and authority boundaries during consolidation.
+  - role: contribution-auditor
+    status: pending
+    reason: Review requested for scope, provenance, compatibility and preservation of governance meaning.
+  - role: web-ux-reviewer
+    status: pending
+    reason: Independent baseline source review received; concrete plan review requested. Rendered implementation review remains required.
+  - role: documentation-estate-steward
+    status: pending
+    reason: Claude supplied initial navigation, consolidation, audience and terminology recommendations; concrete plan review requested.
+  - role: fact-checker
+    status: pending
+    reason: Review requested for example wording, human accountability versus delegated role authority, and evidence labels.
+---
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
+<!-- Copyright (c) 2026 Jani Päijänen -->
+
+# Plan: make public AGF documentation understandable before it becomes technical
+
+Governance mode: STRICT. This is a planning proposal, not implementation or
+release authority. The human requested a substantive rethink of structure and
+voice for first-time visitors, CTOs, business owners and AI leads, in
+collaboration with Claude. Claim: `20261030T163253Z-planner-architect-3sgb`.
+
+## Problem and intended result
+
+The present site makes readers learn the framework's organization before they
+can decide whether it helps them. The earlier journey patch improved the
+homepage route but preserved the full navigation inventory. This plan does
+not treat that preservation as a constraint on the new reading experience.
+It preserves URLs and governance meaning, not the current menu or repetition.
+
+Baseline: main `4076884d4d59ece494a685417bb24f50a9df8993`, checked against the
+live site on 2026-10-30. The navigation has Home plus five groups and 46 page
+entries in total. Inspection found:
+
+- "Start here" combines an adoption decision with installation and loader
+  reference. A visitor must choose among nine entries before knowing why.
+- Home and Documentation repeat benefits, next steps and tooling explanation.
+- "Should you adopt?" reaches a long activation/inventory discussion before
+  its adopt/wait/skip decision. That is the wrong order for a business reader.
+- "Evaluate" is an expert review protocol, not an adoption decision guide.
+- The operating hub leads with recovery and specialist procedures rather than
+  an ordinary change. Setup competes with an installation-reference sequence.
+- "Two gates, one repo", "governor" and role identifiers arrive before their
+  meaning. "You" sometimes means a human and sometimes an assistant executing
+  commands. The solo-project explanation exists but is easy to miss.
+
+These are source-based design findings, supported by a live-page check, not
+visitor-study results. The proposed improvement is a testable design hypothesis.
+
+## One site, five purposes
+
+Keep Home as the product introduction. Use five primary sections after Home;
+each starts with a short, useful landing page. Do not add four parallel persona
+sites. Audience links point into the same canonical explanations.
+
+| Section | Landing page | Question answered and immediate destinations |
+|---|---|---|
+| Decide | `docs/start/should-you-adopt.md` | Is this useful here? Fit and non-fit; responsibilities; cost and risk; evidence and limits; licensing; examples |
+| Get started | `docs/start/commission.md` | How do I try it? One setup sequence, then one small governed change; optional tool/configuration detail when needed |
+| Work with AGF | `docs/operate/runbook.md` | What do I do next? Propose and implement an ordinary change; approve/review; handle a block; recover/coordinate; upgrade/leave |
+| Reference | `docs/index.md` | Where is the exact detail? Concepts, installation/tool reference, commands/contracts, glossary and evidence vocabulary |
+| About | `docs/about.md` (new, short index) | What is the project's status and basis? Releases/roadmap, terms, contributing, independent review resources and background |
+
+Section landing links must work in desktop and mobile navigation. Use the
+existing Material theme, not a custom navigation application. Keep at most
+three levels of navigation. Specialist detail belongs beneath a named task or
+reference subgroup, not in a flat list of equal-looking first steps.
+
+The small About index is the only new reader page proposed. Do not create
+another glossary, overview or persona landing page: reuse the concept page,
+Decide sections and existing indexes. No new dependency is needed.
+
+### Home: explain, demonstrate, then route
+
+In this order:
+
+1. What AGF does, in plain language: repository files that define how people
+   and assistants plan, approve and record software changes. Explain that the
+   reader keeps their existing assistant and tools.
+2. One concrete, explicitly illustrative change: the assistant proposes a
+   small feature; the accountable approver approves the plan; the assistant
+   implements and tests; the approver reviews the result and decides on merge.
+   Distinguish automated evidence from approval. Introduce the two gate names
+   here, after their purpose is understood.
+3. What the reader takes on: a named accountable person, review attention,
+   maintained records and existing engineering checks. Link costs, evidence
+   limits and exit beside these commitments, not behind promotional claims.
+4. Two main actions: **Decide whether AGF fits** and **Set up AGF**, retaining
+   the existing exact CTA destinations and classes. A smaller existing-user
+   link goes to Work with AGF.
+5. Short audience links to Decide's sections: "Understand the basics",
+   "Cost and accountability", "Technical fit", "Assistant workflows".
+   Supporting role labels may name business owners, CTOs and AI leads, but
+   labels describe the question rather than require a job title.
+
+Keep version/source available through the existing header. Reduce the long
+provenance notice to a concise accurate link; retain release-versus-development
+distinction on Release information. Move the motto and detailed maturity/tool
+taxonomy out of the introductory screen. This is an explanatory rewrite of
+Home, not merely a sidebar relabel.
+
+### Audience routes and decisions
+
+| Reader | Route | They should be able to decide or explain |
+|---|---|---|
+| First-time visitor | Home → Decide | What AGF provides, who runs the assistant, who approves, whether to continue |
+| Business owner | Home → Decide: cost and accountability | Required human attention, control, limits, licensing and exit; no CLI knowledge required |
+| CTO | Home → Decide: technical fit → exact reference | Fit with existing repository/CI, authority and review boundaries, rollout obligations and evidence limits |
+| AI lead | Home → Decide: assistant workflows → tool/configuration reference | Framework versus runtime, assigning responsibilities, optional CLI/MCP, third-party coexistence limits |
+| Solo maintainer | Home → Get started → first change | They may be the named human approver; the assistant prepares work; both decisions remain explicit |
+| Existing user | Home → Work with AGF → selected task | How to advance ordinary work or recover a blocked session without repeating onboarding |
+
+## Content ownership and disposition
+
+All paths below are relative to `agf/docs/site/`. This is the implementation
+map: regroup and rewrite introductions; retain unique technical material.
+Before any consolidation, read the whole source page and record where each
+unique instruction, caveat, evidence statement and fragment goes.
+
+| Existing page(s) | New purpose and disposition |
+|---|---|
+| `index.md` | Single product introduction, example and audience routes as above |
+| `docs/index.md` | Compact Reference directory; remove duplicated product pitch and four-step onboarding prose |
+| `docs/start/should-you-adopt.md` | Decide landing; fit/non-fit, responsibilities, costs, limits and audience sections first; detailed inventory later |
+| `use-cases.md` | Keep detailed examples and evidence; short selected summaries in Decide link here, without copying the whole page |
+| `docs/adopt/downstream-impact.md` | Canonical costs, responsibilities, file/CI impact and privacy; plain-language summary before implementation inventory |
+| `docs/start/adopter-faq.md` | Short answers linking to their owners; no second complete specification of roles/setup/workflow |
+| `docs/start/commission.md` | Sole ordered first-time setup tutorial; title Set up AGF; preserve verification, collision safeguards and framework-only route |
+| `docs/start/first-governed-change.md` | First real change after setup; explicit human decisions, assistant actions and check evidence |
+| `docs/adopt/install-and-layouts.md` | Installation reference linked at the relevant setup step; remove competing tutorial order without losing unique safeguards |
+| `docs/adopt/assistant-loader-configuration.md` | Assistant configuration reference; Get started links it at verification time |
+| `docs/operate/runbook.md` | Work landing, ordinary change first; short task selection rather than a competing operating specification |
+| `docs/operate/day-to-day.md` | Canonical routine; human and assistant responsibilities visible where they differ |
+| `docs/operate/run-agf-in-real-situations.md` | Worked examples linked beside the task they illustrate; prompts remain direction, not authority |
+| `docs/operate/review-and-release.md` | Review, approval and release procedure; retain exact-evidence and authority requirements |
+| `docs/operate/session-continuity.md`, `docs/operate/poll-and-coordinate.md` | Recovery and coordination subgroup; keep their distinct canonical procedures |
+| `docs/adopt/upgrade-from-v1.md`, `docs/adopt/exit-and-decommission.md` | Upgrade and leave subgroup; retain all removal/preservation caveats; exit also linked from Decide |
+| `docs/concepts/roles-and-gates.md` | How approvals work; canonical plain-language responsibility table/glossary first, role IDs/delegation/rotation detail later |
+| `docs/concepts/position.md` | Technical fit: framework versus runtimes and existing assistants; linked from Decide and Reference |
+| `docs/concepts/coordination-protocol.md` | Decision-record protocol reference; define coordination before procedural detail |
+| `docs/concepts/evidence-and-learnings.md` | Evidence and learning reference; Decide links its evidence limits, operators link its learning procedure |
+| `docs/adopt/tooling-and-tokens.md`, `docs/adopt/mcp-server.md`, `docs/adopt/third-party-plugin-coexistence.md` | Tools subgroup: optional CLI, MCP, third-party tools. Preserve dated evidence and compatibility limits |
+| `docs/adopt/applicability-catalog.md`, `docs/advanced/customizing-the-framework.md` | Customization reference; distinguish shipped inventory, activation, optional pruning and unshipped starter proposals |
+| `docs/start/framework-map.md`, `docs/advanced/contracts-and-validators.md` | Framework and validation reference; not prerequisites for understanding Home |
+| `reference/environment-variables.md`, `reference/release-artifacts.md`, `reference/coord-graph-index.md`, `reference/review-findings.md`, `reference/tooling-conformance.md` | Technical reference subgroup; precise identifiers retained |
+| `reference/maturity-vocabulary.md`, generated `reference/release-info.md`, `reference/disclaimer.md` | Evidence vocabulary, exact build provenance and limitations remain readily reachable |
+| `docs/adopt/licensing.md`, `docs/adopt/commercial-licensing.md` | One clear licensing entry linked from Decide/About; retain separate canonical detail and unchanged terms, not an editorial legal rewrite |
+| `evaluate.md`, `ai-evaluation-dossier.md` | About → Review the framework / Full documentation for reviewers; explicitly distinguish independent review from adoption; retain evaluator safeguards |
+| `roadmap.md`, `contribute.md`, `acknowledgements.md`, `docs/concepts/philosophical-lenses.md`, `future/evolution.md` | About: current status and contributions first, background/research nested; preserve nonbinding future labels |
+| `reference/artifact-registry.md`, `reference/figures.md`, `reference/palette.md` | Preserve existing auxiliary reference routes and links; no new promotion into introductory navigation |
+| `content-plan.md` | Refresh the non-public planning map to match this ownership model; keep it excluded from publication |
+
+### Voice contract for this editorial change
+
+- "You" addresses the named human reader. "Your assistant" addresses delegated
+  execution. In assistant-ready prompts, explicitly label the quoted block as
+  instructions for the assistant; do not silently change the addressee.
+- Introduce responsibilities before role identifiers. Example: "Choose the
+  person accountable for approvals—you, if this is a solo project. AGF calls
+  this person the human governor. Record the assignment explicitly."
+- Explain plan approval before "Gate 1", and approval of the completed change
+  before "Gate 2". Define the decision log before "coordination channel".
+- Use exact role IDs in tables, configuration, commands and links where they
+  are required. The readable summary does not rename roles or grant authority.
+- A role is a responsibility, not necessarily another employee, model or
+  installed assistant. Explain solo/team examples without implying that an
+  implementing assistant may approve its own work or that advisory reviewers
+  acquire binding authority. Human accountability and bounded role delegation
+  must remain distinct and faithful to the canonical rules.
+- On pages that can be entered directly, provide a brief first-use explanation
+  or descriptive link. A definition on Home alone is insufficient.
+- Lead with the reader's question, outcome and next action. Put commands,
+  schema detail and specialist exceptions after the necessary explanation.
+  Keep materially relevant limits beside the claim they qualify.
+- No invented ROI, compliance promise, production enforcement, validated
+  integration or maturity claim. Preserve the existing evidence vocabulary;
+  reduce repetition by linking precise reference, not by deleting caveats.
+
+## Compatibility, boundaries and patch eligibility
+
+This is proposed patch-release content: editorial structure and clarity only.
+No new framework obligation, authority, command, schema, dependency, commercial
+term, supported platform or default changes. No release version/date is selected
+by this plan. A later release plan must satisfy its own checklist; it cannot
+inherit v2.13.1-specific exceptions or rewrite released artifacts.
+
+Prefer regrouping navigation over moving files. Existing published page URLs
+must keep working. If consolidation moves a section, retain its existing anchor
+at the old URL with an explicit destination; do not assume a redirect preserves
+fragments. Inventory generated HTML IDs and internal links before rewriting,
+including dossier links and legacy explicit anchors. A preserved HTTP 200 with
+lost meaning or an unhelpful blank stub is not sufficient.
+
+Do not edit generated Release information or the dossier as independent prose.
+Preserve their build hooks and source provenance. Keep the shared feature-summary
+contract synchronized with its existing counterparts; if exact shared-block
+text outside this scope must change, amend the plan before editing those files.
+Retain the existing hero CTA targets, artifact verification, single Step 6
+first-change link and other commissioning guards. Hook edits are limited to
+documented navigation/anchor and content-source changes, never weakening safety
+or verification to make the rewrite pass.
+
+No normative rules, role definitions, root README, root loaders, changelogs,
+release metadata, unrelated styling redesign, new figures or runtime code are
+included. Minimal existing CSS changes are allowed only if needed for the
+restructured navigation/content to remain readable and accessible.
+
+## Work allocation and sequencing
+
+1. Codex prepares this plan; Claude challenges the information architecture
+   and content ownership as documentation-estate-steward. Independent reviewers
+   assess the plan. Keep pending-gate1 until all consultations are disposed and
+   a binding governor record exists.
+2. After approval, claim bounded non-overlapping implementation slices. Proposed
+   split: Codex owns navigation, Home, indexes, build/link compatibility and
+   review evidence; Claude owns Decide/setup/operating/concept prose under an
+   agreed exact page list. Freeze shared pages before the other writer proceeds.
+3. Both writers inspect the whole content of pages being consolidated. Record
+   the final page/section/anchor map under `docs/reviews/pages-structure-and-voice/`.
+   Claude conducts the cross-site voice/ownership sweep; Codex integrates it.
+4. Obtain distinct-model rendered web-UX review and factual review of the final
+   candidate; rework findings, run required exact-head CI and request Gate 2.
+   Neither peer agreement nor a green build substitutes for either gate.
+5. Only after implementation acceptance does release planning select a patch
+   version and deployment. Verify the published site after deployment.
+
+Predecessor plans for the shipped reader journey/release are historical context,
+not an instruction to repeat their structure. The active forge-evidence plan
+also proposes `docs/operate/day-to-day.md`; this plan acknowledges that overlap,
+reserves its publication-evidence section for that owner and requires an explicit
+sequence before either implementation touches the shared file. No unapproved
+forge-rule prose is imported into this patch. Recheck all live plans/MRs and
+claims at Gate 1 and before implementation; add explicit dispositions for any
+other detected overlap rather than broadly waiving collisions.
+
+## Acceptance evidence
+
+The implementation handoff must include:
+
+1. A complete baseline-to-final route/content/anchor map, including pages absent
+   from primary navigation. Every unique safeguard and evidence qualification
+   has a preserved home. No duplicate setup workflow or competing owner remains.
+2. Six documented task walkthroughs matching the audience table. From Home,
+   each audience reaches its relevant landing/section within two purposeful
+   link selections. A business reader can assess costs, responsibility, terms,
+   limits and exit before encountering commands or schema syntax.
+3. An independent comprehension walkthrough: after reading the introductory
+   screen, the reviewer can explain what AGF supplies, what the assistant does,
+   who approves and what to do next. Record actual route and points of confusion.
+   This is an expert walkthrough, not evidence of measured human usability or
+   a guarantee that every visitor understands within a fixed time.
+4. A first-use terminology and addressee sweep of all public source pages, not
+   just Home; ambiguous uses of "you", unexplained governor/gate terms and
+   incorrect human/AI authority statements resolved or explicitly justified.
+5. Strict MkDocs build; existing docs, link, commissioning, figure/accessibility
+   and provenance checks appropriate to changed paths; generated dossier and
+   release-information inspection. Preserve the current checks' material intent.
+6. Rendered desktop and narrow/mobile checks in light/dark modes: usable
+   section landings, keyboard focus/order, headings, contrast, no horizontal
+   overflow and no missing destinations. The independent reviewer must inspect
+   rendered output; source-only critique does not close this criterion.
+7. Factual checks of roles, optional tooling, supported installation, current
+   status, delegation, privacy, licensing and integration evidence against
+   canonical owners. A change to their meaning is outside this patch plan.
+8. Before merge, exact-head pipeline/jobs and resolved findings; after deployment,
+   public checks of Home, all section landings and representative old deep links,
+   with build source SHA and UTC timestamp. Record any blocked check honestly.
+
+## Planning review status
+
+Initial Claude consultation recommended five purpose-based groups, demotion of
+expert material, clearer first-use roles and consolidation of duplicated entry
+paths. The independent UX source review independently identified late role
+explanations, duplicated orientation, premature inventory and exceptional
+workflows dominating the operations hub. This draft accepts those findings but
+rejects blind licensing merges, a new glossary page and preservation of Home
+without a deeper rewrite. Concrete-head review is still pending.
