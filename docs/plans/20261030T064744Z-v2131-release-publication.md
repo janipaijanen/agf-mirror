@@ -75,28 +75,52 @@ depends_on:
 # Draft: publish AGF v2.13.1 through the standard main-branch path
 
 **Planning only; not release readiness or permission to execute.** Root must
-replace every pending field, refresh the inventory at the final construction
-base, resolve prerequisite dispositions and complete independent consultation
-before publishing an approved plan. No version/tag/package/Release/protection
+replace the pending Gate 1 fields, pin the verified product-content baseline,
+resolve planning dispositions and complete independent consultation before
+publishing an approved plan. The final construction-base checkpoint follows the
+approved audit-carrier sequence below; it is not falsely claimed complete here. No version/tag/package/Release/protection
 mutation has been performed by preparation of this draft.
 
 ## Candidate and freeze
 
-Candidate patch: the twelve-path Pages reader-journey correction approved by
-pksk/gnqj, MR !3394 reviewed head `6fc3e6de` (full identity and final Gate 2
-record to be supplied by root). Its scope is nine explanatory pages, MkDocs
-navigation, the narrowly amended CTA guard, and the projection manifest. It
-changes navigation and documentation/acceptance checks, not an AGF command,
-API, rule, schema, dependency, platform or installation contract.
+The reviewed Pages portion is MR !3394 at
+`6fc3e6de1bd52e299a0fec8dd3127f56ad4b0e7c`, merged without squash as
+`bb407c35969ccb251a32f5fe32179e58600223a7`. Its actual first parent is
+`ec1022d4ac8b6ea110008959b3289c2269785672`, second parent is that reviewed
+head, and tree is `7b694db43c8272660ef50e6826b4eacafb1be965`. The exact
+12-path delta is the nine explanatory pages, MkDocs navigation, narrowly amended
+CTA guard and projection manifest under pksk/gnqj. Gate 2 p8ms was published
+unchanged at `280384a0d8472c5a2ee8c75d8c7cb9594b5315a4` on the approved
+shared plan branch before the handoff and implementation merges. MR pipeline
+3007344107 passed all seven required jobs. Main pipeline 3007394646 passed all
+seven required jobs, including Pages job 17599605482, at 07:10:39Z.
 
-**Pending before approval:** exact verified !3394 merge SHA/tree/parents,
-Gate 2 record and successful exact-head pipeline, and final content-freeze SHA.
-Do not treat an MR head or this draft's historical observation as that freeze.
-Inventory observation used here is main `a5d13ad9`, fully recorded in
-`/tmp/agf-v2131-release-version-inventory.json`; later coordination-only target
-advances are not implicitly admitted. Enumerate every intervening merge/path,
-verify its authority and tree, and freeze the concrete final current-main tip.
-Any unrelated product change requires explicit release-content reconciliation.
+Fresh anonymous reads at 07:16:59Z verified Home, documentation index,
+Commission, Should you adopt and Release information at source `bb407c35969c`:
+HTTP 200, six navigation groups, the corrected homepage headline, both exact
+CTA destinations, and removal of the obsolete commissioning command. The live
+site correctly remains development documentation after v2.13.0. Evidence:
+`/home/dev/s/tmp/codex-pages-live-bb407c35.json`. This completes the prior
+Pages deployment hold, not a v2.13.1 artifact publication.
+
+**Freeze remains pending.** The independent estate sweep found two README
+projections contradicting the reviewed Pages copy: its full commissioning
+prompt points to Install rather than Commission, and its probable-compatibility
+claim exceeds the canonical proposed/Theoretical coexistence evidence. A
+separately gated, two-paragraph child correction must merge before this plan's
+product-content freeze. Its exact plan, decision, merge and refreshed estate
+assessment/inventory must replace this pending field before Gate 1. The user's
+uncommitted root README is outside that work: use an isolated checkout. The
+release metadata MR still excludes README and remains 29 product paths.
+
+The current inventory observation at main `a5d13ad9` is recorded in
+`/tmp/agf-v2131-release-version-inventory.json`. The subsequent handoff merge
+`ec1022d4` added only h2gp/jn6k before the verified Pages merge above. Enumerate
+all further merges, including the child correction, before pinning the product
+freeze. The later construction checkpoint may admit only the specifically
+authorized plan/decision/report additions below, with exact identities and
+unchanged product bytes. Any other main advance returns to release-content
+reconciliation; no unrelated product change is implicitly admitted.
 
 The additional historical plan dependencies acknowledge the concrete overlaps
 reported by the changed-plan collision check. This release touches only the
@@ -163,20 +187,80 @@ remain the reviewed `alpine:3.24.3` linux/amd64 manifest
 against v2.13.0. The successful v2.13.0 publication/q5r4 is historical production
 evidence, not proof about the next mutable install or future API outcome.
 
-Gate 1 may authorize bounded credential-free replay of that exact install,
-base and actual post-install filesystem scans using a verified scanner image
-and fresh dated database, and tool/CA inventory. No project mounts, forwarded
+Pre-Gate-1 read-only diagnostics may replay that exact install in disposable
+credential-free containers, scan the base and actual post-install filesystems
+using a verified scanner image and fresh dated database, and record tool/CA and
+repository inventories under an owned temporary directory. These are assessment
+artifacts, not product implementation or authority to publish tracked reports. No project mounts, forwarded
 credentials/environment, custom shipped builder image, dependency/CI edits or
 production POST. Retain report hashes, scanner/package/database/time/architecture
-scope, findings and exclusions. The old 2026-10-29 HIGH/CRITICAL-zero reports
+scope, every severity of finding and exclusions. Preserve full-severity scan
+JSON; HIGH/CRITICAL-zero does not waive any other known finding. The old
+2026-10-29 HIGH/CRITICAL-zero reports
 remain immutable historical evidence; do not relabel them as today's scan.
 
 Before metadata Gate 2, require independent review and a fresh governor record
 accepting only the observed mutable-package/tool/CA and availability residual
 for this exact v2.13.1 cut, with an explicit expiry no later than the delegation.
+Bind that decision to the sanitized report hash, scanner image digest/version,
+DB timestamp, exact base digest/architecture, installed package/tool/CA and
+repository inventory, and frozen `.gitlab-ci.yml`/`create-release.sh` hashes.
+The acceptance must remain active until the entire release:create job reaches
+terminal success, including both APK installs, every package upload, Release
+POST and follow-up GET/response verification; a pre-expiry tag or POST alone
+does not satisfy that condition.
 No known-vulnerability waiver is implied: any new finding requires remediation
 or its own evidence-based disposition; no failure is suppressed. A material
 base/package/client/control change returns to a separately approved scope.
+
+### Current independent assessment (not acceptance)
+
+Independent security review cleared the exact diagnostic publisher report
+`/tmp/agf-v2131-publisher-refresh-20261030/report.md`, SHA-256
+`7f2ad87905d77fb41e1049114bac0cef68ec2836c29361ecd8ebc63e533ead41`,
+and evidence manifest `fc8ce119707cb374d99cdcd3f0019d12d30c8cf13e479f8559684a822769a141`.
+Trivy 0.76.1 with DB updated 2026-10-30T01:01:11Z and downloaded 07:03:01Z
+reported zero findings at every severity in 16 base / 34 runtime packages.
+All eight publisher/CI inputs match v2.13.0 at the Pages baseline; the report
+records exact scanner/base identities, package/tool/CA/repository inventories
+and replay limits. Its corrected wording distinguishes the single recorded
+`command -v` path from successful tool version executions. No rescan was needed.
+The independent recommendation supports only the fresh bounded dispositions
+above, rechecked against the eventual frozen source and final metadata candidate.
+It grants no risk acceptance or gate approval. The new README findings and
+pending exact freeze keep both final consultation rows pending.
+
+## Evidence publication and construction ordering
+
+Before Gate 1, inspection, read-only replay/scanning, an uncommitted estate
+assessment and version inventory may be prepared under `/tmp`. No tracked report
+is authored or committed by that diagnostic permission. Gate 1 reviews these
+concrete assessments and pins the product-content freeze to the verified Pages
+implementation merge, while explicitly authorizing the next audit-only step.
+
+After Gate 1, use branch `evidence/v2131-release-freeze` for exactly these three
+already-enumerated audit artifacts: the documentation-estate freeze report,
+the APK residual-risk report and the release rule-projection manifest. The
+projection manifest accurately labels planned versus completed status work;
+it must not claim the later B-cell synchronization already happened. Obtain
+independent review, required CI and ordinary Gate 2 for this evidence MR. The
+reports must state their actual observed product baseline and limitations.
+
+Merge that audit-only MR before constructing `release-2.13.1`. At the final
+construction checkpoint, enumerate the exact intervening plan, approval and
+report commits/paths since the pinned product freeze, verify their authority and
+actual trees, and prove no additional product bytes changed. Re-run the A/B/C
+inventory and record the actual current main SHA in a binding governor
+construction decision before starting the metadata branch. Only the specifically
+named plan/decision/report additions are eligible for that reconciliation;
+unrelated work requires a new freeze. This separates product-content freeze
+from the later audit-inclusive construction base without a Gate 1/report cycle.
+
+The metadata MR remains exactly 29 product metadata paths (27 A paths and two
+changelogs); it must not absorb audit reports or header repairs. Later B-cell
+status synchronization remains on its own branch/MR after verified publication.
+A required new substantive report path or changed product baseline needs a plan
+amendment before mutation, not an implicit allowance.
 
 ## Exact release-truth inventory
 
@@ -285,7 +369,8 @@ counts/ignores after validation; no copied count is a new pass.
 1. **Before Gate 1:** replace pending freeze/merge/plan-review fields; reconcile
    main since v2.13.0 (the previous three status-sync paths are historical
    publication truth, not new feature scope); review current claims/open MRs,
-   collisions, full release estate and exact candidate pipeline/Pages result.
+   collisions, the read-only estate assessment and exact candidate pipeline/Pages
+   result. Pin the product freeze and approve the audit-carrier sequence above.
    Publish the approved plan and binding governor record before implementation.
    Fresh header and APK dispositions must be independently reviewed and recorded
    before final metadata Gate 2; this plan itself accepts no residual risk.
@@ -300,7 +385,8 @@ counts/ignores after validation; no copied count is a new pass.
    access, ambiguous policy or incomplete coverage stops. If an existing exact
    rule differs, stop; do not edit/delete it or any other rule. Recheck unchanged
    exact object and effective matching policy set pre-push and post-publication.
-4. **Prepare metadata:** use a clean isolated existing worktree/branch
+4. **Prepare metadata:** first complete the approved evidence MR and binding
+   final construction checkpoint above. Then use a clean isolated existing worktree/branch
    `release-2.13.1` from the exact reviewed current-main base. Do not touch the
    dirty root checkout. Edit only A and new changelog sections. Validate exact
    drafted bytes; commit only the reviewed allowlist, verify clean state and
@@ -327,12 +413,28 @@ counts/ignores after validation; no copied count is a new pass.
    the accepted tested metadata tree. Any intervening product change requires
    re-freeze; audit-only advance still needs exact reconciliation/acceptance.
 8. **Immediate authorized tag action:** reobserve authority/expiry, runner
-   availability and tag policies; run canonical namespace-check `--phase pre-push`
+   availability and tag policies. Do not push unless a conservative duration
+   budget makes the entire release:create job reach terminal success before
+   expiry (installs, uploads, POST and follow-up verification): reserve
+   at least two hours, or twice the latest observed complete tag-pipeline duration
+   plus current queue allowance, whichever is longer. With an 18:00Z expiry,
+   16:00Z is therefore the latest possible cutoff, and evidence may require an
+   earlier cutoff. Unknown capacity/duration or insufficient margin stops before
+   tagging for renewed authority, not a grandfathered late run. Then run canonical
+   namespace-check `--phase pre-push`
    bound to the actual live main merge. On success, annotate `v2.13.1` on that
    merge and push once in one action, with no unnecessary extra confirmation.
    The merged metadata MR supplies standard-path tag authorization. Never move,
    delete or recreate the tag. If cut crosses UTC midnight before tagging,
    reconcile the changelog date and re-review rather than publish a false date.
+
+After tag push, monitor until the entire release:create job reaches terminal
+success inside the accepted window, including installs, uploads, POST and
+follow-up verification. If unexpected delay threatens expiry, cancel or suspend
+queued or running risk-bearing work while authority remains active and preserve
+the immutable tag/any partial assets; reconcile ambiguous outcomes read-only.
+Do not launch or retry expired work. A pre-expiry tag never grants post-expiry execution. The
+margin is an operating precaution, not a guarantee of queue or network timing.
 
 Namespace-check JSON must bind project/path/version/source/live target/time;
 the mandatory MR job also binds the canonical pipeline. Neither check reserves
@@ -417,8 +519,9 @@ this plan does not authorize a v2.13.2 release or editing a published Release.
 Required before this draft may be approved:
 
 - [ ] Exact !3394 Gate 2/merge/parents/tree/pipeline and Pages verification.
-- [ ] Exact frozen content/main construction SHA, all intervening-path inventory,
-      release-estate review and refreshed A/B/C inventory.
+- [ ] Exact product-content freeze SHA, read-only estate assessment and refreshed
+      A/B/C inventory; explicit audit-carrier sequence and final construction
+      checkpoint, whose actual SHA is recorded only after those approved merges.
 - [ ] Fresh independent contribution and security consultations, with no pending
       advisory row left in approved metadata.
 - [ ] Governor choice/record for the three inherited headers; tgrk repair remains
@@ -426,6 +529,7 @@ Required before this draft may be approved:
 - [ ] Agreed evidence refresh/expiry and fresh v2.13.1-only mutable-APK residual
       disposition before metadata Gate 2; any findings separately resolved.
 - [ ] Current claims/collisions, UTC cut-date choice, expected job matrix/runner
-      availability and exact protected-tag policy/creation scope.
+      availability and conservative publication-before-expiry budget, plus exact
+      protected-tag policy/creation scope.
 - [ ] Replace all pending fields and unverified short IDs; reviewed plan must
       name its own new binding approval, not inherit v2.13.0 authority.
