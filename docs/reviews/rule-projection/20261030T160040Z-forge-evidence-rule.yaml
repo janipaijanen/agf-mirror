@@ -52,10 +52,9 @@ surfaces:
   distribution:
     disposition: existing pointer sufficient
     paths:
-      - agf/rules/workflow/forge-publication-evidence-rule.md
       - agf/rules/README.md
       - agf/templates/AGENTS.md
       - agf/docs/site/docs/operate/day-to-day.md
     reason: >-
-      All four ship through existing agf/ distribution coverage. Foundry-local
+      These three existing files and the new owner rule ship through existing agf/ distribution coverage. Foundry-local
       loader files are project-local only.

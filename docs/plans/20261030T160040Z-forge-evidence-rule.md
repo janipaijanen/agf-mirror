@@ -3,7 +3,26 @@ id: 20261030T160040Z-forge-evidence-rule
 status: pending-gate1
 topic: forge-publication-evidence-boundary-rule
 depends_on:
+  - 20260913T085123Z-work-item-steward-gate1
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260915T075705Z-issue130-pending-advisory-consultation-status
   - 20260921T040743Z-assistant-rule-drift-resolution
+  - 20261021T220000Z-retire-windows-support
+  - 20261022T205113Z-instruction-context-reduction
+  - 20261023T045214Z-remove-elixir-references
+  - 20261023T080431Z-instruction-context-followup
+  - 20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases
+  - 20261024T070435Z-timer-reality-polling-alignment
+  - 20261025T183939Z-v211-changelog-and-scope-reconciliation
+  - 20261025T192020Z-supersedes-adopter-docs
+  - 20261027T045944Z-record-only-publication-termination
+  - 20261027T230355Z-v212-release-freeze-corrections
+  - 20261027T235807Z-v212-release-publication
+  - 20261029T204751Z-v213-release-freeze-preparation
+  - 20261029T220500Z-v213-release-publication
+  - 20261030T064744Z-v2131-release-publication
+  - 20261030T144439Z-header-repair-plan
 affected_paths:
   - agf/rules/workflow/forge-publication-evidence-rule.md
   - agf/rules/workflow/merge-request-description-rule.md
@@ -192,11 +211,24 @@ changelog migration entry).
 
 ## Collision and dependency evidence
 
-Run `agov plan collision-check --plans-only --changed-only` on the committed
-plan; every landed predecessor it reports is added to `depends_on` as a
-sequencing acknowledgement, with its effect on the shared files recorded at the
-head returned for Gate 1. Before implementation the owner refetches refs,
-confirms no active claim on these paths and rebases onto any merged change.
+`agov plan collision-check --plans-only --changed-only`, run on the committed
+plan, reported 20 blocking overlaps with earlier plans. All 20 are
+`approved`. The shared files are the rules index, the shipped assistant template,
+the project `AGENTS.md`, the adopter changelog, the day-to-day page, the
+merge-request description rule (through the broad glob `agf/rules/**`), and the
+rule index. None of these plans has an open claim or open merge request on these
+paths: the only open merge requests at this head are coordination records and
+this plan. Their earlier edits changed other entries and prose in the shared
+files; this plan adds a new rule, one pointer, one route, one page paragraph and
+one changelog entry, and rewrites none of that content. All 20 are added to
+`depends_on` as sequencing acknowledgements. This does not approve this plan or
+any predecessor.
+
+Before implementation the owner refetches refs, confirms no active claim on
+these paths, rebases onto any merged change, and rechecks collisions for every
+newly affected path. The adopter changelog is shared with release publication
+plans, so the implementation either lands before the next freeze or is
+re-checked against it.
 
 ## Risks and rollback
 
