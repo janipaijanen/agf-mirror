@@ -1,6 +1,8 @@
 ---
 id: 20261030T054200Z-pages-reader-journey-patch
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261030T055817Z-governor-reviewer-pksk
+gate1_approved_at: "2026-10-30T05:58:17Z"
 topic: public-pages-reader-journey-and-documentation-corrections
 advisory_consultation:
   - role: infosec-sentinel
@@ -41,9 +43,9 @@ order, language and contents as a patch release. Recommend candidate **v2.13.1**
 with plain English and a first-time adopter as the primary audience. Experienced
 operators and assistant readers retain direct access to references.
 
-This is a pending Gate 1 proposal, not implementation, merge, deployment or
-release approval. Do not bump versions or tag from this plan. Following approval,
-implement the bounded documentation slice below; a separate release-publication
+Gate 1 was approved by governor decision `20261030T055817Z-governor-reviewer-pksk`.
+Implement only the bounded documentation slice below. This is not merge,
+deployment or release approval; do not bump versions or tag from this plan; a separate release-publication
 plan/freezing decision must admit its reviewed exact head, reconcile changelogs
 and version surfaces, and authorize the normal release process. Do not promise a
 publication date before independent rendered review and CI evidence exist.
