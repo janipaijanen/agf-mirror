@@ -1,6 +1,8 @@
 ---
 id: 20261030T214700Z-pages-task-metrics-amendment-a1
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261030T215549Z-governor-reviewer-gpqq
+gate1_approved_at: "2026-10-30T21:55:49Z"
 topic: pages-task-metrics-amendment-a1
 affected_paths:
   - docs/plans/20261030T214700Z-pages-task-metrics-amendment-a1.md
@@ -9,29 +11,35 @@ depends_on:
   - 20261030T163253Z-pages-structure-and-voice
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Re-review requested after the revision answering decision record pg2s.
+    status: consulted
+    reason: Contribution and factual review cleared exact head dc05e4f1 and reproduced the script hash and counts. Recorded in governor decision gpqq.
   - role: infosec-sentinel
-    status: pending
-    reason: Re-review requested. The amendment adds no data collection, and unfamiliar-participant research is excluded.
+    status: consulted
+    reason: InfoSec and authority review cleared exact head dc05e4f1 and reproduced the script hash and counts. Recorded in gpqq.
   - role: web-ux-reviewer
-    status: pending
-    reason: Re-review requested for the answer keys, the counting rules, and the rendered desktop and mobile check.
+    status: consulted
+    reason: Web UX review cleared exact head dc05e4f1 within advisory scope. The reviewer authored parts of the current site but neither planning draft, and disclosed that limit. Recorded in gpqq.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Amendment A1: task metrics for the Pages structure plan (proposed)
 
-Governance mode: STRICT, because it would change acceptance criteria of an approved
-plan. Status is `pending-gate1`. Nothing here is approved.
+Governance mode: STRICT, because it changes acceptance criteria of an approved plan.
+
+Lifecycle: Gate 1 approved by governor decision `20261030T215549Z-governor-reviewer-gpqq`
+at reviewed exact head `dc05e4f1a5fc9ca1f3babd14bd00fd73e8c547c5` (MR !3455). The only edits
+after that head are the lifecycle metadata, the consultation rows, this paragraph and the
+rollback text, as gpqq authorizes. The earlier evidence and provenance below are retained.
+This is Gate 1 only. It is not Gate 2, merge, version, tag or deployment approval. The parent's
+source-consistency holds and independent implementation review remain.
 
 This is a separate plan file on purpose. The approved plan
 `20261030T163253Z-pages-structure-and-voice` stays byte-for-byte unchanged and keeps
 `status: approved` for its own criteria. A machine or an agent that reads the parent
-therefore cannot read its approval as approval of this amendment. The parent gains
-criterion 10 only when a `governor-reviewer` record approves this file at Gate 1 and
-names it. Until then, parent criteria 1 to 9 are the only acceptance criteria.
+therefore cannot read its approval as approval of this amendment. gpqq approves this file at
+Gate 1, so criterion 10 applies to the parent plan by reference to this file. Parent criteria 1 to 9
+and all original scope stay in force. The parent file is not edited.
 
 Claim: `20261030T210529Z-planner-architect-p214`. Handoffs: `3ghb`, `kmhn`. Findings
 answered: `20261030T212253Z-governor-reviewer-pg2s` (section "Combined planning review").
@@ -107,11 +115,24 @@ Targets are rules, not invented numbers.
 
 ## Consultations and decisions
 
-`contribution-auditor`, `infosec-sentinel` and `web-ux-reviewer` rows are `pending` until
-they answer the revised heads. The governor decides Gate 1. Open decision for the governor:
-whether the Operate scenario (an approved plan, starting work) is the stage the human intends,
-or whether a different stage (for example review and release) serves the human's aim better.
+All three rows are `consulted` with the outcomes in the front matter. Two reviewers independently
+fetched the rendered HTML and reproduced the script hash `aaa2cb0444c362cc` and the counts: Home
+312; destination subtotals 670, 768 and 862; totals 982, 1,080 and 1,174; Adopt payload 476. This is
+source-familiar expert evidence, not user research.
+
+Decision gpqq chose the proposed Operate scenario: a maintainer starts work after an approved plan
+and identifies the next authorized actions and artifacts. Finding the procedure does not complete the
+change. The no-regression and reading-reduction rules and the limits in this plan are bound.
+
+Browser evidence is incomplete. The review surface returned "Browser is not available: iab". No
+desktop, mobile, keyboard, screenshot or viewport acceptance is claimed, and the HTML counts do not
+replace it. Before the affected pages are rewritten, an independent rendered baseline is still required
+under the parent's sequence, and the later rendered acceptance is preserved.
 
 ## Rollback
 
-Do not approve. The parent plan is unchanged, so nothing needs reverting.
+This plan is approved, so "do not approve" is no longer a rollback. To withdraw or supersede it, a
+later `governor-reviewer` record must name this plan, the revision being withdrawn or superseded, and
+whether dependent implementation stops or is re-evaluated. Nobody removes criterion 10 or edits this
+file's approved status without that record. The parent plan is unchanged, so withdrawing A1 reverts
+nothing in the parent file.
