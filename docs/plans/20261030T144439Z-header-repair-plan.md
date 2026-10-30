@@ -2,6 +2,15 @@
 id: 20261030T144439Z-header-repair-plan
 status: pending-gate1
 topic: inherited-spdx-header-repair-three-files
+depends_on:
+  - 20261021T220000Z-retire-windows-support
+  - 20261025T183939Z-v211-changelog-and-scope-reconciliation
+  - 20261025T192020Z-supersedes-adopter-docs
+  - 20261027T230355Z-v212-release-freeze-corrections
+  - 20261027T235807Z-v212-release-publication
+  - 20261029T204751Z-v213-release-freeze-preparation
+  - 20261029T220500Z-v213-release-publication
+  - 20261030T064744Z-v2131-release-publication
 affected_paths:
   - CHANGELOG.md
   - agf/CHANGELOG.md
@@ -143,11 +152,22 @@ enforcement, historical prose.
 
 ## Collision and dependency evidence
 
-The three paths are touched by earlier release plans. This plan claims no part
-of their ownership. `depends_on` lists the live plans found by
-`agov plan collision-check`; the list is completed before this plan is returned
-for Gate 1. Before implementation the owner must refetch refs, confirm no
-active claim on these paths, and rebase onto any merged change to them.
+`agov plan collision-check --plans-only --changed-only` (run on the committed
+plan) reported eight blocking overlaps with earlier plans. All eight are
+`approved` and their work has landed in the published releases v2.11.0 to
+v2.13.1 (changelog edits, release metadata, freeze corrections, and the
+release-publication plans). None of them is an open claim on these paths: the
+only live claim in this area is `20261030T144438Z-planner-architect-tgjg`, which
+owns this plan file and no product file. All eight are added to `depends_on` as
+sequencing acknowledgements. Each previously edited prose or entries inside the
+changelogs; this plan adds a header above the first line and rewrites none of
+that content. This acknowledgement does not approve this plan or any
+predecessor.
+
+Before implementation the owner must refetch refs, confirm no active claim on
+the three paths, and rebase onto any merged change to them. The next release
+publication plan will also edit both changelogs, so the implementation either
+lands before that freeze or is re-checked against it.
 
 ## Include or exclude recommendation for the next maintenance batch
 
