@@ -8,7 +8,7 @@
 | Field | Value |
 |-------|-------|
 | Framework | agents-govern (AGF) |
-| Version | 2.13.0 |
+| Version | 2.13.1 |
 | Source | AGF-NG foundry |
 | Repository | https://gitlab.com/janipaijanen/agents-govern-framework |
 | License | CC-BY-SA-4.0 |
@@ -35,7 +35,7 @@ treating an arbitrary repository checkout as a release artifact.
 | `ADOPTING.md` | Step-by-step adoption guide | Follow step by step |
 | `framework.md` | Framework theory and reference | Read-only reference |
 | `CHANGELOG.md` | v2.0 change history | Reference |
-| `VERSION` | Current version string (`2.13.0`) | Reference |
+| `VERSION` | Current version string (`2.13.1`) | Reference |
 | `LICENSE` / `LICENSE-MIT` | CC-BY-SA-4.0 and MIT dual license | Include in project |
 | `docs/governance/` | Governance documents (this file, learning system, retrospective) | Read-only reference |
 | `docs/contracts/` | Agent-output binding contract, integration contract, stability promise | Read before enabling full compliance |
@@ -73,7 +73,7 @@ When upgrading from a previous version, record the upgrade in your learning reco
 upgrade_history:
   - date: "<date>"
     from_version: "<previous>"
-    to_version: "2.13.0"
+    to_version: "2.13.1"
     agent_changes: []
     notes: ""
 ```

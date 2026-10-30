@@ -8,6 +8,28 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [2.13.1] - 2026-10-30
+
+**Documentation reader-journey patch.** The canonical adopter entry is in
+[`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[2.13.1]`.
+
+### Changed
+
+- **Simplify the public documentation journey (!3394, `bb407c35`).** Reorder
+  navigation and clarify setup language while preserving all 46 destinations,
+  existing CSS and the feature-summary contract. Both homepage calls to action
+  have independent destination checks and negative controls. At the reviewed
+  implementation head, strict MkDocs, 27 hook tests, three tooling tests, and
+  desktop, mobile and keyboard review passed. The resulting five-page public
+  sample was verified against the deployed source. These checks establish the
+  reviewed content and layout; they make no conversion or performance claim.
+- **Align the root README's setup and coexistence paragraphs (!3397,
+  `93e20346`).** The Commission prompt is the setup entry point, with Install
+  retained for manual detail. Third-party coexistence remains proposed,
+  Level 2 Surface-defined / Theoretical guidance, without established
+  compatibility or authority to override governance. Only those two paragraphs
+  changed; unrelated README statistics remain outside this patch.
+
 ## [2.13.0] - 2026-10-29
 
 Adopter-facing entries for v2.13.0, with their `Adopter docs:` lines, are

@@ -5,6 +5,23 @@ distribution.
 
 ## [Unreleased]
 
+## [2.13.1] — 2026-10-30
+
+### Changed
+
+- **Clearer documentation setup path (!3394, `bb407c35`).** Home and the
+  documentation index use Decide → Set up → First governed change → Operate,
+  with six navigation groups preserving all 46 destinations and existing links.
+  Setup separates framework files from optional agov tooling, retains collision,
+  checksum and provenance checks, uses general validation and explains manual
+  review. Loader/runtime and third-party-tooling guidance now match their
+  canonical sources and dated evidence limits. No command, governance authority,
+  platform or dependency changes. Adopter docs: updated (`index.md`,
+  `docs/index.md`, `use-cases.md`, `docs/start/should-you-adopt.md`,
+  `docs/start/commission.md`, `docs/start/adopter-faq.md`,
+  `docs/adopt/install-and-layouts.md`,
+  `docs/adopt/third-party-plugin-coexistence.md`, `docs/concepts/position.md`).
+
 ## [2.13.0] — 2026-10-29
 
 Documentation paths in "Adopter docs" lines are relative to `agf/docs/site/` for
