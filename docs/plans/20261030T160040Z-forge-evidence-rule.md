@@ -5,160 +5,215 @@ topic: forge-publication-evidence-boundary-rule
 depends_on:
   - 20260921T040743Z-assistant-rule-drift-resolution
 affected_paths:
+  - agf/rules/workflow/forge-publication-evidence-rule.md
   - agf/rules/workflow/merge-request-description-rule.md
+  - agf/rules/README.md
+  - agf/templates/AGENTS.md
+  - agf/docs/site/docs/operate/day-to-day.md
+  - agf/CHANGELOG.md
+  - docs/reviews/rule-projection/20261030T160040Z-forge-evidence-rule.yaml
+  - .claude/rules/workflow/forge-publication-evidence-rule.md
+  - .claude/rules/INDEX.md
+  - AGENTS.md
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Consultation requested with this plan, as required by governor record
-      20261030T155116Z-governor-reviewer-ghgs. No clearance is claimed.
+      Independent review of exact 66e5ab2e returned BLOCK findings, recorded in
+      combined review `20261030T160913Z-contribution-auditor-gdjm` (F2 privacy
+      boundary, F1 scope). This revision answers F1 to F5. It is NOT cleared:
+      the revised exact head still needs independent re-review.
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Consultation requested with this plan, as required by the same record,
-      in particular on the rule wording, the BREAKING classification and the
-      projection assessment. No clearance is claimed.
+      Independent review of exact 66e5ab2e returned BLOCK findings, recorded in
+      combined review `20261030T160913Z-contribution-auditor-gdjm` (F1 to F4
+      blocking, F5 advisory). This revision answers F1 to F5. It is NOT cleared:
+      the revised exact head still needs independent re-review.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
-# Plan: forge publications cite durable evidence, not chat
+# Plan: forge publications cite durable evidence, not chat as authority
 
-Governance mode: STRICT (a rule change under `agf/rules/`, a downstream-impact
-trigger path). Planning only. This plan edits no shipped rule and adds no CI
-check, history rewrite or bulk note deletion.
+Governance mode: STRICT (a new rule under `agf/rules/`, a downstream-impact
+trigger path, and AI-loader routing). Planning only. This plan edits no shipped
+rule, page, loader or changelog and adds no CI check, history rewrite or bulk
+note deletion.
 
-Source: governor record `20261030T155116Z-governor-reviewer-ghgs`, which records
-the human direction that GitLab merge requests and issues must not refer to the
-live chat surface. Claim: `20261030T160040Z-planner-architect-gr51`.
+Source: governor record `20261030T155116Z-governor-reviewer-ghgs`; combined review
+`20261030T160913Z-contribution-auditor-gdjm` (F1 to F5). Claims:
+`20261030T160040Z-planner-architect-gr51` (released by `7nhr`) and
+`20261030T162930Z-planner-architect-mjbh`.
+
+## Two layers, kept separate
+
+1. **Foundry direction (unchanged).** Under `ghgs`, in this project GitLab merge
+   requests and issues must not refer to the project's live chat surface at all.
+   This plan does not weaken, rewrite or generalize that instruction. It stays in
+   force through its own record and the foundry loaders.
+2. **Generic AGF rule (this plan).** A reusable rule for adopters, narrower than
+   the foundry direction, aimed at the governance invariant: live conversation
+   must not be the evidence of authority.
 
 ## Intent
 
-Make the direction permanent in AGF. Merge request titles, descriptions and
-notes, and issue text, cite durable official evidence: coordination record IDs
-or paths, plan files, commit SHAs, pipeline and job IDs, and other Git or forge
-items. Chat provenance stays in the coordination audit trail, not in forge
-prose.
+Make the invariant permanent and shippable: a merge request or issue never
+relies on a live-chat message number, link, quote or paraphrase as evidence of
+approval, scope, status, verification or other authority. The durable
+coordination record, plan, commit, pipeline or job, or other forge artifact is
+the evidence. Chat provenance stays in the coordination audit trail.
 
-## Canonical owner (located)
+## Findings answered
 
-`agf/rules/workflow/merge-request-description-rule.md` is the single owner. It
-already governs what a merge request description MUST name (branch, artifacts,
-coordination handoffs and decisions, validation, residual risks) and MUST NOT
-contain (secrets, tokens, credentials, local paths). The new clause is the same
-kind of statement, so it belongs there and not in a new file.
+| Finding | Answer in this revision |
+|---|---|
+| F1 over-broad all-chat ban | The generic clause targets chat used as governance evidence only. It expressly allows chat or relay systems as the subject of an issue or merge request, and the minimum sanitized reproducer needed to review that work. The foundry-specific stricter rule is kept separate (above). |
+| F2 privacy | The clause requires minimal, sanitized durable evidence and forbids copying secrets, private identifiers, private links or raw chat into forge text or coordination records. It states that moving sensitive text into an immutable record does not make it safe. It points to the existing secret and anonymization rules. |
+| F3 owner scope | A new canonical owner covers merge request and issue titles, bodies and notes. The MR-description rule keeps its own scope and gains one pointer. |
+| F4 projections, migration, SemVer | Affected paths now include the adopter operating page, shipped loader routing, rules index, a changelog migration entry and the structured projection manifest. SemVer constraint stated below (decision D1). |
+| F5 semantic examples | Positive and negative examples are part of the rule text and acceptance criteria. Validation stays manual and advisory. |
 
-Other candidates and why they are not the owner:
+## Canonical owner (decision: one new file)
 
-- `merge-request-workflow-rule.md` governs that changes go through merge
-  requests, not what their text contains.
-- `coordination-publication-rule.md` governs publication of coordination
-  records, not forge prose.
-- `.gitlab/merge_request_templates/*.md` and `.gitlab/issue_templates/*.md` are
-  foundry-local, not shipped (they are absent from `agf/dist/release-manifest.yaml`).
+`agf/rules/workflow/forge-publication-evidence-rule.md` (new) is the single owner
+of the invariant for merge request and issue titles, bodies and notes.
+`merge-request-description-rule.md` keeps its MR-only scope and adds one pointer
+sentence in "Content expectations" plus a `see_also` entry. The alternative,
+broadening the MR-description rule to cover issues, was rejected: it would
+change that rule's declared scope, heading and discovery path for a different
+audience.
 
-## Proposed change (after Gate 1, as a separate implementation)
+## Draft rule text (for Gate 1 review; no product or tool name)
 
-Add to the owner rule, after the "Content expectations" list, one short
-subsection. Draft text, with no product or tool name so that adopters can apply
-it to whatever chat surface they use:
-
-> ### Cite durable evidence, not chat
+> **Forge publications cite durable evidence.** A merge request or issue title,
+> description or note MUST NOT rely on a live-chat message as evidence of
+> approval, scope, status, verification or authority. That includes a message
+> number, link, quote or paraphrase of the conversation. Cite the durable
+> artifact instead: a coordination record ID or path, a plan file, a commit SHA,
+> a pipeline or job ID, or another Git or forge item. Chat provenance belongs in
+> the coordination audit trail.
 >
-> A merge request title, description or note, and issue text, MUST NOT refer to
-> a chat, messaging or relay surface used for live discussion between agents or
-> people: no message numbers, quotes, links or paraphrased provenance. Cite
-> official evidence instead: coordination record IDs or paths, plan files,
-> commit SHAs, pipeline and job IDs, and other Git or forge-hosted items. Chat
-> provenance belongs in the coordination audit trail. This clause adds no
-> automated check, requires no rewrite of history and requires no deletion of
-> existing text. Existing coordination records stay immutable.
+> **Allowed.** Discuss a chat, messaging or relay system when it is the subject
+> of the work, for example an issue about an integration defect or a merge
+> request that changes a relay adapter. Include the minimum sanitized
+> reproducer needed to review that work.
+>
+> **Privacy.** Record only the minimum decision or evidence summary needed for
+> audit. Do not copy secrets, credentials, private identifiers, customer
+> details, private links or raw chat text into a forge publication or into a
+> coordination record. Moving sensitive text into an immutable record does not
+> make it safe. Apply `security-hardening-rule.md` and
+> `external-anonymization-rule.md`.
+>
+> **Stricter project direction.** A project MAY forbid any mention of its chat
+> surface in forge text. This rule does not weaken such a direction.
+>
+> **Limits.** This rule adds no automated check, no rewrite of history and no
+> deletion of existing text. Existing coordination records stay immutable.
+> Whether text relies on chat as evidence is a human judgment.
 
-Update the rule's front-matter `evidence` field and add the usual provisional
-status note (single-project evidence: one governor direction, 2026-10-30).
-Evidence status: **Theoretical** (a governance direction, not yet validated by
-use).
+Front matter of the new file follows the sibling rules (id, scope: workflow,
+strength, status, `see_also`), marked provisional with evidence status
+**Theoretical** (one project, one governor direction, 2026-10-30).
 
-## Projection assessment (six surfaces)
+## Semantic examples (review evidence, not a validator)
+
+| Case | Result |
+|---|---|
+| MR description says "approved in chat, message 412" | Forbidden: chat as approval evidence. Cite the decision record ID. |
+| Issue says "scope agreed in the team thread" | Forbidden: chat as scope evidence. Cite the plan and its Gate 1 record. |
+| MR note quotes a private link and a token copied from a chat | Forbidden twice: chat evidence, and a secret or private link. |
+| Issue reports that a webhook relay drops events, with a sanitized payload that reproduces it | Allowed: the relay is the subject; the payload is minimal and sanitized. |
+| MR changes a chat-integration adapter and describes its behavior | Allowed: chat is the artifact under review. |
+| MR cites `20261030T151222Z-governor-reviewer-ph8p` and commit `4076884d` | Allowed and preferred. |
+
+## Projection assessment (six surfaces, structured manifest required)
+
+The change adds normative guidance, so the projection rule applies. The
+canonical manifest is `docs/reviews/rule-projection/20261030T160040Z-forge-evidence-rule.yaml`, with the owner
+marked `stage: planned` until the rule exists.
 
 | Surface | Disposition |
 |---|---|
-| Normative owner | Updated: `merge-request-description-rule.md`. |
-| Adopter-facing explanation | Not applicable. No Pages page describes merge request description content (searched `agf/docs/site/docs`, `agf/ADOPTING.md`). |
-| Runbook/situation map | Not applicable. No operating step changes. |
-| AI landing/loaders | Existing pointer sufficient. `agf/templates/AGENTS.md` points assistants to the whole `agf/rules/workflow/` directory; the foundry `AGENTS.md` and `.claude/rules/INDEX.md` already route "prepare an MR or write its description" to this rule. No loader edit. |
-| Validation/drift evidence | Not mechanically decidable. Whether prose "refers to chat" is a human judgment; no validator is added or authorized. |
-| Distribution | The owner already ships through existing `agf/rules/` coverage. |
+| Normative owner | Updated (new): `forge-publication-evidence-rule.md`, plus a pointer in `merge-request-description-rule.md`. |
+| Adopter-facing explanation | Updated: a concise pointer in `agf/docs/site/docs/operate/day-to-day.md`, section "Show the assistant and role on GitLab", which already tells authors to name a durable coordination record. |
+| Runbook/situation map | Existing pointer to day-to-day sufficient; the manifest records why. |
+| AI landing/loaders | Updated: `agf/templates/AGENTS.md` gains one route covering merge request and issue publication; `agf/rules/README.md` lists the rule. Foundry-local routes: `.claude/rules/workflow/` symlink, `.claude/rules/INDEX.md` row, and the `AGENTS.md` list line. |
+| Validation/drift evidence | Not mechanically decidable; human review with the examples above. |
+| Distribution | The owner, README, template and page already ship through `agf/` coverage; foundry-local loaders are project-local. |
 
-The projection rule requires a manifest when normative guidance in a Pages page
-or runbook changes. None changes here, so no manifest is proposed. This is a
-reasoned result, not an omitted row. If the governor wants the foundry-local
-merge request and issue templates to carry a one-line reminder, that is a
-separate project-local change outside this plan.
+## Downstream impact and SemVer (decision D1)
 
-## Acceptance criteria
+A new `MUST NOT` narrows a previously implicit permission, which
+`downstream-impact-rule.md` classifies as BREAKING. The framework's version
+policy reserves breaking changes for a MAJOR release.
 
-1. Only `agf/rules/workflow/merge-request-description-rule.md` changes.
-2. The added subsection uses no product or tool name and names only generic
-   chat surfaces.
-3. The rule states it adds no automated check, no history rewrite and no
-   deletion.
-4. `git diff --check`, `agov validate adoption`, `adopter-docs` and `infosec`
-   pass; the exact-head pipeline is green.
-5. Independent exact-head review and a separate binding Gate 2 precede merge.
+- **D1 option A (draft default): keep `MUST NOT`.** BREAKING. The change is
+  **ineligible for the v2.13.x maintenance line or any v2.x minor release** and
+  may ship only through a separately approved major-release plan. This chooses
+  no version number, milestone or date.
+- **D1 option B: weaken to `SHOULD NOT` for adopters.** The generic rule becomes
+  a recommendation (ADDITIVE, eligible for a minor release). Foundry keeps its
+  stricter local `MUST NOT` through `ghgs`.
 
-## Downstream impact (BREAKING by the Parnas test)
-
-The clause adds a new prohibition. Under `downstream-impact-rule.md`, narrowing
-previously permitted behavior is BREAKING. Adopters whose agents cite chat
-messages in merge request text must stop doing so.
+The plan recommends A because it keeps the direction's strength, and states B so
+the governor can choose the faster path. The implementation, if approved, uses
+the chosen option consistently in the rule, the page, the changelog entry and
+the migration note.
 
 ```
 Impact:
-  Foundry:          Already applied by governor direction; this makes it a rule.
-  Direct adopters:  BREAKING (new MUST NOT). Authors cite coordination records,
-                    plans, commits and pipeline IDs instead of chat.
-  Downstream:       Merge request text shape changes slightly; no artifact shape.
-  Migration:        Author behavior only. No data, tooling, schema or history
-                    change. Existing text is left as is.
-  Evidence:         20261030T155116Z-governor-reviewer-ghgs (governor direction;
-                    single project).
+  Foundry:          Already applied by governor direction; the generic rule adds the
+                    adopter-facing invariant.
+  Direct adopters:  A: BREAKING (MAJOR only). B: ADDITIVE recommendation.
+  Downstream:       Forge text shape changes slightly; no artifact shape.
+  Migration:        Author behavior only; an adopter-visible entry goes under
+                    Unreleased in agf/CHANGELOG.md. No data, tooling, schema or
+                    history change.
+  Evidence:         ghgs, gdjm; Theoretical, single project.
 ```
 
-A migration note in the next release changelog is required when this ships.
-Adopter docs parity: not applicable beyond the rule itself (see projection
-assessment).
+Adopter docs parity: updated (day-to-day page, shipped loader, rules index,
+changelog migration entry).
+
+## Acceptance criteria (after Gate 1, one implementation)
+
+1. Only the paths in `affected_paths` change; no other file.
+2. The new rule contains the clause, the allowed case, the privacy paragraph,
+   the stricter-direction sentence, the limits and the examples, and names no
+   product or tool.
+3. `agov plan projection-check --base-ref origin/main <manifest>` passes without
+   `--allow-planned` at the implementation head (the owner then exists).
+4. The changelog entry states the D1 outcome and the migration note.
+5. `agov validate adoption`, `adopter-docs`, `infosec` pass; `git diff --check`
+   is clean; exact-head pipeline green.
+6. Independent exact-head review and a separate binding Gate 2 precede merge.
 
 ## Collision and dependency evidence
 
-`agov plan collision-check --plans-only --changed-only`, run on the committed
-plan, reported one blocking overlap: `20260921T040743Z-assistant-rule-drift-resolution`
-(`approved`) declares the broad glob `agf/rules/**`, which covers the owner
-rule. That plan's work (assistant-loader and rule-path drift) has landed; it
-touched this rule only to correct loader paths and did not change what a merge
-request description may contain. It is added to `depends_on` as a sequencing
-acknowledgement. This acknowledgement does not approve this plan or any
-predecessor.
-
-Before implementation the owner refetches refs, confirms no active claim on the
-rule file and rebases onto any merged change to it.
+Run `agov plan collision-check --plans-only --changed-only` on the committed
+plan; every landed predecessor it reports is added to `depends_on` as a
+sequencing acknowledgement, with its effect on the shared files recorded at the
+head returned for Gate 1. Before implementation the owner refetches refs,
+confirms no active claim on these paths and rebases onto any merged change.
 
 ## Risks and rollback
 
-- **Over-broad reading** that bans citing coordination records: control, the
-  clause names coordination records as the preferred evidence.
-- **Chat surface named by accident:** control, acceptance criterion 2.
-- **Retroactive pressure to edit history:** control, the clause says no rewrite
-  or deletion; coordination records stay immutable.
+- **Over-broad reading:** controlled by the allowed case and examples.
+- **Privacy regression:** controlled by the explicit privacy paragraph.
+- **Release timing:** option A cannot ride a minor release; D1 makes that explicit.
 - **Rollback:** revert the single implementation merge request.
 
 ## Out of scope
 
-New CI checks, retroactive history rewrite, bulk note deletion, a general chat
-retention policy, role changes, release commitments, project-local template
-reminders, and any shipped rule edit before its own Gate 1 and Gate 2.
+New CI checks, history rewrite, bulk note deletion, a general chat retention
+policy, role changes, release version, date or milestone, project-local merge
+request and issue template reminders, and any shipped edit before its own Gate 1
+and Gate 2.
 
 ## Gate 1 request
 
-Approve this plan for one rule clause in one file, with the BREAKING
-classification and the migration note. Both advisory consultations are pending.
+Approve this plan with a decision on D1. Both advisory rows record the earlier
+BLOCK findings and are not cleared; independent re-review of the revised exact
+head is required before the Gate 1 decision.

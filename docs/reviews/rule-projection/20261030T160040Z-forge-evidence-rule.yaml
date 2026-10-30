@@ -1,0 +1,61 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+
+plan_id: 20261030T160040Z-forge-evidence-rule
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/day-to-day.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    stage: planned
+    path: agf/rules/workflow/forge-publication-evidence-rule.md
+    reason: >-
+      New single owner for the invariant that merge request and issue text does
+      not rely on live chat as governance evidence. The merge-request description
+      rule keeps its own scope and gains one pointer. The owner is created by the
+      implementation after Gate 1.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      A concise pointer in the existing section on GitLab bylines, which already
+      tells authors to name a durable coordination record. It names the owner and
+      does not copy the rule.
+
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      The day-to-day page is the runbook-level page for GitLab authoring. No
+      separate runbook step changes.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - agf/templates/AGENTS.md
+      - agf/rules/README.md
+    reason: >-
+      The shipped loader gains one route covering merge request and issue
+      publication; the rules index lists the new rule. Foundry-local routes
+      (.claude rule symlink, rule index row, project AGENTS.md list line) follow
+      the same owner and are project-local.
+
+  validation_drift_evidence:
+    disposition: not mechanically decidable
+    reason: >-
+      Whether text relies on chat as evidence is a human judgment. The rule ships
+      positive and negative examples as review evidence. No validator is added.
+
+  distribution:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/workflow/forge-publication-evidence-rule.md
+      - agf/rules/README.md
+      - agf/templates/AGENTS.md
+      - agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      All four ship through existing agf/ distribution coverage. Foundry-local
+      loader files are project-local only.
