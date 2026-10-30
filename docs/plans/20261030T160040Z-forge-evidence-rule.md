@@ -2,6 +2,8 @@
 id: 20261030T160040Z-forge-evidence-rule
 status: pending-gate1
 topic: forge-publication-evidence-boundary-rule
+depends_on:
+  - 20260921T040743Z-assistant-rule-drift-resolution
 affected_paths:
   - agf/rules/workflow/merge-request-description-rule.md
 advisory_consultation:
@@ -129,9 +131,17 @@ assessment).
 
 ## Collision and dependency evidence
 
-Run on the committed plan; the result and any `depends_on` are recorded at the
-head returned for Gate 1. Before implementation the owner refetches refs,
-confirms no active claim on the rule file and rebases onto any merged change.
+`agov plan collision-check --plans-only --changed-only`, run on the committed
+plan, reported one blocking overlap: `20260921T040743Z-assistant-rule-drift-resolution`
+(`approved`) declares the broad glob `agf/rules/**`, which covers the owner
+rule. That plan's work (assistant-loader and rule-path drift) has landed; it
+touched this rule only to correct loader paths and did not change what a merge
+request description may contain. It is added to `depends_on` as a sequencing
+acknowledgement. This acknowledgement does not approve this plan or any
+predecessor.
+
+Before implementation the owner refetches refs, confirms no active claim on the
+rule file and rebases onto any merged change to it.
 
 ## Risks and rollback
 
