@@ -1,6 +1,8 @@
 ---
 id: 20261030T144439Z-header-repair-plan
-status: pending-gate1
+status: approved
+gate1_approved_by: "20261030T151222Z-governor-reviewer-ph8p"
+gate1_approved_at: "2026-10-30T15:12:22Z"
 topic: inherited-spdx-header-repair-two-changelogs
 depends_on:
   - 20261021T220000Z-retire-windows-support
@@ -18,33 +20,36 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      Independent review of exact ef1f25ca requested revisions (governor
-      disposition `20261030T145555Z-governor-reviewer-h8bm`, findings 1 to 3).
-      It found no secret exposure or security issue in a changelog-only
-      repair. This revision answers the findings. It is NOT cleared: the
-      revised exact head still needs independent re-review.
+      Independent review of exact ef1f25ca requested revisions (disposition
+      `20261030T145555Z-governor-reviewer-h8bm`, findings 1 to 3); it found no
+      secret exposure or security issue in a changelog-only repair. The
+      independent re-review of exact 211f4175 returned CLEAR, recorded in Gate 1
+      decision `20261030T151222Z-governor-reviewer-ph8p`.
   - role: contribution-auditor
     status: consulted
     reason: >-
       Independent review of exact ef1f25ca requested revisions (same
-      disposition, findings 1 to 3). It found the eight acknowledged
-      predecessor plans coherent and no adversarial or boundary-relaxation
-      pattern. This revision answers the findings. It is NOT cleared: the
-      revised exact head still needs independent re-review.
+      disposition, findings 1 to 3); it found the eight acknowledged predecessor
+      plans coherent and no adversarial or boundary-relaxation pattern. The
+      independent re-review of exact 211f4175 returned CLEAR, recorded in Gate 1
+      decision `20261030T151222Z-governor-reviewer-ph8p`.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Plan: repair the inherited SPDX-header omission in two changelogs
 
-Governance mode: STRICT (licensing marking on shipped files). Planning only.
-This plan does not authorize editing any target file, any release version, any
-license change or any adopter license guidance.
+Governance mode: STRICT (licensing marking on shipped files). Gate 1 approved
+by `20261030T151222Z-governor-reviewer-ph8p` at exact plan head 211f4175. This
+approval is not Gate 2 and not a merge. It does not authorize any release
+version, any license change or any adopter license guidance. Implementation
+conditions are in "Sequencing conditions" below.
 
 Source: handoff `20261030T141210Z-governor-reviewer-67p3`, proposal
 `20261030T000640Z-coder-tester-tgrk`, decision `20261030T092039Z-governor-reviewer-6r8p`.
-Revised under disposition `20261030T145555Z-governor-reviewer-h8bm`. Claim:
-`20261030T145959Z-planner-architect-hsgm`.
+Revised under disposition `20261030T145555Z-governor-reviewer-h8bm` (claim
+`20261030T145959Z-planner-architect-hsgm`, released by `sd3j`). Approved
+metadata applied under claim `20261030T153008Z-planner-architect-s1gt`.
 
 ## Intent
 
@@ -218,8 +223,24 @@ Impact:
 - **Rollback:** revert the single implementation MR. No tag or artifact is
   affected.
 
-## Gate 1 request
+## Sequencing conditions (from the Gate 1 decision)
 
-Approve this plan for the two-changelog repair, with D1, D1b and D2 as recorded.
-Implementation, if approved, is one MR. This plan is not cleared by either
-advisory reviewer; re-review of the revised exact head is pending.
+- The approved plan must merge to `main` before any product work.
+- Then a separate two-path implementation claim must be published for exactly
+  `CHANGELOG.md` and `agf/CHANGELOG.md`. The implementer refetches, checks
+  current claims and collisions, and branches from the current `main`.
+- One implementation MR. It runs the six executable criteria and the regression
+  checks above and puts reproducible evidence in its handoff.
+- Independent exact-head implementation review and a separate binding Gate 2
+  precede any implementation merge. A green pipeline alone grants no merge
+  authority.
+- The template and the immutable v2.13.1 artifacts stay untouched.
+- A substantive change to this plan returns to review and does not inherit the
+  approval.
+
+## Gate 1 status
+
+Approved by `20261030T151222Z-governor-reviewer-ph8p` for the two-changelog
+repair, with D1, D1b and D2 as recorded. Both independent re-reviews of exact
+211f4175 returned CLEAR. No release version, milestone, date, tag, package,
+image or deployment is selected.
