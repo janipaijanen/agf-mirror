@@ -55,19 +55,19 @@ need to re-read plans, coordination records, role manifests, and schemas.
 does not make governance decisions or replace human review. The actual time and
 token difference varies by model, repository, task, and context-window state.
 
-The practical path is:
+Use [Commission AGF](commission.md) for the ordered setup, including the
+framework-only route when tooling is unavailable. The
+[tooling guide](../adopt/tooling-and-tokens.md) explains summaries and token
+costs; [contracts and validators](../advanced/contracts-and-validators.md)
+explains which checks may block work and why.
 
-1. Ask your assistant to commission `agf/`, the supported `agov` binary, and
-   the first local evidence files.
-2. Run `agov session resume`, then review the commissioned diff and remaining
-   `CUSTOMIZE` markers.
-3. Validate the first plan and coordination records with `agov`.
-4. Run one small governed change.
-5. Add only understood checks to CI, with an explicit rule for anything that
-   may block work.
-
-For setup details, see [Tooling and token savings](../adopt/tooling-and-tokens.md)
-and [Contracts and validators](../advanced/contracts-and-validators.md).
+The official [agov MCP server](../adopt/mcp-server.md) exposes local `agov`
+commands to assistants. Its Level 4 — Validated status and `dir` limitation
+are documented there. External MCP servers, Ponytail, Caveman, and other
+plugins need their own trust review: see
+[third-party tooling](../adopt/third-party-plugin-coexistence.md) for the dated
+evidence and authority boundary. Coexistence remains Level 2 — Surface-defined
+with Theoretical evidence; a tool's review output cannot approve an AGF gate.
 
 ## Does AGF replace our code review?
 
@@ -404,9 +404,10 @@ Keep it small.
 Day 1: read [Should you adopt?](should-you-adopt.md), [Downstream impact](../adopt/downstream-impact.md),
 and [Exit and decommission](../adopt/exit-and-decommission.md).
 
-Day 2: ask your assistant to commission `agf/` and the supported `agov` binary,
+Day 2: follow [Commission AGF](commission.md), choosing optional `agov` tooling,
 pick a codename, and customize only the rules that plainly need local values.
-Run `agov session resume`, validate the initial records, and review the diff
+Use `agov session resume` and validators when installed, or record manual
+checks, and review the diff
 instead of doing the copying by hand.
 
 Day 3: run [Your first governed change](first-governed-change.md) on a small,
@@ -420,8 +421,8 @@ empty ceremony.
 **First-week checklist:**
 
 - [ ] Read decision, cost, and exit pages (Days 1 and 5 are the honest-cost moments)
-- [ ] Install `agf/` and `agov`, then configure the assistant loader
-- [ ] Run `agov session resume` and validate the initial plan and coordination records
+- [ ] Install `agf/`, choose optional `agov` tooling, and configure the assistant loader
+- [ ] Validate the initial records with installed tooling or document manual checks
 - [ ] Verify your assistant actually loaded AGF: ask it to name the current framework version and an active rule
 - [ ] Run one complete governed change — plan, implement, Gate 2, merge
 - [ ] Add at minimum one CI validator job (coordination or plan schema)
@@ -442,5 +443,5 @@ perform.
 Next action: if the answers fit your project, return to
 [Should you adopt?](should-you-adopt.md) for an adopt / wait / skip decision.
 If you have decided to proceed, use
-[Your first governed change](first-governed-change.md) rather than designing a
-custom process first.
+[Set up AGF](commission.md), then run
+[Your first governed change](first-governed-change.md).

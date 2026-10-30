@@ -5,7 +5,8 @@ commissioning page.
 `docs/plans/20260806T122121Z-get-started-commissioning-ux-v1.md` (Class A
 item 2) requires every relative link on `commission.md` to resolve to a real
 file, the rendered homepage hero CTA to resolve to the rendered commissioning
-page, and every AGF/AGOV release URL to be HTTP-verified **end-to-end
+page (superseded by the two-action reader journey below), and every AGF/AGOV
+release URL to be HTTP-verified **end-to-end
 (download + checksum match)** -- not just a HEAD or GET probe against a
 generic page. `20260808T140046Z-coder-tester-qnbd.md` found two gaps in an
 earlier version of this script:
@@ -20,6 +21,11 @@ authorized a bounded content correction to `commission.md` (removing the
 Overview and next-steps-table mentions of `first-governed-change.md`, per
 `GS-B-4`) rather than narrowing the invariant.
 
+The approved reader-journey amendment `20261030T060244Z-governor-reviewer-gnqj`
+changes only the hero contract: primary Decide, secondary Commission. Both
+require their action class, an internal relative link, and an exact existing
+target; the unrelated original guards below remain in force.
+
 Six checks:
 
 1. Every `[text](target)` relative link on `commission.md` resolves to a
@@ -27,8 +33,9 @@ Six checks:
    exception for `reference/release-info.md`, generated at build time).
 2. Every external URL on `commission.md` is one of the two known-correct
    GitLab endpoints and is HTTP-verified live with a real `GET`.
-3. The rendered homepage's primary hero CTA resolves to the rendered
-   commissioning page (`agf/site-html/docs/start/commission/index.html`).
+3. The rendered homepage's primary hero CTA resolves exactly to Should you
+   adopt?; the secondary resolves exactly to Commission. Both targets exist
+   under `agf/site-html/docs/start/`.
 4. `first-governed-change.md` is not linked from the homepage hero, and is
    linked exactly once from `commission.md` -- inside Step 6's own section,
    never earlier (GS-B-4).
@@ -56,6 +63,7 @@ import json
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -66,6 +74,7 @@ COMMISSION_MD_DIR = COMMISSION_MD.parent
 SITE_HTML_ROOT = REPO_ROOT / "agf/site-html"
 HOMEPAGE_HTML = SITE_HTML_ROOT / "index.html"
 COMMISSION_PAGE_HTML = SITE_HTML_ROOT / "docs/start/commission/index.html"
+DECISION_PAGE_HTML = SITE_HTML_ROOT / "docs/start/should-you-adopt/index.html"
 
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)\s]+)\)")
 
@@ -110,9 +119,12 @@ def load_mandatory_platforms() -> tuple[str, ...]:
 # rather than a broken link.
 BUILD_TIME_GENERATED_TARGETS = {"reference/release-info.md"}
 
-HERO_PRIMARY_CTA_RE = re.compile(
-    r'<a class="agf-hero__action agf-hero__action--primary" href="([^"]+)"'
-)
+HERO_CTA_RE = {
+    role: re.compile(
+        rf'<a class="agf-hero__action agf-hero__action--{role}" href="([^"]+)"'
+    )
+    for role in ("primary", "secondary")
+}
 
 # Duplicated from check_commissioning_first_screen.py rather than imported --
 # each check script here is independently runnable
@@ -208,11 +220,6 @@ def http_verify_live(url: str, timeout: float = 15.0) -> str | None:
 # ── Check 3: rendered homepage hero CTA ──────────────────────────────────
 
 
-def extract_hero_primary_href(html: str) -> str | None:
-    match = HERO_PRIMARY_CTA_RE.search(html)
-    return match.group(1) if match else None
-
-
 def resolve_hero_target(href: str, site_html_root: Path) -> Path:
     """MkDocs Material's default directory-URL scheme: a relative href like
     'docs/start/commission/' resolves to that directory's own index.html,
@@ -220,29 +227,33 @@ def resolve_hero_target(href: str, site_html_root: Path) -> Path:
     return (site_html_root / href.rstrip("/") / "index.html").resolve()
 
 
-def check_hero_cta(html: str, site_html_root: Path, expected_target: Path) -> list[str]:
-    """The primary hero CTA must resolve to exactly `expected_target` (the
-    rendered commissioning page) -- not merely to *some* existing page.
-    20260808T143713Z-coder-tester-4bkh.md (GS-B-3-R2) found an earlier
-    version only checked existence, so a hero CTA silently redirected to a
-    different real page would have passed."""
-    href = extract_hero_primary_href(html)
-    if href is None:
+def check_hero_cta(
+    html: str, site_html_root: Path, expected_target: Path, role: str
+) -> list[str]:
+    """Check each approved action independently, including exact destination.
+
+    Preserve GS-B-3-R2's wrong-but-existing-page rejection: mere existence
+    cannot establish that the intended reader journey is reachable.
+    """
+    match = HERO_CTA_RE[role].search(html)
+    if match is None:
         raise LinkCheckError(
-            "no primary hero CTA anchor "
-            '(class="agf-hero__action agf-hero__action--primary") found on the '
+            f"no {role} hero CTA anchor "
+            f'(class="agf-hero__action agf-hero__action--{role}") found on the '
             "rendered homepage -- markup may have changed"
         )
-    if is_external(href):
-        return [f"hero CTA href {href!r} is external, expected an internal relative path"]
+    href = match.group(1)
+    parsed = urllib.parse.urlsplit(href)
+    if parsed.scheme or parsed.netloc or href.startswith(("/", "\\")):
+        return [f"{role} hero CTA href {href!r} must be an internal relative path"]
     target = resolve_hero_target(href, site_html_root)
     if not target.exists():
-        return [f"hero CTA href {href!r} does not resolve: {target} does not exist"]
+        return [f"{role} hero CTA href {href!r} does not resolve: {target} does not exist"]
     expected_resolved = expected_target.resolve()
     if target != expected_resolved:
         return [
-            f"hero CTA href {href!r} resolves to {target}, expected the rendered "
-            f"commissioning page {expected_resolved}"
+            f"{role} hero CTA href {href!r} resolves to {target}, expected "
+            f"{expected_resolved}"
         ]
     return []
 
@@ -470,13 +481,16 @@ def run_real_checks() -> int:
             f"not found: {HOMEPAGE_HTML} -- run `mkdocs build -f "
             "agf/docs/build/mkdocs.yml --strict` first"
         )
-    hero_failures = check_hero_cta(
-        HOMEPAGE_HTML.read_text(encoding="utf-8"), SITE_HTML_ROOT, COMMISSION_PAGE_HTML
-    )
+    homepage_html = HOMEPAGE_HTML.read_text(encoding="utf-8")
+    hero_failures = []
+    for role, target in (
+        ("primary", DECISION_PAGE_HTML), ("secondary", COMMISSION_PAGE_HTML)
+    ):
+        hero_failures += check_hero_cta(homepage_html, SITE_HTML_ROOT, target, role)
     for f in hero_failures:
         print(f"[FAIL] {f}")
     if not hero_failures:
-        print("[OK] homepage hero CTA resolves to the rendered commissioning page")
+        print("[OK] hero primary resolves to Should you adopt?; secondary resolves to Commission")
     all_failures += hero_failures
 
     if not COMMISSION_PAGE_HTML.exists():
@@ -523,7 +537,7 @@ def run_real_checks() -> int:
         return 1
     print(
         f"\nAll relative links resolve, all {len(external_urls)} external URL(s) are "
-        "live, the hero CTA resolves, and all release archives verify end-to-end."
+        "live, both hero CTAs resolve exactly, and all release archives verify end-to-end."
     )
     return 0
 
@@ -584,43 +598,44 @@ or the
             f"incorrectly flagged: {generated_failures}"
         )
 
-        # ── Check 3: hero CTA, against a synthetic rendered homepage ──────
+        # Each action has independent positive and negative controls.
         site_html = base / "site-html"
-        (site_html / "docs/start/commission").mkdir(parents=True)
-        commission_target = site_html / "docs/start/commission" / "index.html"
-        commission_target.write_text("<html></html>")
-        (site_html / "docs/start/other-page").mkdir(parents=True)
-        (site_html / "docs/start/other-page" / "index.html").write_text("<html></html>")
-
-        good_hero_html = (
-            '<a class="agf-hero__action agf-hero__action--primary" '
-            'href="docs/start/commission/" aria-label="Get started">Get started</a>'
+        destinations = {"primary": "should-you-adopt", "secondary": "commission"}
+        for page in (*destinations.values(), "other-page"):
+            target = site_html / "docs/start" / page / "index.html"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("<html></html>")
+        good_hero_html = "".join(
+            f'<a class="agf-hero__action agf-hero__action--{role}" '
+            f'href="docs/start/{page}/">{role}</a>'
+            for role, page in destinations.items()
         )
-        assert check_hero_cta(good_hero_html, site_html, commission_target) == []
-
-        broken_hero_html = good_hero_html.replace(
-            'href="docs/start/commission/"', 'href="docs/start/does-not-exist/"'
-        )
-        broken_hero_failures = check_hero_cta(broken_hero_html, site_html, commission_target)
-        assert broken_hero_failures, "a hero CTA pointing at a missing page was not detected"
-
-        # GS-B-3-R2 (20260808T143713Z-coder-tester-4bkh.md): a hero CTA
-        # redirected to a *different, existing* page must also fail -- an
-        # earlier version only checked that the resolved target existed at
-        # all, not that it was the commissioning page specifically.
-        wrong_page_hero_html = good_hero_html.replace(
-            'href="docs/start/commission/"', 'href="docs/start/other-page/"'
-        )
-        wrong_page_failures = check_hero_cta(wrong_page_hero_html, site_html, commission_target)
-        assert wrong_page_failures, (
-            "a hero CTA redirected to a different existing page was not detected"
-        )
-
-        try:
-            check_hero_cta("<html><body>no hero here</body></html>", site_html, commission_target)
-            raise AssertionError("a missing hero CTA anchor was not detected as an error")
-        except LinkCheckError:
-            pass
+        for role, page in destinations.items():
+            target = site_html / "docs/start" / page / "index.html"
+            assert check_hero_cta(good_hero_html, site_html, target, role) == []
+            href = f'docs/start/{page}/'
+            for bad in (
+                "docs/start/does-not-exist/",  # missing target
+                "docs/start/other-page/",  # wrong but existing target
+                "https://example.invalid/",  # external target
+                "//example.invalid/",  # protocol-relative external target
+                f"/{href}",  # absolute, not relative
+            ):
+                changed = good_hero_html.replace(f'href="{href}"', f'href="{bad}"')
+                assert check_hero_cta(changed, site_html, target, role), (role, bad)
+                # The other action is intact; it cannot mask this failure.
+                other = "secondary" if role == "primary" else "primary"
+                other_target = site_html / "docs/start" / destinations[other] / "index.html"
+                assert check_hero_cta(changed, site_html, other_target, other) == []
+            missing = good_hero_html.replace(
+                f'class="agf-hero__action agf-hero__action--{role}"',
+                'class="unrelated-link"',
+            )
+            try:
+                check_hero_cta(missing, site_html, target, role)
+                raise AssertionError(f"a missing {role} hero CTA anchor was not detected")
+            except LinkCheckError:
+                pass
 
     # ── Check 4: tutorial gating (GS-B-4) ─────────────────────────────────
     good_gating_commission_html = """
@@ -836,9 +851,9 @@ or the
 
     print(
         "\nSelf-test passed: detects a broken relative link, an "
-        "off-allowlist external URL, a hero CTA pointing at a missing "
-        "page, a hero CTA redirected to a different existing page, a "
-        "missing hero CTA anchor, a hero-region link to "
+        "off-allowlist external URL; for EACH hero action, a missing anchor, "
+        "external or absolute href, missing target, and wrong existing target; "
+        "a hero-region link to "
         "first-governed-change.md, zero/two links to "
         "first-governed-change.md from commission.md, a link placed "
         "before Step 6, a drifted audience/prerequisite line, a checksum "

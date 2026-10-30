@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+plan_id: 20261030T054200Z-pages-reader-journey-patch
+changed_pages_or_runbooks:
+  - agf/docs/site/index.md
+  - agf/docs/site/docs/index.md
+  - agf/docs/site/use-cases.md
+  - agf/docs/site/docs/start/should-you-adopt.md
+  - agf/docs/site/docs/start/commission.md
+  - agf/docs/site/docs/start/adopter-faq.md
+  - agf/docs/site/docs/adopt/install-and-layouts.md
+  - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+  - agf/docs/site/docs/concepts/position.md
+surfaces:
+  normative_owner:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/workflow/development-workflow-rule.md
+      - agf/rules/always/tool-authority-boundary-rule.md
+      - agf/rules/docs/implementation-honesty-rule.md
+      - agf/rules/workflow/coordination-publication-rule.md
+    reason: >-
+      Navigation and bounded explanatory corrections preserve gate authority,
+      immutable evidence, tooling boundaries and capability/evidence limits.
+      No rule, schema, loader behavior or supported platform changes.
+  adopter_facing_explanation:
+    disposition: updated
+    paths:
+      - agf/docs/site/docs/start/commission.md
+      - agf/docs/site/docs/start/should-you-adopt.md
+      - agf/docs/site/docs/concepts/position.md
+      - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+    reason: >-
+      Commission owns the ordered setup and optional tooling/manual route;
+      Should-you-adopt owns Adopt/Wait/Skip. Position points to canonical
+      loader guidance; coexistence retains dated vendor evidence and limits.
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/operate/runbook.md
+    reason: >-
+      Existing situation procedures remain unchanged and become directly
+      discoverable from Home, the docs index and Use AGF navigation.
+  ai_landing_loaders:
+    disposition: existing pointer sufficient
+    path: agf/templates/AGENTS.md
+    reason: >-
+      No new normative behavior is introduced. The shipped template continues
+      to discover canonical rules. Foundry AGENTS.md and .claude/CLAUDE.md
+      remain unchanged; the canonical assistant-loader page supplies per-tool
+      configuration instead of competing recipes in Position.
+  validation_drift_evidence:
+    disposition: implemented
+    path: agf/docs/build/hooks/check_commissioning_links.py
+    reason: >-
+      Approved gnqj amendment checks primary Decide and secondary Commission
+      destinations independently, with missing/external/wrong-target negatives.
+      Existing link, release checksum/provenance, tutorial and prerequisite
+      guards remain. Strict site and projection checks complement independent
+      factual and rendered review; none supplies governor approval.
+  distribution:
+    disposition: updated
+    paths:
+      - agf/docs/site/index.md
+      - agf/docs/site/docs/index.md
+      - agf/docs/site/use-cases.md
+      - agf/docs/site/docs/start/should-you-adopt.md
+      - agf/docs/site/docs/start/commission.md
+      - agf/docs/site/docs/start/adopter-faq.md
+      - agf/docs/site/docs/adopt/install-and-layouts.md
+      - agf/docs/site/docs/adopt/third-party-plugin-coexistence.md
+      - agf/docs/site/docs/concepts/position.md
+    reason: >-
+      All changed explanatory pages ship in the AGF framework artifact.
+      Site build configuration and its acceptance hook remain build support;
+      this projection record is project-local review evidence.

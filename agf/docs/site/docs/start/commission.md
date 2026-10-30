@@ -1,7 +1,7 @@
 # Commission AGF and AGOV
 
 *Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: anyone
-landing here from "Get started" — no prior AGF install assumed.*
+setting up a repository — no prior AGF install assumed.*
 
 ## Overview
 
@@ -41,8 +41,9 @@ step 3.
 
 ## Step 2: Get your pinned AGF and AGOV artifacts
 
-**What:** Download the exact AGF and AGOV versions you intend to run, and
-verify both before use.
+**What:** Download a pinned AGF framework archive. Choose the optional AGOV
+tooling archive if you want local summaries and validators. Verify each
+artifact you choose before use.
 
 **Why:** Pinning and verifying protects you from silently adopting an
 unintended version or a corrupted download — the same discipline this
@@ -50,40 +51,32 @@ project's own CI and release process uses internally.
 
 **How:**
 
-AGF (the framework directory):
+**AGF: the framework files.** Download `agf-<version>.tar.gz` or
+`agf-<version>.zip` from the
+[GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases).
+Assistants can discover the same direct asset links through the unauthenticated
+[Releases API](https://gitlab.com/api/v4/projects/83321848/releases).
+The framework archive contains `agf/`; it does not contain the tooling binary.
 
-- The `agov` command available if you want to run the current core
-  validators locally and in CI. In a full checkout, symlink `tooling/agov`
-  into `~/.local/bin/agov` or run it directly. A framework-only release
-  archive contains `agf/` without packaged tooling; use the optional Rust
-  tooling archive from the
-  [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-  for your platform when you want `agov` without a full checkout. Assistants
-  that cannot read the client-rendered page can use the unauthenticated
-  [GitLab Releases API](https://gitlab.com/api/v4/projects/83321848/releases)
-  to discover the same direct asset links. Every archive's individual
-  `.sha256` checksum and `-provenance.json` file are linked directly on the
-  Releases page alongside it — verify with `sha256sum -c` after downloading
-  both into the same directory.
+Download the archive's individual `.sha256` checksum and
+`-provenance.json` file, linked alongside it. Run `sha256sum -c` on the
+checksum file with the archive in the same directory. Check that the provenance
+names the selected version, archive and source revision; retain the result in
+the commissioning report. A checksum detects changed bytes; it does not by
+itself establish that the source is trusted.
 
-!!! tip "A quick way to hand the archive to your assistant"
-    Download `agf-<version>.tar.gz` or `agf-<version>.zip` from the
-    [Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-    (or discover its direct asset URL through the
-    [Releases API](https://gitlab.com/api/v4/projects/83321848/releases))
-    into a `tmp/` directory inside your project, then prompt your assistant:
-    "There is a `.tar.gz` file in `tmp/`. Adopt it into the project."
-    The assistant will unpack and wire everything; you review the diff.
-    You can also extract the archive yourself first and point the assistant
-    at the directory — either way works. — *Jani*
+Keep the verified archive in a project-local `tmp/` directory or extract it
+there for your assistant. Use the single prompt in Step 3 to commission it.
+A pinned source checkout's `agf/` directory is another supported source;
+record its version and revision instead of claiming archive verification.
 
-AGOV (the optional Rust tooling binary), same verification discipline
-extended to a second artifact:
+**AGOV: optional local Rust tooling.** Apply the same verification discipline
+to the tooling archive if you choose to install it:
 
 - **Supported platform today: `linux-x86_64` only.** `linux-aarch64` was
   published on releases through v2.5.0 but is not currently built for
   releases from `main` (CI runner capacity constraint; see
-  [release artifacts](../../reference/release-artifacts.md) for detail). No
+  [release artifacts](../../reference/release-artifacts.md) for detail).
   macOS and Windows tooling are unsupported. Use a Linux x86_64 host for
   the published `agov` binary.
 - **Asset naming:** `agov-<version>-<platform>.tar.gz`, with a companion
@@ -94,20 +87,22 @@ extended to a second artifact:
   used for the AGF archive above — do not hand-construct the URL.
 - **Verify:** download the tarball and its `.sha256` file into the same
   directory, then run `sha256sum -c agov-<version>-<platform>.tar.gz.sha256`.
-  Confirm the matching `-provenance.json` file is present alongside it.
+  Check the matching `-provenance.json` against the selected version,
+  archive and source revision.
 - **Install:** symlink the extracted `agov` binary into `~/.local/bin/agov`
-  (works for most repositories), or place it at project-local `tooling/agov`
-  if this is a full source checkout that already has a `tooling/` directory.
-  Either way, confirm `~/.local/bin` is on your shell's `PATH` if you use
-  that destination.
+  and confirm that directory is on your shell's `PATH`. In a full source
+  checkout, use its existing `tooling/agov` wrapper instead of replacing it
+  with a downloaded binary.
 
-**Verify:** `agov version` prints the pinned version and build provenance
-without error.
+**Verify:** The selected artifacts match their checksums and provenance.
+If you installed tooling, `agov version` prints the pinned version and build
+provenance. Without tooling, follow the manual checks in Step 5; AGF files
+and human gate decisions remain usable.
 
 ## Step 3: Paste one assistant commissioning prompt
 
 **What:** Hand the mechanical setup to your assistant with one prompt that
-covers both AGF and AGOV, and branches correctly for your project from
+covers AGF and your optional tooling choice, and branches for your project from
 step 1.
 
 **Why:** Let the AI act; make the human decide. The assistant moves files,
@@ -118,16 +113,17 @@ own risk-bearing rule choices — none of that is delegable.
 **How:** Paste this into your coding assistant:
 
 ```text
-Commission AGF and AGOV in this repository.
+Commission AGF in this repository, with AGOV only if I select it below.
 
-Use the pinned AGF distribution and pinned AGOV binary I have made available
-in this repository (see the previous step), either as release archives or
-extracted directories/binaries. Do not fetch or substitute a different
-version. Prepare the repository for a first governed change, but do not
+Use the pinned AGF distribution and, if selected, the pinned AGOV binary
+I have made available in this repository (see the previous step), either as
+release archives or extracted directories/binaries. Do not fetch or substitute
+a different version. Prepare the repository for a first governed change, but do not
 invent approvals or claim the framework is adopted until I review the diff.
 
 This is a [NEW PROJECT / EXISTING PROJECT] commissioning — replace with the
 answer from step 1.
+Tooling choice: [INSTALL PINNED AGOV / FRAMEWORK FILES ONLY].
 
 If NEW PROJECT:
 - Create agf/ as the single framework directory.
@@ -136,8 +132,9 @@ If NEW PROJECT:
 - Create agf/learnings/<project-codename>.yaml from
   agf/templates/learning-record.yaml.
 - Create docs/plans/ and docs/coordination/.
-- Install the pinned agov binary per the previous step and confirm
-  `agov version` and `agov session resume` both succeed.
+- If AGOV is selected, install the pinned binary per the previous step and
+  confirm `agov version` and `agov session resume` both succeed. Otherwise
+  record that tooling is absent and prepare the manual review in Step 5.
 
 If EXISTING PROJECT:
 - Before writing anything, check for: a pre-existing docs/ directory used
@@ -152,8 +149,9 @@ If EXISTING PROJECT:
   exists from a prior partial install: compare it against the pinned
   distribution's copy. If identical, refresh it silently. If different, do
   not overwrite it — report it as a collision requiring my decision.
-- Install the pinned agov binary per the previous step and confirm
-  `agov version` and `agov session resume` both succeed.
+- If AGOV is selected, install the pinned binary per the previous step and
+  confirm `agov version` and `agov session resume` both succeed. Otherwise
+  record that tooling is absent and prepare the manual review in Step 5.
 
 Customize only the rule values that are obvious from this repository, such
 as test commands, migration commands, locale rules, and CI paths. Leave
@@ -161,13 +159,14 @@ clear TODOs for anything that needs a human decision.
 
 After editing, show me a report containing:
 - pinned AGF version and source (release archive vs. checkout)
-- pinned AGOV version, with checksum and provenance verification result
+- pinned AGOV version, with checksum and provenance verification result,
+  or an explicit note that optional tooling was not installed
 - files created or changed
 - confirmation the assistant can read agf/rules/ (name the rules it loaded)
 - CUSTOMIZE markers that remain
 - any collisions you found and left for me to decide, with file paths
-- the `agov version` output
-- the `agov session resume` output
+- the `agov version` and `agov session resume` output if tooling is installed,
+  or the manual checks performed and their results
 - validation commands I should run
 - any decisions you need from the governor before the first governed change
 ```
@@ -187,7 +186,8 @@ assistant-executed process.
 **How:** Confirm the report includes every item:
 
 - pinned AGF version and source;
-- pinned AGOV version, checksum, and provenance verification result;
+- pinned AGOV version, checksum, and provenance verification result, or an
+  explicit note that optional tooling was not installed;
 - the changed-files list;
 - confirmation the assistant loader is active (it names the rules it
   loaded — see the
@@ -196,8 +196,8 @@ assistant-executed process.
 - remaining `CUSTOMIZE` markers;
 - any detected collisions and how they were left for you, not silently
   resolved;
-- the `agov version` output;
-- the `agov session resume` output;
+- `agov version` and `agov session resume` output if tooling is installed,
+  or the manual checks and results;
 - a list of decisions still needed from you as governor.
 
 **Verify:** Every item above is present in the report; anything missing
@@ -205,20 +205,29 @@ means the assistant should redo that part before you continue.
 
 ## Step 5: Confirm validation
 
-**What:** Run the deterministic checks yourself, once, before continuing.
+**What:** Review validation evidence before continuing.
 
 **Why:** The assistant's report is a claim; the validator output is
 evidence.
 
-**How:**
+**How:** With optional tooling installed, run:
 
 ```bash
 agov version
 agov session resume
-agov validate adopter-docs
+agov validate
 ```
 
-**Verify:** All three commands succeed with no error output.
+**Verify:** All three commands complete successfully. Read warnings and
+advisories, record what they mean for this repository, and resolve blocking
+findings under the applicable rule. Successful execution does not promise
+empty output or supply a governor decision.
+
+**Without tooling:** Review the prepared layout and loader, inspect plan and
+coordination front matter against the shipped schemas, and record which checks
+were manual and what remains unverified. Use the
+[layout and validation reference](../adopt/install-and-layouts.md#step-6-wire-the-validators)
+for details. Manual review does not waive applicable rules or gate decisions.
 
 ## Step 6: Continue to your first governed change
 

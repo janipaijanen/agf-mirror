@@ -5,14 +5,14 @@
 
 <h1 id="agf-hero-title" class="agf-hero__headline">Plans reviewed before code.<br>Code reviewed before merge.</h1>
 
-<p class="agf-hero__subhead">Two human gates sit inside your normal git workflow — one before an AI implements a plan, one before the tested result merges. Every governed decision leaves a timestamped, append-only record in your repo.</p>
+<p class="agf-hero__subhead">For non-trivial changes, a human approves the plan before implementation and decides whether the tested result may merge. These two gates sit inside your normal git workflow. Every governed decision leaves a timestamped, append-only record in your repo.</p>
 
 <div class="agf-hero__actions">
-  <a class="agf-hero__action agf-hero__action--primary" href="docs/start/commission/" aria-label="Get started: commission AGF and AGOV in your repository">Get started</a>
-  <a class="agf-hero__action agf-hero__action--secondary" href="docs/" aria-label="See the agents-govern documentation overview">See the docs</a>
+  <a class="agf-hero__action agf-hero__action--primary" href="docs/start/should-you-adopt/" aria-label="Decide whether AGF fits your project">Decide whether AGF fits</a>
+  <a class="agf-hero__action agf-hero__action--secondary" href="docs/start/commission/" aria-label="Set up AGF in your repository">Set up AGF</a>
 </div>
 
-<div class="agf-hero__foot">No new accounts · No hosted service · No runtime — files in <code>your-repo/agf/</code></div>
+<div class="agf-hero__foot">Repository-local files in <code>your-repo/agf/</code> · No hosted service · Optional local validation tooling</div>
 
 </div>
 
@@ -38,8 +38,8 @@
 
 <h2 id="agf-routes-title">Choose your next step</h2>
 
-Start with the decision you need to make. Each route points to the canonical
-guidance instead of repeating it here.
+Follow **Decide → Set up → First governed change → Operate**.
+Already using AGF? Open the [operations runbook](docs/operate/runbook.md).
 
 <div class="agf-route-grid" markdown>
 
@@ -57,35 +57,43 @@ if you need a compact overview first.
 
 <article class="agf-route-card" markdown>
 
-### [Adopt](docs/adopt/install-and-layouts.md)
+<span id="adopt"></span>
 
-Install the `agf/` directory, [commission AGF and AGOV](docs/start/commission.md),
-then run [your first governed change](docs/start/first-governed-change.md).
+### [Set up](docs/start/commission.md)
 
-</article>
-
-<article class="agf-route-card" markdown>
-
-### [Operate](docs/operate/day-to-day.md)
-
-Follow the daily workflow and [operations runbook](docs/operate/runbook.md).
-Add the optional [Rust tooling](docs/adopt/tooling-and-tokens.md) when compact,
-deterministic validation output helps.
+Commission the framework files and optional `agov` tooling, verify the
+assistant loader, and review the prepared diff.
 
 </article>
 
 <article class="agf-route-card" markdown>
 
-### [Using AGF with other tools](docs/adopt/third-party-plugin-coexistence.md)
+### [First governed change](docs/start/first-governed-change.md)
 
-Set authority, instruction, hook, and data-flow boundaries before combining
-assistant tooling. Guidance only: Level 2 — Surface-defined; evidence is
-Theoretical, with no adopter-validated coexistence for the evaluated tools.
+Take one small real change through plan approval, implementation, review,
+and merge. Setup alone does not demonstrate the governance loop.
+
+</article>
+
+<article class="agf-route-card" markdown>
+
+### [Operate](docs/operate/runbook.md)
+
+Choose a procedure for daily work, session recovery, coordination, review,
+upgrades, or exit. Keep the work and its decisions reconstructible.
 
 </article>
 
 </div>
 </section>
+
+<span id="using-agf-with-other-tools"></span>
+
+For optional tools, see [Rust tooling](docs/adopt/tooling-and-tokens.md), the
+[local agov MCP server](docs/adopt/mcp-server.md), and
+[third-party assistant tooling](docs/adopt/third-party-plugin-coexistence.md).
+Third-party coexistence guidance is Level 2 — Surface-defined, with Theoretical
+evidence and no adopter-validated coexistence for the evaluated tools.
 
 ## What you get
 

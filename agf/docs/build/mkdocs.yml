@@ -67,47 +67,38 @@ exclude_docs: |
 
 nav:
   - Home: index.md
-  - Use cases: use-cases.md
-  - Evaluate: evaluate.md
-  - Roadmap: roadmap.md
-  - AI evaluation dossier: ai-evaluation-dossier.md
-  - Documentation:
-      - Overview: docs/index.md
-      - 'Start':
-          - Framework map: docs/start/framework-map.md
-          - Should you adopt?: docs/start/should-you-adopt.md
-          - Commission AGF and AGOV: docs/start/commission.md
-          - Adopter FAQ: docs/start/adopter-faq.md
-      - 'Concepts':
-          - AGF and agent runtimes: docs/concepts/position.md
-          - Roles and gates: docs/concepts/roles-and-gates.md
-          - Coordination protocol: docs/concepts/coordination-protocol.md
-          - Learning loop and evidence: docs/concepts/evidence-and-learnings.md
-          - Philosophical lenses on AI governance: docs/concepts/philosophical-lenses.md
-      - 'Adopt':
-          - Downstream impact: docs/adopt/downstream-impact.md
-          - Install the agf directory: docs/adopt/install-and-layouts.md
-          - Adopter applicability catalog: docs/adopt/applicability-catalog.md
-          - Assistant loader configuration: docs/adopt/assistant-loader-configuration.md
-          - Third-party assistant tooling: docs/adopt/third-party-plugin-coexistence.md
-          - Your first governed change: docs/start/first-governed-change.md
-          - Upgrade from v1 (agents-govern): docs/adopt/upgrade-from-v1.md
-          - Tooling and token savings: docs/adopt/tooling-and-tokens.md
-          - agov MCP server: docs/adopt/mcp-server.md
-          - Licensing: docs/adopt/licensing.md
-          - Commercial licensing: docs/adopt/commercial-licensing.md
-          - Exit and decommission: docs/adopt/exit-and-decommission.md
-      - 'Operate':
-          - Operations runbook: docs/operate/runbook.md
-          - Session continuity: docs/operate/session-continuity.md
-          - Poll and coordinate: docs/operate/poll-and-coordinate.md
-          - Day-to-day operation: docs/operate/day-to-day.md
-          - Run AGF in real situations: docs/operate/run-agf-in-real-situations.md
-          - Review and release: docs/operate/review-and-release.md
-      - 'Advanced':
-          - Contracts and validators: docs/advanced/contracts-and-validators.md
-          - Customizing the framework: docs/advanced/customizing-the-framework.md
+  - Start here:
+      - Documentation overview: docs/index.md
+      - Should you adopt?: docs/start/should-you-adopt.md
+      - Use cases: use-cases.md
+      - Downstream impact: docs/adopt/downstream-impact.md
+      - Set up AGF: docs/start/commission.md
+      - Install and layouts: docs/adopt/install-and-layouts.md
+      - Assistant loaders: docs/adopt/assistant-loader-configuration.md
+      - First governed change: docs/start/first-governed-change.md
+      - Adopter FAQ: docs/start/adopter-faq.md
+  - Use AGF:
+      - Operations runbook: docs/operate/runbook.md
+      - Day-to-day operation: docs/operate/day-to-day.md
+      - Session continuity: docs/operate/session-continuity.md
+      - Poll and coordinate: docs/operate/poll-and-coordinate.md
+      - Run AGF in real situations: docs/operate/run-agf-in-real-situations.md
+      - Review and release: docs/operate/review-and-release.md
+      - Upgrade from v1: docs/adopt/upgrade-from-v1.md
+      - Exit and decommission: docs/adopt/exit-and-decommission.md
+  - Tools and customization:
+      - Tooling and token savings: docs/adopt/tooling-and-tokens.md
+      - agov MCP server: docs/adopt/mcp-server.md
+      - Third-party assistant tooling: docs/adopt/third-party-plugin-coexistence.md
+      - Applicability catalog: docs/adopt/applicability-catalog.md
+      - Customizing the framework: docs/advanced/customizing-the-framework.md
   - Reference:
+      - Roles and gates: docs/concepts/roles-and-gates.md
+      - AGF and agent runtimes: docs/concepts/position.md
+      - Coordination protocol: docs/concepts/coordination-protocol.md
+      - Learning loop and evidence: docs/concepts/evidence-and-learnings.md
+      - Framework map: docs/start/framework-map.md
+      - Contracts and validators: docs/advanced/contracts-and-validators.md
       - Environment variables: reference/environment-variables.md
       - Release artifacts: reference/release-artifacts.md
       - Maturity vocabulary: reference/maturity-vocabulary.md
@@ -116,6 +107,13 @@ nav:
       - Tooling conformance: reference/tooling-conformance.md
       - Release information: reference/release-info.md
       - Disclaimer: reference/disclaimer.md
-  - Contribute: contribute.md
-  - Influences and acknowledgements: acknowledgements.md
-  - Evolution: future/evolution.md
+  - About:
+      - Evaluate: evaluate.md
+      - AI evaluation dossier: ai-evaluation-dossier.md
+      - Roadmap: roadmap.md
+      - Licensing: docs/adopt/licensing.md
+      - Commercial licensing: docs/adopt/commercial-licensing.md
+      - Contribute: contribute.md
+      - Influences and acknowledgements: acknowledgements.md
+      - Philosophical lenses: docs/concepts/philosophical-lenses.md
+      - Evolution: future/evolution.md
