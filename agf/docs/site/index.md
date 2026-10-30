@@ -12,7 +12,7 @@
   <a class="agf-hero__action agf-hero__action--secondary" href="docs/start/commission/" aria-label="Set up AGF in your repository">Set up AGF</a>
 </div>
 
-<div class="agf-hero__foot">Repository-local files in <code>your-repo/agf/</code> · No hosted service · Optional local validation tooling</div>
+<div class="agf-hero__foot">Files in <code>your-repo/agf/</code> · No AGF-hosted service or agent runtime · Optional local tooling</div>
 
 </div>
 
