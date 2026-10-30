@@ -448,9 +448,13 @@ historical assessments nor substitutes for that governor decision.
 
 ## Remaining root-owned release sequence
 
-The plan/decision carrier and this evidence MR need ordinary exact-head CI,
-independent review, Gate 2 and verified merge. Root then enumerates only the
-approved audit-only advances from the product freeze, proves unchanged product
+The plan/decision carrier !3396 merged as
+`8ee8ad3c6eee36e97cb5a77cc46ae6972a49e0e4` after its successful exact-head
+pipeline 3007557933 and prepublished Gate 2 decision qpjs. That approved
+audit-only main advance remains part of the later construction reconciliation.
+This evidence MR still needs ordinary exact-head CI, independent review,
+Gate 2 and verified merge. Root then enumerates only the approved audit-only
+advances from the product freeze, proves unchanged product
 bytes and records the actual construction base. The 29-path metadata MR,
 namespace/protected-tag checks, metadata Gate 2, immutable annotated tag,
 complete tag pipeline, anonymous artifact/OCI verification and separately
