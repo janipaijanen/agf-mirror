@@ -1,8 +1,8 @@
 ---
 id: 20261030T072047Z-v2131-readme-journey-followup
 status: approved
-gate1_approved_by: 20261030T072711Z-governor-reviewer-8p5m
-gate1_approved_at: "2026-10-30T07:27:11Z"
+gate1_approved_by: 20261030T073453Z-governor-reviewer-gs85
+gate1_approved_at: "2026-10-30T07:34:53Z"
 topic: v2131-readme-journey-and-coexistence-projection
 advisory_consultation:
   - role: contribution-auditor
@@ -17,6 +17,8 @@ affected_paths:
   - docs/reviews/rule-projection/20261030T072047Z-v2131-readme-journey-followup.yaml
 depends_on:
   - 20261030T054200Z-pages-reader-journey-patch
+  - 20260921T040743Z-assistant-rule-drift-resolution
+  - 20261027T052500Z-tooling-coexistence-discoverability
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -25,7 +27,8 @@ depends_on:
 
 ## Decision and baseline
 
-Gate 1 8p5m approves exactly two existing README paragraphs. No README
+Gate 1 8p5m approves exactly two existing README paragraphs; gs85 corrects the
+collision evidence and reapproves that unchanged scope with explicit dependencies. No README
 implementation begins until that binding approval and this approved plan are
 published. Gate 2 is separate. No release/tag/deployment
 permission or extension of the governor delegation is requested.
@@ -44,6 +47,25 @@ A full-estate read-only release assessment found two cross-touchpoint drifts:
 Both links resolve, but the projections no longer match their canonical owners.
 The release-content freeze remains open until the two findings are resolved and
 verified. No diagnosis of runtime or actual compatibility is implied.
+
+## Existing-plan overlap disposition
+
+The tracked-plan collision check identified both README overlaps above. The
+assistant-rule-drift plan's loader/rule/count work is preserved; this child
+changes no loader, rule, count or historical disposition and does not declare
+that plan complete. The coexistence-discoverability plan supplied the existing
+README paragraph and its then-permitted “probably compatible” wording. This
+child deliberately replaces only that README projection with the exact narrower
+proposed/Theoretical wording below, matching the already-reviewed canonical
+Pages correction. Decision gs85 explicitly approves that replacement under the
+current delegation; no unrelated part of the older plan is reopened or closed.
+
+The pre-commit changed-only scan did not include the untracked new plan in its
+eligible comparison pairs. Its zero-overlap result was insufficient evidence,
+not proof of no overlap. Pipeline 3007476950/job 17600154237 caught both missing
+dependencies; gs85 preserves 8p5m's historical record and appends the correction.
+Run the changed-plan gate against staged or committed plan bytes before future
+publication. The 204 historical plans without affected_paths remain unassessed.
 
 ## Exact proposed copy
 
