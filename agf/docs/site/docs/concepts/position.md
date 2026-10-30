@@ -14,7 +14,7 @@ exist, what they may do, and which gates they pass through.
 
 ## Concrete relationship
 
-The diagram below is the load-bearing answer. Governance (left) defines
+Governance (left in the diagram) defines
 authority boundaries and collects learning; the runtime (right) executes
 agents under those boundaries.
 
@@ -45,56 +45,42 @@ governor's gate decisions, not a runtime hook.
 
 ### Claude Code
 
-Claude Code is the reference integration. The typical setup:
+The project author has used the Claude and Codex integrations in Visual
+Studio Code for Foundry planning, implementation, validation, review, and
+release work. This is author-operated evidence, not independent validation of
+every assistant or configuration.
 
-- `agf/agents/*.yaml` role definitions become the assistant's system
-  prompt context — copy or reference them in the CLAUDE.md loader.
-- `agf/rules/` ships to `.claude/rules/` (or is loaded via CLAUDE.md).
-- `agf/skills/` installs as `.claude/commands/` for slash-command access.
-- `agov` validators run in pre-commit hooks and CI.
-
-The project author has developed AGF and AGOV through sustained use of both
-the Claude and Codex integrations in Visual Studio Code. The integrations
-have been used for governed planning, implementation, validation, review,
-and release work.
+Use [assistant loader configuration](../adopt/assistant-loader-configuration.md)
+for the supported loader pattern. Keep rules in `agf/rules/` and point the
+assistant at that canonical tree; do not copy it into tool-specific directories.
+The loader page also describes skill discovery and its limits.
 
 ### Codex (OpenAI)
 
-Codex loads instructions from `AGENTS.md` at the repository root. The
-AGF install creates an `AGENTS.md` that references role definitions and
-rules. Skills are Claude Code-specific slash commands; Codex adopters
-either adapt them as scripts or skip the skill layer.
-
-The governance layer — roles, gates, coordination channel, validators —
-is runtime-neutral and works identically. The difference is the loader
-file format and the absence of a slash-command surface.
+Use the same canonical [loader guidance](../adopt/assistant-loader-configuration.md)
+for `AGENTS.md` and supported skill pointers. Loader and skill discovery depend
+on the assistant surface; AGF does not promise identical runtime behavior.
 
 ### Cursor / Windsurf
 
-Translate `agf/agents/<role>.yaml` into the editor's native rules format
-(`.cursorrules`, `.windsurfrules`, or the editor's rules directory).
-`agf/rules/` content is tool-agnostic markdown; copy it to the editor's
-equivalent path. The skills layer is currently Claude Code-specific;
-Cursor and Windsurf adopters skip or re-implement skills as editor
-macros or scripts.
+The rule content is tool-agnostic Markdown. Configure your tool to read the
+canonical files and verify what it actually loaded using the
+[loader verification prompt](../adopt/assistant-loader-configuration.md#verify-the-loader).
+The Foundry evidence above does not validate these other assistants.
 
 ### LangGraph / CrewAI / AutoGen
 
-These are libraries for building custom multi-agent systems in code.
-AGF provides the governance layer; the library provides the runtime.
+These libraries build agent runtimes. The following are conceptual mappings
+(**Theoretical**), not shipped integrations or observed adopter deployments:
 
-- Role definitions (`agf/agents/*.yaml`) can inform the taxonomy of
-  LangGraph nodes or CrewAI crew members.
-- The gate concept maps onto conditional edges or approval callbacks.
-- The coordination channel and learning records operate independently
-  on git repos and YAML files — the library's execution model does
-  not need to know about them.
+- AGF role definitions could inform nodes or crew responsibilities.
+- Plan and merge gates could surround work on a runtime or its configuration.
+- Coordination and learning records could remain in the repository independently
+  of the runtime's execution model.
 
-The governance value is the audit trail and the written role boundaries,
-not runtime integration. Adopters using these libraries typically apply
-AGF governance around the library (plan before building the graph,
-review before deploying it) rather than embedding AGF inside the
-agent execution loop.
+An adopter would need to design and validate any callbacks or enforcement
+integration. AGF supplies written boundaries and evidence conventions; it does
+not install runtime hooks.
 
 ## How AGF relates to other frameworks
 

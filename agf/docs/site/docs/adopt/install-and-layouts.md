@@ -18,32 +18,17 @@ wired validators, and initialized your evidence.*
   governed change, configure the assistant to see the AGF files and verify
   that it can name the rules it loaded; see
   [assistant loader configuration](assistant-loader-configuration.md).
-- The `agov` command available if you want to run the current core validators
-  locally and in CI. In a full checkout, symlink `tooling/agov` into
-  `~/.local/bin/agov` or run it directly. A framework-only release archive
-  contains `agf/` without packaged tooling; use the optional Rust tooling
-  archive from the
-  [project GitLab Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-  for your platform when you want `agov` without a full checkout. Assistants
-  that cannot read the client-rendered page can use the unauthenticated
-  [GitLab Releases API](https://gitlab.com/api/v4/projects/83321848/releases)
-  to discover the same direct asset links. Every
-  archive's individual `.sha256` checksum and `-provenance.json` file are
-  linked directly on the Releases page alongside it — verify with
-  `sha256sum -c` after downloading both into the same directory.
+- Optional local `agov` tooling for summaries and validators. Follow
+  [Commission Step 2](../start/commission.md#step-2-get-your-pinned-agf-and-agov-artifacts)
+  to choose and verify the separate framework and tooling artifacts. In a full
+  checkout, use its existing `tooling/agov` wrapper directly or symlink that
+  wrapper into `~/.local/bin/agov`; do not overwrite it with a release binary.
 - A human willing to act as governor — without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
-!!! tip "A quick way to hand the archive to your assistant"
-    Download `agf-<version>.tar.gz` or `agf-<version>.zip` from the
-    [Releases page](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases)
-    (or discover its direct asset URL through the
-    [Releases API](https://gitlab.com/api/v4/projects/83321848/releases))
-    into a `tmp/` directory inside your project, then prompt your assistant:
-    "There is a `.tar.gz` file in `tmp/`. Adopt it into the project."
-    The assistant will unpack and wire everything; you review the diff.
-    You can also extract the archive yourself first and point the assistant
-    at the directory — either way works. — *Jani*
+For the ordered setup path and the single assistant prompt, use
+[Commission AGF](../start/commission.md). Return here for layout choices,
+customization, validators, evidence, and collision troubleshooting.
 
 ## First decide the repository layout
 

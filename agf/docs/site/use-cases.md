@@ -4,25 +4,24 @@
 learning records in the framework's evidence base; codenames refer to
 anonymized adopter projects.*
 
-Match your situation against both lists below. A credible use case means AGF
-is reasonable to pilot, not that results are guaranteed. If a non-use case
-describes you more closely, use a lighter review process or the runtime product
-you actually need.
+Use these scenarios to picture a pilot. They are examples from the evidence
+base, not guaranteed results. [Should you adopt?](docs/start/should-you-adopt.md)
+owns the Adopt / Wait / Skip decision and the costs you accept.
 
 ## Credible use cases
 
 **Solo maintainer with AI assistants doing most implementation.**
 The framework's own development (codename *foundry*) runs this way: a
 human governor approves plans and merges; AI agents plan, implement, and
-review under role definitions. The gates replace the review a second
-human would provide.
+review under role definitions. The gates provide recorded checkpoints for the maintainer's review; they
+do not demonstrate equivalence to an independent second human reviewer.
 
 **Small team adding AI assistants to an existing quality culture.**
 Adopters in the evidence base (e.g. *silver-birch*, *copper-rapids*)
 used the rule library to make existing conventions — migration hygiene,
 test tiers, CI scoping — binding on assistants across Elixir and Python
-application stacks. The value is consistency: the assistant follows the same
-written rules in every session.
+application stacks. The intended benefit is consistency: assistants receive the same written
+rules across sessions, while adherence still needs review.
 
 **Projects with audit or compliance pressure.**
 The append-only coordination channel and audit-log rules give projects
@@ -46,28 +45,20 @@ entry and pushes it; another pulls and picks it up. The medium is git: plain
 files in the repository, no shared runtime, no message API, no session
 continuity required between the tools. Each assistant is configured
 independently with the framework rules and reads only what the coordination
-channel contains. Role boundaries in the agent definitions keep the tools from
-stepping on each other — each knows what it owns and what requires a handoff.
+channel contains. Role boundaries and claims make ownership and required handoffs explicit;
+they do not themselves prevent conflicting writes.
 
 ## Non-use cases
 
-Be skeptical of adopting if any of these describe you:
+Use the [Wait and Skip criteria](docs/start/should-you-adopt.md#wait-if)
+before choosing a pilot. They cover disposable work, human-only development,
+absent governor capacity, and expectations of a hosted service or agent runtime.
 
-- **Throwaway or exploratory code.** Governance overhead is waste when the
-  artifact's lifespan is days. Use your assistant directly.
-- **No AI assistants in the loop.** The framework's enforcement targets
-  AI-assisted workflows; a human-only team gets more value from
-  conventional code review and CI alone.
-- **Need for turnkey enforcement.** The framework is files, rules, and
-  conventions — not a hosted service. If nobody on the team will act as
-  governor, the gates will not gate.
-- **Expecting a runtime.** agents-govern does not execute agents; it
-  governs them. Orchestration and execution come from your assistant
-  tooling (Claude Code, Codex, or similar).
-- **Very large organisations seeking org-wide policy.** The framework is
-  validated on single projects with one governor. Multi-project,
-  multi-governor federation is a [hypothesis](future/evolution.md), not a
-  capability.
+For very large organisations, the evidence boundary is still one project with
+one governor. Multi-project, multi-governor federation remains a
+[hypothesis](future/evolution.md), not a shipped capability. AGF supplies a
+repository decision trail; it does not certify compliance or replace external
+security and organisational controls.
 
 ## Maturity, honestly
 
