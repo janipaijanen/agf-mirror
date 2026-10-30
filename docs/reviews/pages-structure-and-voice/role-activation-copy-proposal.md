@@ -129,5 +129,10 @@ that can never be delegated [S8].
 ## Limits
 
 Read-only desk review of the sources above. I did not check every page that
-mentions roles. The independent UX reviewer's 16-question baseline is the
-evidence for whether readers understand this; this proposal is not a score.
+mentions roles. The 16-question baseline is the evidence for whether readers
+understand this; this proposal is not a score. Provenance limit for that
+baseline: the web-UX reviewer authored part of the current v2.13.1 site, so its
+critique is author-informed and not an independent baseline. The walkthrough was
+reassigned to the non-author InfoSec review session, with an authorship check and
+a disclosure of its prior plan-review familiarity. Preserve this limit wherever
+baseline results are quoted.
