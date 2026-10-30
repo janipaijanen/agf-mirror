@@ -1,8 +1,8 @@
 ---
 id: 20261030T054200Z-pages-reader-journey-patch
 status: approved
-gate1_approved_by: 20261030T055817Z-governor-reviewer-pksk
-gate1_approved_at: "2026-10-30T05:58:17Z"
+gate1_approved_by: 20261030T060244Z-governor-reviewer-gnqj
+gate1_approved_at: "2026-10-30T06:02:44Z"
 topic: public-pages-reader-journey-and-documentation-corrections
 advisory_consultation:
   - role: infosec-sentinel
@@ -13,6 +13,7 @@ advisory_consultation:
     reason: Independent contribution review CLEAR after legacy-overlap reconciliation; exact reviewed content and reviewer provenance in handoff grjh.
 affected_paths:
   - agf/docs/build/mkdocs.yml
+  - agf/docs/build/hooks/check_commissioning_links.py
   - agf/docs/site/index.md
   - agf/docs/site/docs/index.md
   - agf/docs/site/use-cases.md
@@ -43,7 +44,8 @@ order, language and contents as a patch release. Recommend candidate **v2.13.1**
 with plain English and a first-time adopter as the primary audience. Experienced
 operators and assistant readers retain direct access to references.
 
-Gate 1 was approved by governor decision `20261030T055817Z-governor-reviewer-pksk`.
+Gate 1 was approved by governor decision `20261030T055817Z-governor-reviewer-pksk`
+and narrowly amended by `20261030T060244Z-governor-reviewer-gnqj`.
 Implement only the bounded documentation slice below. This is not merge,
 deployment or release approval; do not bump versions or tag from this plan; a separate release-publication
 plan/freezing decision must admit its reviewed exact head, reconcile changelogs
@@ -177,9 +179,21 @@ already have distinct jobs; change their navigation order, not their bodies.
 Include a change only when it fixes a demonstrated misleading/stale instruction,
 removes a duplicated onboarding step without losing information, improves a
 reader's next action, or makes an existing capability/evidence boundary clearer.
-The exact eleven-path allowlist is in front matter. The projection manifest
+The exact twelve-path allowlist is in front matter. The projection manifest
 records normative owners, explanation, loader/runbook and distribution impacts.
 No other product source is authorized by this plan.
+
+The sole acceptance-hook change is `check_commissioning_links.py`: require
+primary hero action exactly `docs/start/should-you-adopt/index.html` and secondary
+hero action exactly `docs/start/commission/index.html`. Each action independently
+requires its expected action class, an internal relative link, target existence
+and exact target equality. In the same file, exercise both actions with a
+positive fixture and missing-anchor, external-target, missing-target and
+wrong-but-existing-target negative controls. Update obsolete comments and result
+messages. Retain all other Commission relative/external-link, live GET, release
+archive checksum/provenance, tutorial-gating and prerequisite checks and tests.
+This aligns the documentation guard to the approved journey, without changing
+CI policy or runtime behavior.
 
 Preserve third-party evidence dates, telemetry disclosures, non-endorsement and
 version-specific limits. Coexistence stays Level 2 Surface-defined/Theoretical;
@@ -210,7 +224,8 @@ immutable. Release metadata/changelog edits belong to the later publication plan
    leaf/anchor and deduplication inventory. Have an independent factual reviewer
    compare platform, validator, loader and compatibility wording against current
    canonical sources. Check all claims and commands against the supported path.
-4. Run the existing strict MkDocs build, site link/content hooks, projection and
+4. Run the CTA hook self-tests, existing strict MkDocs build, real rendered CTA
+   hook, other site link/content hooks, projection and
    applicable adopter-doc validation, plus whitespace checks. Preserve guard
    assertions. If an existing test assumes an old label or reading order and
    requires a fixture/code edit outside the allowlist, amend the plan first;
