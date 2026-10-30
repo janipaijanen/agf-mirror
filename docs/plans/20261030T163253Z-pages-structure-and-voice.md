@@ -366,7 +366,12 @@ that remains a reviewer responsibility.
    | 6 | Where do I find detail? | Codex: navigation, Reference/About indexes, llms.txt, content-plan, minimal remaining reference introductions and final compatibility map |
 
    Source paths retain their URLs, so each content slice works under the old
-   navigation. Switch navigation last, after destination content exists. Freeze
+   navigation. Existing CI automatically publishes qualifying main changes to
+   Pages: each slice can be public before the final integrated version. Its
+   Gate 2 must explicitly cover that automatic deployment. Verify affected live
+   pages, links and source SHA after each deployment, holding dependent slices
+   until acceptance completes. Switch navigation last, after destination content
+   exists. Freeze
    completed shared pages; writers agree exact handoffs before any overlap.
    Claude performs the final documentation-estate sweep independently of Codex's
    navigation work. Each author gets an independent implementation reviewer.
@@ -388,8 +393,9 @@ that remains a reviewer responsibility.
    for the integrated candidate. Rework findings, run required exact-head CI and
    request Gate 2. Peer agreement and green builds never supply gate authority.
 6. Only after all required content and navigation slices are accepted may
-   release planning select a patch version and deployment. Verify the published
-   site after deployment. If one slice changes a normative contract, stop it for
+   release planning select a patch version. Intermediate Pages deployments follow
+   existing main CI as above; final integrated site verification and release
+   publication are distinct acceptance events, neither substituting for the other. If one slice changes a normative contract, stop it for
    reclassification rather than carrying it into the documentation patch.
 
 ### Baseline and comparison question script
