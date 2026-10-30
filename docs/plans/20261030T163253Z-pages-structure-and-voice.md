@@ -1,6 +1,8 @@
 ---
 id: 20261030T163253Z-pages-structure-and-voice
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261030T170103Z-governor-reviewer-rp8p
+gate1_approved_at: "2026-10-30T17:01:03Z"
 topic: public-pages-information-architecture-and-reader-voice
 affected_paths:
   - agf/docs/site/**
@@ -30,28 +32,30 @@ depends_on:
   - 20261030T160040Z-forge-evidence-rule
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Review requested for preservation of privacy, trust and authority boundaries during consolidation.
+    status: consulted
+    reason: Independent existing InfoSec session cleared exact a4137ff6; privacy, provenance, authority and per-slice deployment boundaries preserved. Recorded in governor decision rp8p.
   - role: contribution-auditor
-    status: pending
-    reason: Review requested for scope, provenance, compatibility and preservation of governance meaning.
+    status: consulted
+    reason: Independent existing contribution-auditor cleared exact a4137ff6 after canonical projection evidence and conditional patch classification were added. Recorded in governor decision rp8p.
   - role: web-ux-reviewer
-    status: pending
-    reason: Independent baseline source review received; concrete plan review requested. Rendered implementation review remains required.
+    status: consulted
+    reason: Independent existing web-UX session cleared exact a4137ff6 after role comprehension, first-screen CTA, shared-summary and automatic-deployment corrections. Rendered implementation review remains required. Recorded in rp8p.
   - role: documentation-estate-steward
-    status: pending
-    reason: Claude supplied initial navigation, consolidation, audience and terminology recommendations; concrete plan review requested.
+    status: consulted
+    reason: Claude cleared exact a4137ff6 in 20261030T165913Z-documentation-estate-steward-kktm. Ten findings resolved; three advisories are dispositioned in governor decision rp8p.
   - role: fact-checker
-    status: pending
-    reason: Review requested for example wording, human accountability versus delegated role authority, and evidence labels.
+    status: consulted
+    reason: Separately identified advisory factual review by the independent contribution-review session cleared exact a4137ff6. Actual roster/default facts and the policy-tension stop are accurate. Recorded in rp8p.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
 # Plan: make public AGF documentation understandable before it becomes technical
 
-Governance mode: STRICT. This is a planning proposal, not implementation or
-release authority. The human requested a substantive rethink of structure and
+Governance mode: STRICT. Gate 1 approved under decision
+`20261030T170103Z-governor-reviewer-rp8p`, binding reviewed design a4137ff6.
+Implementation is limited to the six reviewed slices and their prerequisites;
+this is not Gate 2, merge, release or manual-deployment authority. The human requested a substantive rethink of structure and
 voice for first-time visitors, CTOs, business owners and AI leads, in
 collaboration with Claude. Claim: `20261030T163253Z-planner-architect-3sgb`.
 
@@ -492,7 +496,7 @@ paths. The independent UX source review independently identified late role
 explanations, duplicated orientation, premature inventory and exceptional
 workflows dominating the operations hub. This draft accepts those findings but
 rejects blind licensing merges, a new glossary page and preservation of Home
-without a deeper rewrite. Concrete-head review is still pending.
+without a deeper rewrite. Final plan reviews cleared a4137ff6; evidence and advisory dispositions are in rp8p.
 
 Concrete-head review of b968a1fb requested revision: the contribution auditor
 required canonical six-surface projection evidence and conditional patch
@@ -500,5 +504,7 @@ classification; web-UX requested role comprehension scenarios, explicit
 first-screen CTA checks and a shared-summary contract decision; Claude
 requested bounded slices, a baseline, unique navigation owners, static anchor
 compatibility, explicit section-index mechanics, llms.txt coverage and stronger
-authority-preservation evidence. The revision incorporates these. InfoSec
-cleared the original plan's boundaries but must review the final delta.
+authority-preservation evidence. The revision incorporates these. All five plan consultations cleared exact
+a4137ff6. Decision rp8p approves the design, records those reviews, names the
+governor-reviewer as owner of the outstanding policy interpretation, and
+requires existing-URL links plus independent review of Claude-authored slices.
