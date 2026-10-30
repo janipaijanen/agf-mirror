@@ -1,6 +1,8 @@
 ---
 id: 20261030T210529Z-pages-source-consistency-g1-g5
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261030T222355Z-governor-reviewer-r8ss
+gate1_approved_at: "2026-10-30T22:23:55Z"
 topic: pages-source-consistency-role-and-gate-wording-g1-g5
 affected_paths:
   - agf/ADOPTING.md
@@ -18,20 +20,20 @@ depends_on:
   - 20261030T064744Z-v2131-release-publication
 advisory_consultation:
   - role: infosec-sentinel
-    status: pending
-    reason: Re-review requested after the revision answering decision record pg2s. G5 touches approval and delegation wording.
+    status: consulted
+    reason: Independent InfoSec review cleared exact head e6362888, including the G5 authority wording. Recorded in governor decision r8ss.
   - role: contribution-auditor
-    status: pending
-    reason: Re-review requested after the revision. Semantic preservation and impact classification of G1, G2 and G5.
+    status: consulted
+    reason: Independent contribution review cleared exact head e6362888 and the unchanged-owner interpretations. Recorded in r8ss.
   - role: web-ux-reviewer
-    status: pending
-    reason: Re-review requested. The three Pages files are public reader copy. The earlier clearance was within advisory scope.
+    status: consulted
+    reason: Web UX review cleared exact head e6362888 within advisory scope. The reviewer helped author the current site but not this draft; no viewport acceptance was supplied. Recorded in r8ss.
   - role: fact-checker
-    status: pending
-    reason: Optional. Review of the source citations and the role counts.
+    status: consulted
+    reason: Separately identified factual review cleared exact head e6362888. Recorded in r8ss.
   - role: documentation-estate-steward
-    status: pending
-    reason: Optional. Review of estate-wide repetition of the same statements.
+    status: waived
+    reason: Optional consultation waived by r8ss for this bounded source plan. Exact owner inventories, three independent reviews and the extra-path stop cover its Gate 1 scope. The parent plan's final estate sweep and broader consistency review remain mandatory. No estate sweep has occurred.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -40,8 +42,16 @@ advisory_consultation:
 
 Governance mode: STRICT. The plan touches `agf/agents/*.yaml` (a downstream-impact trigger
 path and a high-risk area under `high-risk-operations-rule.md`) and approval wording (a public
-AGF claim). Status is `pending-gate1`. Nothing here is approved. No implementation starts
-before binding Gate 1.
+AGF claim).
+
+Lifecycle: Gate 1 approved by governor decision `20261030T222355Z-governor-reviewer-r8ss` at
+reviewed exact head `e636288806e8b536f77aa5123c9668505ed451f5` (MR !3454). The only edits after that
+head are this paragraph, the approval metadata and the consultation rows, as r8ss authorizes. The
+reviewed design is otherwise unchanged. This is Gate 1 only. It is not Gate 2, a version choice, a
+release, a tag or a manual deployment approval. The original Pages implementation gates and the
+browser prerequisites remain in force. r8ss approves the one missing example-roster entry as
+`skipped` only, which satisfies the high-risk stop-and-plan requirement for that one edit. It changes no
+live manifest and activates no role.
 
 Claim: `20261030T210529Z-planner-architect-p214`. Handoff: `20261030T205858Z-governor-reviewer-3ghb`.
 Direction: `20261030T204639Z-planner-architect-qt8p` (Part 3). Revision answers the combined
