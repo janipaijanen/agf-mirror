@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+
 # Changelog — agents-govern 2.0
 
 v2.0 entries only. The v1.x changelog is not part of the `agf/`
