@@ -488,6 +488,59 @@ The implementation handoff must include:
    public checks of Home, all section landings and representative old deep links,
    with build source SHA and UTC timestamp. Record any blocked check honestly.
 
+## Amendment A1: task metrics (PROPOSED, not in force)
+
+Status: proposed by claim `20261030T210529Z-planner-architect-p214` in answer to
+handoffs `20261030T205858Z-governor-reviewer-3ghb` and `20261030T203937Z-planner-architect-kmhn`.
+It changes no approved criterion until a `governor-reviewer` record approves it at
+Gate 1. Until then, "Acceptance evidence" above governs. Section labels, the six
+slices, URL compatibility and independent-review limits are unchanged.
+
+Add one criterion to "Acceptance evidence", numbered 10:
+
+> 10. Task metrics. For each row below, record the route, the counted values and
+> their source, before and after. "After" values are labelled targets until measured.
+
+Mapping of reader jobs to the existing sections: Evaluate is Decide, Adopt is
+Get started, Operate is Work with AGF. Labels stay as approved.
+
+| Job | Scenario | Start | Checkable end | Link transitions: before / after target | Required reading, words: before / after target | Avoidable listed options: before / after target |
+|---|---|---|---|---|---|---|
+| Evaluate | A technical lead on a small team with one assistant decides adopt, wait or skip, and names the recurring human obligations. | Home | The reader gives one of the three outcomes with its reason, and lists the governor's per-change and ongoing obligations. Answer key: the "Adopt now if", "Wait if" and "Skip if" lists and "What adoption asks of you" on `should-you-adopt.md`. | 1 / at most 3 | 690 (+230 Home words above the route cards) / to be set after review | 3 / to be set |
+| Adopt | A solo maintainer with one assistant and an existing repository finds the concrete next setup action. | Home | The reader names what to obtain (pinned AGF artifacts), the single prompt to paste, and says `agov` and MCP are optional. Answer key: Steps 1 to 3 of `commission.md`. A first command is named only if the scenario requires it. | 1 / at most 3 | 1,217 incl. a 573-word paste prompt / to be set | 3 / to be set |
+| Operate | A maintainer with an approved plan starts an ordinary change and finds the gate and the required artifact. | Home | The reader names the gate that precedes implementation, the gate that precedes merge, and the artifact each needs. Answer key: "The daily shape" in `day-to-day.md`. | 2 / at most 3 | 945 (354 runbook table + 591 daily shape) / to be set | 3 on Home + 11 in the runbook table / to be set |
+
+Measurement note:
+
+1. Source and method. Values are expert counts taken from the checked-in source on
+   `ea23dae2` (`agf/docs/build/mkdocs.yml`, `agf/docs/site/index.md` and the pages
+   named above), not from participants, a stopwatch or the rendered site. Rendered
+   confirmation (desktop and mobile) is still required at implementation acceptance.
+2. Counted route metric. One link transition is one followed link between pages. Menu
+   expansion, search and mobile menu friction are recorded as notes and are not counted.
+3. Required reading is the whitespace-separated word count of the sections named in the
+   answer key, plus the Home text above the route cards (230 words) for every row. It
+   includes code and prompt text, so Adopt shows the 573-word paste prompt separately.
+   The sub-section "Privacy, labor, and provider-boundary checklist" is outside the
+   Evaluate count. Moving words out of the key sections lowers the number only if the
+   reader no longer needs them.
+4. Avoidable listed options are the options offered at a decision point that do not lead
+   to the endpoint: the three other route cards on Home (3 per job) and, for Operate, the other
+   eleven situations in the runbook "Choose the situation" table (11 of 12). The count measures listed
+   choices, not mental effort. A genuine governance gate is never counted as a choice to
+   remove.
+5. Finding. At this baseline the link-transition target of three is already met for all
+   three jobs (1, 1 and 2). The metric that can still move is required reading and listed
+   options, which matches the human's aim of less to read. The plan should not claim a
+   click improvement that the baseline does not show.
+6. Not established. No timing. The five-minute figure is deferred as an unvalidated future
+   usability target and is not acceptance evidence or a public performance claim until
+   unfamiliar participants are measured. Comprehension of the answer keys is still checked
+   by the independent reviewers under criteria 3 and 4, not by these counts.
+7. The endpoints test whether the answer is findable. They do not show a completed
+   installation or a merged change. If an endpoint does not match the human's intended
+   task, refine it before Gate 1.
+
 ## Planning review status
 
 Initial Claude consultation recommended five purpose-based groups, demotion of
