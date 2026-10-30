@@ -1,15 +1,17 @@
 ---
 id: 20261030T064744Z-v2131-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261030T075341Z-governor-reviewer-bmaq
+gate1_approved_at: "2026-10-30T07:53:41Z"
 topic: v2131-standard-main-release-publication
 candidate_release: v2.13.1
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
-    reason: Draft awaiting exact freeze and independent release-plan review.
+    status: consulted
+    reason: Final independent contribution audit cleared the exact freeze, estate, matrix and bounded sequence; bmaq records the evidence.
   - role: infosec-sentinel
-    status: pending
-    reason: Fresh publisher residual-risk and SPDX dispositions required; no prior exception carries forward.
+    status: consulted
+    reason: Final independent security review cleared the exact plan and fresh publisher/header evidence; bmaq supplies fresh bounded dispositions, with final metadata-head rechecks required.
 affected_paths:
   - AGENTS.md
   - CHANGELOG.md
@@ -73,14 +75,13 @@ depends_on:
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
 
-# Draft: publish AGF v2.13.1 through the standard main-branch path
+# Publish AGF v2.13.1 through the standard main-branch path
 
-**Planning only; not release readiness or permission to execute.** Root must
-replace the pending Gate 1 fields, pin the verified product-content baseline,
-resolve planning dispositions and complete independent consultation before
-publishing an approved plan. The final construction-base checkpoint follows the
-approved audit-carrier sequence below; it is not falsely claimed complete here. No version/tag/package/Release/protection
-mutation has been performed by preparation of this draft.
+**Gate 1 approved by bmaq.** Publish this approved plan and binding decision
+before implementation. The exact product freeze and release-specific
+conditions are recorded below. The audit-inclusive construction checkpoint,
+metadata Gate 2, protected-tag/namespace checks and publication evidence remain
+separate future obligations; this approval grants no metadata merge or tag.
 
 ## Candidate and freeze
 
@@ -104,38 +105,60 @@ site correctly remains development documentation after v2.13.0. Evidence:
 `/home/dev/s/tmp/codex-pages-live-bb407c35.json`. This completes the prior
 Pages deployment hold, not a v2.13.1 artifact publication.
 
-**Freeze remains pending.** The independent estate sweep found two README
-projections contradicting the reviewed Pages copy: its full commissioning
-prompt points to Install rather than Commission, and its probable-compatibility
-claim exceeds the canonical proposed/Theoretical coexistence evidence. Child plan `20261030T072047Z-v2131-readme-journey-followup`, MR !3397,
-has Gate 1 8p5m and the explicit overlap correction/reapproval gs85. Its
-independently reviewed two-paragraph correction must pass the corrected exact-
-head CI and ordinary Gate 2, then merge before this plan's product-content
-freeze. Its verified merge and refreshed estate assessment/inventory must
-replace this pending field before Gate 1. The user's
-uncommitted root README is outside that work: use an isolated checkout. The
-release metadata MR still excludes README and remains 29 product paths.
+**Product-content freeze approved by bmaq:**
+`93e203466fbb4fdc50f926a7b7c7490bfbb0fdc9`, tree
+`e55f8d90a6ad481c7cc4a6d85b17a50494134d38`. This is the verified !3397
+merge: first parent `bb407c35969ccb251a32f5fe32179e58600223a7`, second
+parent `7b79aab16c8e4ebe92629c1129e8611e4aeb6b29`. Child plan
+`20261030T072047Z-v2131-readme-journey-followup` has Gate 1 8p5m and
+explicit overlap reapproval gs85. Required exact-head pipeline 3007494056
+passed all three jobs. Binding Gate 2 ksm2 was shared unchanged at
+`a7391274fc3856b1298b9a8e851767cbe8be6080` before the 07:43:22Z merge.
+Actual parents, tree and six-path delta were verified: only README's two
+paragraphs, its plan/projection and 8p5m/km7d/gs85. Both independent reviewers
+cleared the exact corrected head. README now routes the full prompt to
+Commission and limits coexistence to the proposed/Theoretical pattern.
 
-The current inventory observation at main `a5d13ad9` is recorded in
-`/tmp/agf-v2131-release-version-inventory.json`. The subsequent handoff merge
-`ec1022d4` added only h2gp/jn6k before the verified Pages merge above. Enumerate
-all further merges, including the child correction, before pinning the product
-freeze. The later construction checkpoint may admit only the specifically
-authorized plan/decision/report additions below, with exact identities and
-unchanged product bytes. Any other main advance returns to release-content
-reconciliation; no unrelated product change is implicitly admitted.
+The independently prepared exact-source addendum closes F1/F2:
+`/tmp/agf-v2131-estate-93e20346-addendum.md`, SHA-256
+`6ee2110eeca1c3e9a64a6e2b60c7ce7e7269bc50d0c3dc3cc3a7b3f750ea0fec`.
+Its fresh inventory classifies 357 paths, 43 projection manifests and eleven
+post-release first-parent commits. The 42 prior whole-tree projection results
+plus the independently checked child manifest are retained; no new 43-manifest
+whole-tree run is falsely claimed. A/B/C remains 36/11/62 occurrences across
+27/3/18 files. Inventory SHA-256
+`440f201ce8f79d178f92fe4a70d3d023e86b5c1c31fb655afa33902d0aae91b8`;
+A/B/C inventory SHA-256
+`2c95d2874530496ee383784f71e7607a1335f21c21983ef94f9ad3944099662e`;
+source-continuity JSON SHA-256
+`5816f7e3dfa3097ef85f43c7472c266c4603c088040b909d91bdd3657101f3cb`.
+All eight publisher inputs and B-status surfaces remain unchanged. Main
+pipeline 3007506312 passed all three required governance/commercial jobs after
+the child merge; it did not deploy Pages. The already-verified live Pages bytes
+remain unchanged by this README-only product delta.
+
+The user's uncommitted root README was untouched. The metadata MR excludes
+README and remains 29 product paths. Only the Pages slice plus this README
+projection correction are new product content; no command, API, rule, schema,
+dependency or platform change. Both final independent consultations are clear; bmaq binds this product freeze
+and the stated dispositions.
+
+The ten-commit post-v2.13.0 crosswalk through bb407c35 is in the estate inventory;
+!3397 is the sole subsequent main advance, explicitly classified above. The
+later construction checkpoint may admit only the specifically authorized
+plan/decision/report additions below, with exact identities and unchanged product
+bytes. Any other main advance returns to release-content reconciliation.
 
 The complete read-only estate assessment at `bb407c35` is
 `/tmp/agf-v2131-estate-bb407c35-assessment.md`, SHA-256
 `4f322c08a93bc0fb895c4b8ae4b376db717784421be96d3fb9cfda4ca49193d1`.
 It classifies 356 paths and ten post-v2.13.0 first-parent commits, checks 42
-projection manifests, and leaves F1/F2 open pending that child. The frozen
+projection manifests, and records F1/F2 open at its pre-child cutoff. The frozen
 report must add the actual child resolution/source rather than relabel this
 historical assessment. Fresh A/B/C at bb407c35 is A36/27files, B11/3,
 C62/18; the extra C occurrence/file is audit history. Refresh after the merge.
 
-Proposed explicit release-owner dispositions for inherited findings, subject to
-Gate 1: preserve six historical learning-ID warnings and two contribution-text
+Explicit release-owner dispositions approved by bmaq for inherited findings: preserve six historical learning-ID warnings and two contribution-text
 heuristic warnings as disclosed advisory evidence, without rewriting history or
 endorsing the flagged heuristic; defer seven unchanged local assistant-loader
 projection warnings to separately governed repair, without calling the copies
@@ -182,22 +205,23 @@ metadata merge; `tgrk` is a repair proposal, not approval or completed repair.
 The Pages plan deliberately excludes header work. A successful validator is not
 proof that the release owner's all-file SPDX checklist is fully satisfied.
 
-Preferred bounded disposition for this already-approved Pages-only release:
-obtain a **fresh explicit v2.13.1-only checklist exception**, naming these exact
+Chosen disposition in bmaq for this Pages/README release:
+a **fresh explicit v2.13.1-only checklist exception**, naming these exact
 three files, their observed header state, the unchanged path-based CC-BY-SA-4.0
 license and absence of a generated-file exclusion. Require independent
 licensing/security review and a new binding governor decision before metadata
 Gate 2. It must say the all-file header checklist is not fully satisfied, carry
 an exact candidate/time boundary, grant no general exception or header-edit
-permission, and keep tgrk's separate repair proposal tracked. Neither dta3 nor
-this draft supplies that decision. No known third-party/license conflict is
+permission, and keep tgrk's separate repair proposal tracked. bmaq supplies the fresh conditional disposition; final metadata Gate 2 binds
+and rechecks the actual candidate. dta3 supplies no authority for this release. No known third-party/license conflict is
 waived by accepting these three historical omissions.
 
 The alternative, if the governor chooses it, is a separate three-file
 header-only Gate 1 plan following tgrk, then independent review and Gate 2 before
 freezing. That would need explicit release-scope reconciliation and a named
 plan dependency. Do not silently implement repairs in the Pages MR or metadata
-MR. Current recommendation preserves the approved twelve-path feature scope
+MR. Current recommendation preserves the Pages slice and its separately approved
+two-paragraph README correction
 and leaves repair separate; it does not declare the files header-compliant.
 
 ### Mutable APK publisher residual
@@ -251,8 +275,7 @@ and replay limits. Its corrected wording distinguishes the single recorded
 `command -v` path from successful tool version executions. No rescan was needed.
 The independent recommendation supports only the fresh bounded dispositions
 above, rechecked against the eventual frozen source and final metadata candidate.
-It grants no risk acceptance or gate approval. The new README findings and
-pending exact freeze keep both final consultation rows pending.
+It grants no risk acceptance or gate approval. The child merge and exact-source addendum resolve the README findings; final exact-plan consultation is clear and bmaq supplies the binding decision.
 
 ## Evidence publication and construction ordering
 
@@ -288,10 +311,10 @@ amendment before mutation, not an implicit allowance.
 
 ## Exact release-truth inventory
 
-At observation a5d13ad9, the checked literal inventory has **36 current-version
+At verified product baseline 93e20346, the checked literal inventory has **36 current-version
 occurrences on 36 lines across 27 files (A)**; **11 latest-published occurrences
-on 9 lines across 3 files (B)**; and **61 historical/external occurrences on 60
-lines across 17 files (C)**. Counts are observations, not a replacement for the
+on 9 lines across 3 files (B)**; and **62 historical/external occurrences on 61
+lines across 18 files (C)**. Counts are observations, not a replacement for the
 named field boundaries. Both label and URL contain the version on two B lines.
 Re-run and reconcile at the actual freeze; classify new history rather than
 blanket-replacing every `2.13.0`.
@@ -510,6 +533,42 @@ changes to runtime, tests, CI, release image or scan policy in this plan.
   inherited warnings. Update the structured projection manifest for the later
   live-status pages without introducing new normative text or loader changes.
 
+### Job matrix derived from the frozen CI rules
+
+Read-only derivation `/tmp/agf-v2131-release-job-matrix.md`, SHA-256
+`61085634278a4f56ef2f1f18502ba83507d706f98bbf5f10b5516bb9ab88a960`,
+evaluates the exact 29-path metadata diff against the frozen CI bytes. Recompute
+at the real metadata head/target; any different path set invalidates this matrix.
+
+The MR requires these 17 automatic, non-allow-failure jobs: `site-html-build`,
+`agf:dist:preview`, `rust:tooling:preview`, `dependency:cve-scan`,
+`agf:flyer:verify`, `agf:dist:validate`, `agov:oci:mr-build-scan`,
+`release:namespace-check`, `release:assets-verify-preview`,
+`tooling:live-surface-validate`, `release:paths-validate`,
+`agov:governance:validate`, `rust:agov:validate`, `rust:tooling:deny`,
+`commercial-corpus:validate`, `rust:tooling:test`, `rust:tooling:clippy`.
+
+The tag requires 23 automatic, non-allow-failure jobs. Its 17 test jobs are:
+`dependency:cve-scan`, `agf:flyer:verify`, `agf:dist:validate`,
+`release:assets-selftest`, `agov-oci-image:selftest`,
+`tooling:live-surface-validate`, `tooling:rust-cache-policy-shellcheck`,
+`release:self-sufficiency-selftest`, `release:paths-validate`,
+`agov:governance:validate`, `governance:changed-files:selftest`,
+`rust:agov:validate`, `rust:tooling:deny`, `commercial-corpus:validate`,
+`rust:tooling:test`, `rust:tooling:oci-pull-test`, `rust:tooling:clippy`.
+The build job is `rust:tooling:release`; the five deploy-chain jobs are
+`agf:dist:release`, `release:assets-verify-pre-oci`, `agov:oci:release`,
+`release:create`, `release:verify`.
+
+No manual jobs exist in this CI. The sole allow-failure job, `ci:pins:advisory`,
+matches neither the metadata paths nor tags and is correctly absent. Ordinary
+workspace tests exclude ignored cases; the tag's OCI-pull job explicitly runs
+only ignored `oci_pull` and `composed_` families, not every ignored platform,
+manual or profiling test. Mandatory jobs can still disclose advisory flyer,
+commercial or validator output. Ordinary jobs need dedicated
+`podman/linux/amd64` runners, nested OCI jobs need `dind`; no shared fallback.
+Pages is the separately admitted default-main side effect, not MR/tag acceptance.
+
 ## Anonymous verification and Pages status synchronization
 
 Require every expected tag job, including package/OCI publish, release:create
@@ -552,20 +611,22 @@ failure, reconcile uncertain POST by read-only inspection and never blindly
 retry publication. A correction requires a separately authorized new version;
 this plan does not authorize a v2.13.2 release or editing a published Release.
 
-Required before this draft may be approved:
+Approval readiness:
 
-- [ ] Exact !3394 Gate 2/merge/parents/tree/pipeline and Pages verification.
-- [ ] Exact product-content freeze SHA, read-only estate assessment and refreshed
-      A/B/C inventory; explicit audit-carrier sequence and final construction
-      checkpoint, whose actual SHA is recorded only after those approved merges.
-- [ ] Fresh independent contribution and security consultations, with no pending
-      advisory row left in approved metadata.
-- [ ] Governor choice/record for the three inherited headers; tgrk repair remains
-      separately tracked, not silently added to Pages scope.
-- [ ] Agreed evidence refresh/expiry and fresh v2.13.1-only mutable-APK residual
-      disposition before metadata Gate 2; any findings separately resolved.
-- [ ] Current claims/collisions, UTC cut-date choice, expected job matrix/runner
-      availability and conservative publication-before-expiry budget, plus exact
-      protected-tag policy/creation scope.
-- [ ] Replace all pending fields and unverified short IDs; reviewed plan must
-      name its own new binding approval, not inherit v2.13.0 authority.
+- [x] Exact Pages Gate 2/merge/parents/tree/pipeline and live verification recorded.
+- [x] Exact README child Gate 1/amendment/Gate 2, merge and all required checks;
+      F1/F2 resolved in a fresh source-bound estate addendum.
+- [x] Product freeze candidate 93e20346, full estate/ABC inventory, explicit
+      inherited-advisory dispositions and separate audit/construction sequence.
+- [x] Independent design, runtime evidence, estate and job-matrix reviews received;
+      final exact-plan consultation must resolve both front-matter rows.
+- [x] Proposed fresh three-header checklist exception and mutable-APK decision are
+      concrete and reviewed; the binding governor record must choose them, and
+      final metadata Gate 2 must bind/recheck its exact candidate before merge.
+- [x] Current claims/open MRs scanned; UTC cut date 2026-10-30; derived 17/23 job
+      matrix, capacity observation, conservative cutoff and exact-tag-rule scope.
+- [x] Binding Gate 1 bmaq and final consulted metadata prepared for publication.
+      No implementation starts before that shared record and plan. The later audit-inclusive
+      construction SHA, metadata Gate 2, namespace/protection/expiry checks and
+      actual publication evidence are future gated checkpoints, not falsely
+      claimed complete by approving this plan.
