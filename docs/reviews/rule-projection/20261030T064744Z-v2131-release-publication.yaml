@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
 # Copyright (c) 2026 Jani Päijänen
 plan_id: 20261030T064744Z-v2131-release-publication
-# Audit-only phase: these existing live-status surfaces are declared for the
-# later separately gated B-status synchronization. None is changed by this MR.
-# No stage: planned marker is used for existing normative owners.
+# Post-publication live-status phase; immutable v2.13.1 archives are unchanged.
 changed_pages_or_runbooks:
   - agf/docs/site/roadmap.md
   - docs/roadmap.md
@@ -17,45 +15,47 @@ surfaces:
       - agf/rules/always/tool-authority-boundary-rule.md
     reason: >-
       Existing owners govern publication, immutable tags and tool authority.
-      Published bmaq supplies exact-cut freeze, conditional risk/header
-      dispositions and phased scope; no rule or approval authority changes.
+      bmaq supplies phased scope; 6r8p binds final metadata Gate 2 and bounded
+      dispositions. The status update changes no rule or approval authority.
   adopter_facing_explanation:
-    disposition: existing pointer sufficient
+    disposition: updated
     paths:
       - agf/docs/site/roadmap.md
       - agf/docs/governance/manifest.md
     reason: >-
-      These current files correctly state verified v2.13.0 and remain unchanged
-      in this audit MR and the later metadata MR's B cells. Updating the bounded
-      latest-published cells and companions is PLANNED ONLY, after anonymous
-      v2.13.1 verification/completion and its separate exact-head Gate 2. This
-      manifest does not claim that synchronization or artifact publication ran.
+      Bounded latest-release cells now state independently verified v2.13.1,
+      actual publication/tag dates and the tagged source. The internal roadmap
+      has the same observation time and cites published completion ekep. No
+      unrelated roadmap commitment or capability status changes. Pages deployment
+      and live verification remain separate acceptance steps after Gate 2.
   runbook_situation_map:
     disposition: existing pointer sufficient
     path: agf/docs/site/docs/operate/review-and-release.md
     reason: >-
       The existing release procedure remains accurate; no procedure-body change
-      is needed for a documentation patch. Root roadmap live-status updates
-      remain separately planned, without changing unrelated roadmap commitments.
+      is needed. Only the approved release-status cells and their evidence
+      companions change in the internal roadmap and public projection.
   ai_landing_loaders:
     disposition: existing pointer sufficient
     path: agf/templates/AGENTS.md
     reason: >-
-      Existing loaders already discover the rules. A later metadata MR may bump
-      only enumerated current-version cells; no loader behavior or new guidance
-      is introduced and no version bump is performed in this audit MR.
+      Existing loaders discover the unchanged rules. The completed metadata MR
+      already set current-version cells to 2.13.1. This status-only phase changes
+      no loader, guidance or version metadata.
   validation_drift_evidence:
     disposition: advisory only
     paths:
       - docs/reviews/documentation-estate/20261030-v2131-release-content-freeze.md
       - docs/reviews/next-release-freeze-evidence/20261030-v2131-apk-residual-risk.md
     reason: >-
-      Exact-source inventories, preserved assessments, independently reviewed
-      source/rendered evidence and dated full-severity scans support bmaq's
-      bounded decisions. They do not supply metadata Gate 2, namespace absence,
-      future APK reproducibility or production/publication/status-sync proof.
-      Mechanical projection checks verify structure and paths, not semantic
-      sufficiency or governor authority.
+      The dated freeze and publisher reports remain historical evidence, not
+      publication proof. Completion 20261030T100719Z-coder-tester-ekep, published
+      unchanged at cc54fea11974fa6a0884ad094e4a79b60daa412f on the shared
+      coord/v2131-publication-complete branch, records all 23 successful tag jobs
+      and independent anonymous verification of actual public artifacts and OCI
+      identity. Strict projection checks, the Pages build and independent diff
+      review supply candidate evidence, not governor authority. The 17 inherited
+      advisories and skipped framework-config check are not implicitly closed.
   distribution:
     disposition: existing pointer sufficient
     paths:
@@ -63,8 +63,8 @@ surfaces:
       - agf/docs/governance/manifest.md
       - agf/templates/AGENTS.md
     reason: >-
-      These existing adopter surfaces ship through the framework manifest.
-      Future current-version and verified-status edits stay on their authorized
-      branches. Root docs/roadmap, this projection, the plan and both audit
-      reports are project-local evidence, not new adopter artifact files. No
-      v2.13.1 artifact or changed distribution layout is claimed by this record.
+      The adopter roadmap and governance manifest remain in the existing
+      framework layout; the loader is unchanged. Root docs/roadmap and this
+      projection remain project-local. These later live-status edits are not
+      retroactively present in the immutable v2.13.1 archives at db300c09, and
+      no tag, package, image, archive or distribution layout is rewritten.

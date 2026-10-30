@@ -7,22 +7,22 @@ views or inputs; they do not create roadmap commitments independently.
 
 | Field | Value |
 |---|---|
-| Status | v2.13.0 is the latest published, independently verified stable release. The Improvement Propeller is Level 5 Deployable (`20260918T162825Z-governor-reviewer-8hs2`). |
-| Observed at | 2026-10-30T00:02:34Z |
-| Observation baseline | Annotated tag `v2.13.0` (`a75803f2f791779fb1ec82aad92eb150cdfab56b`) at `a46c2e1c8754103fce45b6bdabe023c3ee79b2b6` |
+| Status | v2.13.1 is the latest published, independently verified stable release. The Improvement Propeller is Level 5 Deployable (`20260918T162825Z-governor-reviewer-8hs2`). |
+| Observed at | 2026-10-30T10:10:32Z |
+| Observation baseline | Annotated tag `v2.13.1` (`e00836eae1dd2d7d112c64a182846aff7ca5d763`) at `db300c090527817a9d556e13f25d414ab75e09bf` |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
 
-**Latest stable release: v2.13.0.** Published 2026-10-29 from the verified
-annotated tag. Its 23-job tag pipeline, GitLab Release, generic package, OCI
-image, checksums, provenance, packaged executable, and anonymous downloads
-were independently verified
-(`20261030T000234Z-coder-tester-q5r4`). Earlier releases remain available
+**Latest stable release: v2.13.1.** Published 2026-10-30 from the verified
+annotated tag. Its 23-job tag pipeline passed. The GitLab Release, generic
+package, OCI image, checksums, provenance, packaged executables, and anonymous
+downloads were independently verified
+(`20261030T100719Z-coder-tester-ekep`). Earlier releases remain available
 and are not removed from history.
 
 The public artifacts are available from the
-[v2.13.0 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.13.0).
+[v2.13.1 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.13.1).
 
 No later version number or release scope is binding merely because it appears
 in an issue label, proposal, or advisory horizon. A later release requires its
