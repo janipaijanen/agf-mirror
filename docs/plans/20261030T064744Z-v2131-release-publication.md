@@ -52,6 +52,22 @@ depends_on:
   - 20261029T204751Z-v213-release-freeze-preparation
   - 20261029T192922Z-release-publisher-api-amendment
   - 20261028T194451Z-ci-reproducibility-pins
+  - 20260913T085123Z-work-item-steward-gate1
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260915T075705Z-issue130-pending-advisory-consultation-status
+  - 20260916T002012Z-roadmap-refresh-post-v2101-issue130
+  - 20261021T220000Z-retire-windows-support
+  - 20261022T205113Z-instruction-context-reduction
+  - 20261023T045214Z-remove-elixir-references
+  - 20261023T080431Z-instruction-context-followup
+  - 20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases
+  - 20261024T070435Z-timer-reality-polling-alignment
+  - 20261025T183939Z-v211-changelog-and-scope-reconciliation
+  - 20261025T192020Z-supersedes-adopter-docs
+  - 20261027T045944Z-record-only-publication-termination
+  - 20261027T230355Z-v212-release-freeze-corrections
+  - 20261027T235807Z-v212-release-publication
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -81,6 +97,19 @@ Inventory observation used here is main `a5d13ad9`, fully recorded in
 advances are not implicitly admitted. Enumerate every intervening merge/path,
 verify its authority and tree, and freeze the concrete final current-main tip.
 Any unrelated product change requires explicit release-content reconciliation.
+
+The additional historical plan dependencies acknowledge the concrete overlaps
+reported by the changed-plan collision check. This release touches only the
+named current-version fields, new changelog entry and later verified-status
+cells on their shared paths. It preserves those plans' rule/agent/loader bodies,
+role status, roadmap feature dispositions and historical records; it does not
+reimplement, activate, supersede or declare completion of their work. In
+particular, MANIFEST/agent version metadata cannot activate work-item-steward or
+change any other role. Claims and current open MRs are rechecked before editing;
+a live overlapping mutation outside these cells requires fresh coordination.
+The 204 older plans without affected_paths remain mechanically unassessed, not
+presumed closed. Metadata-only limits and an independent estate review supplement
+that coverage gap rather than claiming the collision command proved closure.
 
 Standard topology is mandatory: branch `release-2.13.1` from reviewed `main`,
 metadata-only MR back to `main`, then annotate the actual approved merge.
