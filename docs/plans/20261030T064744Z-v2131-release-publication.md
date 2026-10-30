@@ -48,6 +48,7 @@ affected_paths:
   - tooling/rust/Cargo.toml
 depends_on:
   - 20261030T054200Z-pages-reader-journey-patch
+  - 20261030T072047Z-v2131-readme-journey-followup
   - 20261029T220500Z-v213-release-publication
   - 20261029T204751Z-v213-release-freeze-preparation
   - 20261029T192922Z-release-publisher-api-amendment
@@ -106,10 +107,12 @@ Pages deployment hold, not a v2.13.1 artifact publication.
 **Freeze remains pending.** The independent estate sweep found two README
 projections contradicting the reviewed Pages copy: its full commissioning
 prompt points to Install rather than Commission, and its probable-compatibility
-claim exceeds the canonical proposed/Theoretical coexistence evidence. A
-separately gated, two-paragraph child correction must merge before this plan's
-product-content freeze. Its exact plan, decision, merge and refreshed estate
-assessment/inventory must replace this pending field before Gate 1. The user's
+claim exceeds the canonical proposed/Theoretical coexistence evidence. Child plan `20261030T072047Z-v2131-readme-journey-followup`, MR !3397,
+has Gate 1 8p5m and the explicit overlap correction/reapproval gs85. Its
+independently reviewed two-paragraph correction must pass the corrected exact-
+head CI and ordinary Gate 2, then merge before this plan's product-content
+freeze. Its verified merge and refreshed estate assessment/inventory must
+replace this pending field before Gate 1. The user's
 uncommitted root README is outside that work: use an isolated checkout. The
 release metadata MR still excludes README and remains 29 product paths.
 
@@ -121,6 +124,27 @@ freeze. The later construction checkpoint may admit only the specifically
 authorized plan/decision/report additions below, with exact identities and
 unchanged product bytes. Any other main advance returns to release-content
 reconciliation; no unrelated product change is implicitly admitted.
+
+The complete read-only estate assessment at `bb407c35` is
+`/tmp/agf-v2131-estate-bb407c35-assessment.md`, SHA-256
+`4f322c08a93bc0fb895c4b8ae4b376db717784421be96d3fb9cfda4ca49193d1`.
+It classifies 356 paths and ten post-v2.13.0 first-parent commits, checks 42
+projection manifests, and leaves F1/F2 open pending that child. The frozen
+report must add the actual child resolution/source rather than relabel this
+historical assessment. Fresh A/B/C at bb407c35 is A36/27files, B11/3,
+C62/18; the extra C occurrence/file is audit history. Refresh after the merge.
+
+Proposed explicit release-owner dispositions for inherited findings, subject to
+Gate 1: preserve six historical learning-ID warnings and two contribution-text
+heuristic warnings as disclosed advisory evidence, without rewriting history or
+endorsing the flagged heuristic; defer seven unchanged local assistant-loader
+projection warnings to separately governed repair, without calling the copies
+canonical; defer two unchanged README count warnings (51 versus 52 rules,
+16 versus 17 agent definitions), without claiming those counts are current.
+The child excludes those count edits; this patch fixes its identified
+setup/compatibility regressions and does not claim a warning-free estate.
+`framework_config` remains explicitly skipped, not passed. Header checklist
+and mutable-APK conditions stay separate below. No finding is implicitly closed.
 
 The additional historical plan dependencies acknowledge the concrete overlaps
 reported by the changed-plan collision check. This release touches only the
@@ -357,7 +381,8 @@ Proposed adopter entry (final wording reviewed at metadata Gate 2):
 > `docs/start/adopter-faq.md`, `docs/adopt/install-and-layouts.md`,
 > `docs/adopt/third-party-plugin-coexistence.md`, `docs/concepts/position.md`).
 
-Proposed repository entry: identify !3394's verified merge, the two independently
+Proposed repository entry: identify !3394's verified merge and the separately
+verified !3397 two-paragraph README projection correction, the two independently
 checked CTA destinations and negative controls, unchanged CSS/feature-summary
 contract, and exact validation evidence. Link the adopter section rather than
 invent a second scope. Do not mark unrelated issues closed or promise conversion,
@@ -435,6 +460,17 @@ queued or running risk-bearing work while authority remains active and preserve
 the immutable tag/any partial assets; reconcile ambiguous outcomes read-only.
 Do not launch or retry expired work. A pre-expiry tag never grants post-expiry execution. The
 margin is an operating precaution, not a guarantee of queue or network timing.
+
+Planning capacity observation at 07:22Z: prior complete v2.13.0 tag pipeline
+3006335980 took 28 minutes 5 seconds wall time (created 23:26:32Z, finished
+23:54:37Z); its reported job duration is 1599 seconds and queue eight seconds.
+The primary and active DinD runners were online. Ten protected-tag policies
+were fully enumerated in one page; no exact v2.13.1 rule existed. These are
+preparatory observations only, saved in
+`/home/dev/s/tmp/codex-v2131-release-capacity-observation.json`. They support
+planning the two-hour minimum reserve, not permission to tag or proof of future
+capacity/protection. Repeat all required identity, policy, queue and expiry
+checks at their actual pre-push checkpoints.
 
 Namespace-check JSON must bind project/path/version/source/live target/time;
 the mandatory MR job also binds the canonical pipeline. Neither check reserves
