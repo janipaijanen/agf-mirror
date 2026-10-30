@@ -7,6 +7,7 @@ affected_paths:
   - agf/docs/build/mkdocs.yml
   - agf/docs/build/hooks/**
   - docs/reviews/pages-structure-and-voice/**
+  - docs/reviews/rule-projection/20261030T163253Z-pages-structure-and-voice.yaml
 depends_on:
   - 20260916T002012Z-roadmap-refresh-post-v2101-issue130
   - 20261021T220000Z-retire-windows-support
@@ -102,7 +103,11 @@ reference subgroup, not in a flat list of equal-looking first steps.
 
 The small About index is the only new reader page proposed. Do not create
 another glossary, overview or persona landing page: reuse the concept page,
-Decide sections and existing indexes. No new dependency is needed.
+Decide sections and existing indexes. No new dependency is needed. Use Material's built-in `navigation.indexes`
+feature for clickable section landing pages, and verify rendered keyboard/mobile
+behavior. If the installed theme cannot provide it, use an explicit first
+"Overview" entry in each group instead; do not add a plugin or build a custom
+navigation system.
 
 ### Home: explain, demonstrate, then route
 
@@ -127,6 +132,11 @@ In this order:
    Supporting role labels may name business owners, CTOs and AI leads, but
    labels describe the question rather than require a job title.
 
+The first screen must contain the concise explanation and primary action;
+the numbered order describes the full narrative, not a requirement to push
+both actions below all explanatory sections. Put a short primary action beside
+the introduction and keep deeper examples below it.
+
 Keep version/source available through the existing header. Reduce the long
 provenance notice to a concise accurate link; retain release-versus-development
 distinction on Release information. Move the motto and detailed maturity/tool
@@ -143,6 +153,21 @@ Home, not merely a sidebar relabel.
 | AI lead | Home → Decide: assistant workflows → tool/configuration reference | Framework versus runtime, assigning responsibilities, optional CLI/MCP, third-party coexistence limits |
 | Solo maintainer | Home → Get started → first change | They may be the named human approver; the assistant prepares work; both decisions remain explicit |
 | Existing user | Home → Work with AGF → selected task | How to advance ordinary work or recover a blocked session without repeating onboarding |
+
+### Navigation ownership and AI entry
+
+Every page has one navigation owner. Tooling, MCP, third-party tools,
+customization, layouts and loader configuration live under Reference, grouped
+as Concepts, Tools and configuration, and Contracts and artifacts. Get started
+links the relevant reference at the point of need; it does not list another
+copy of those pages in its sidebar. About owns expert framework review and
+project background. Contextual links are intentional, duplicated ownership is
+not. Each reference subgroup begins with one sentence saying what to find there.
+
+`agf/docs/site/llms.txt` is in scope explicitly: update its reading paths and
+labels to the final structure, preserve valid canonical destinations and
+identity/evidence boundaries, and check it as an AI-lead entry point. Do not
+leave an old AI-facing map alongside the new human-facing navigation.
 
 ## Content ownership and disposition
 
@@ -182,6 +207,7 @@ unique instruction, caveat, evidence statement and fragment goes.
 | `evaluate.md`, `ai-evaluation-dossier.md` | About → Review the framework / Full documentation for reviewers; explicitly distinguish independent review from adoption; retain evaluator safeguards |
 | `roadmap.md`, `contribute.md`, `acknowledgements.md`, `docs/concepts/philosophical-lenses.md`, `future/evolution.md` | About: current status and contributions first, background/research nested; preserve nonbinding future labels |
 | `reference/artifact-registry.md`, `reference/figures.md`, `reference/palette.md` | Preserve existing auxiliary reference routes and links; no new promotion into introductory navigation |
+| `llms.txt` | AI-facing reading paths updated to match the final canonical pages, URLs and evidence limits |
 | `content-plan.md` | Refresh the non-public planning map to match this ownership model; keep it excluded from publication |
 
 ### Voice contract for this editorial change
@@ -225,7 +251,8 @@ The canonical role page must provide a compact table separating:
 - the documented solo trial (`coder-tester` plus human `governor-reviewer`);
 - the standard governed project (also `planner-architect`);
 - specialist roles, their purpose and activation trigger;
-- the project's actual authorized, assigned active roster.
+- how the reader locates and interprets their own project's authorized, assigned
+  active roster; never publish foundry's roster as the adopter default.
 
 The shipped `agf/agents/MANIFEST.example.yaml` deliberately marks all roles
 skipped. It is a template, not the project's live roster. Consequently do not
@@ -255,13 +282,18 @@ silently strengthen or weaken policy in a documentation patch.
 
 ## Compatibility, boundaries and patch eligibility
 
-This is proposed patch-release content: editorial structure and clarity only.
+This is conditionally patch-eligible content: editorial structure and clarity only.
+The exact final diff plus factual and projection reviews must demonstrate that
+classification; a whole-estate rewrite is not automatically a patch.
 No new framework obligation, authority, command, schema, dependency, commercial
 term, supported platform or default changes. No release version/date is selected
 by this plan. A later release plan must satisfy its own checklist; it cannot
 inherit v2.13.1-specific exceptions or rewrite released artifacts.
 
-Prefer regrouping navigation over moving files. Existing published page URLs
+Prefer regrouping navigation over moving files. There is no redirect plugin
+in the current build and this plan adds none. A moved section must leave a real
+static compatibility page/section at its old path, retaining old anchors and
+meaningful destination links; preserve necessary context, not an empty stub. Existing published page URLs
 must keep working. If consolidation moves a section, retain its existing anchor
 at the old URL with an explicit destination; do not assume a redirect preserves
 fragments. Inventory generated HTML IDs and internal links before rewriting,
@@ -269,9 +301,14 @@ including dossier links and legacy explicit anchors. A preserved HTTP 200 with
 lost meaning or an unhelpful blank stub is not sufficient.
 
 Do not edit generated Release information or the dossier as independent prose.
-Preserve their build hooks and source provenance. Keep the shared feature-summary
-contract synchronized with its existing counterparts; if exact shared-block
-text outside this scope must change, amend the plan before editing those files.
+Preserve their build hooks and source provenance. Keep the exact shared feature-summary block in `docs/index.md` byte-identical
+to root README, with the same markers and opener. Place it as a bounded secondary
+section after the Reference task directory; it is an explicit exception to the
+consolidation of repeated product explanation. Explain human governor in plain
+language before that block so a direct entrant understands its terms. Run
+`python3 tooling/tests/test_public_feature_summary.py` unchanged. Relocating or
+rewriting the shared block or changing its test requires a plan amendment;
+this scope does not include root README or test changes.
 Retain the existing hero CTA targets, artifact verification, single Step 6
 first-change link and other commissioning guards. Hook edits are limited to
 documented navigation/anchor and content-source changes, never weakening safety
@@ -282,24 +319,100 @@ release metadata, unrelated styling redesign, new figures or runtime code are
 included. Minimal existing CSS changes are allowed only if needed for the
 restructured navigation/content to remain readable and accessible.
 
+### Required projection evidence
+
+Moving or consolidating normative operating guidance is governed by
+`agf/rules/workflow/documentation-rule-projection-rule.md`, even when the
+intended meaning is unchanged. This plan includes the initial canonical
+`docs/reviews/rule-projection/20261030T163253Z-pages-structure-and-voice.yaml`
+for existing source paths; implementation must update it to name every final
+changed/new Pages/runbook file and all six surface dispositions:
+canonical normative owners, adopter explanation, runbook situation map, AI
+landing/loaders, validation/drift evidence, and distribution. Release/migration classification
+is additionally documented in this plan.
+Record owner-by-owner semantic preservation. Existing owners and unchanged
+loader paths may be explicitly unchanged with reasons; do not invent a new
+normative owner or silently modify an excluded loader. Any necessary extra
+projection change requires a plan amendment and refreshed overlap review.
+
+The strict implementation check is `agov plan projection-check --base-ref
+<accepted-base> <manifest>` (without planned-owner relaxation). Preserve its
+full changed-page coverage. Alongside the manifest, keep the section/anchor
+map and factual comparisons as evidence, not substitute rules. If the final
+diff changes obligations, authority, defaults, support contracts, licensing,
+commands/schemas or evidence strength, stop and amend/reclassify before Gate 2
+and release planning. The projection check cannot establish semantic equality;
+that remains a reviewer responsibility.
+
 ## Work allocation and sequencing
 
 1. Codex prepares this plan; Claude challenges the information architecture
    and content ownership as documentation-estate-steward. Independent reviewers
    assess the plan. Keep pending-gate1 until all consultations are disposed and
    a binding governor record exists.
-2. After approval, claim bounded non-overlapping implementation slices. Proposed
-   split: Codex owns navigation, Home, indexes, build/link compatibility and
-   review evidence; Claude owns Decide/setup/operating/concept prose under an
-   agreed exact page list. Freeze shared pages before the other writer proceeds.
-3. Both writers inspect the whole content of pages being consolidated. Record
-   the final page/section/anchor map under `docs/reviews/pages-structure-and-voice/`.
-   Claude conducts the cross-site voice/ownership sweep; Codex integrates it.
-4. Obtain distinct-model rendered web-UX review and factual review of the final
-   candidate; rework findings, run required exact-head CI and request Gate 2.
-   Neither peer agreement nor a green build substitutes for either gate.
-5. Only after implementation acceptance does release planning select a patch
-   version and deployment. Verify the published site after deployment.
+2. After approval, implement six bounded, independently reviewable MRs in the
+   order below. This plan coordinates the whole outcome; it is not permission
+   for a single 46-page rewrite MR. A page audit may conclude "unchanged"; do
+   not rewrite every page merely because it is inventoried. Each MR has a
+   precise claim, its own exact-head checks and Gate 2, and a reversible diff.
+
+   | Order | Reader question / slice | Proposed owner and paths |
+   |---|---|---|
+   | 1 | Who does what? | Claude: roles-and-gates, position, role/activation sections; resolve factual ambiguities before other prose depends on them |
+   | 2 | Should I adopt? | Claude: Decide, downstream impact, FAQ and selected use-case summaries |
+   | 3 | How do I start? | Claude: Commission, first change, layouts and loader explanation; preserve one setup path |
+   | 4 | How do I work? | Claude: operating hub and procedures, upgrade/exit introductions; coordinate the reserved forge-rule section before any shared-page edit |
+   | 5 | What is AGF? | Codex: Home narrative and first-screen actions, using the reviewed role explanation and completed destinations |
+   | 6 | Where do I find detail? | Codex: navigation, Reference/About indexes, llms.txt, content-plan, minimal remaining reference introductions and final compatibility map |
+
+   Source paths retain their URLs, so each content slice works under the old
+   navigation. Switch navigation last, after destination content exists. Freeze
+   completed shared pages; writers agree exact handoffs before any overlap.
+   Claude performs the final documentation-estate sweep independently of Codex's
+   navigation work. Each author gets an independent implementation reviewer.
+   Rollback a failing slice through its normal governed revert; later dependent
+   slices stop. No content or navigation-only merge chooses a release version.
+3. Before rewriting, run the baseline question script below on the existing
+   built site. Record screenshots, routes and answer evidence. For each slice,
+   rerun affected scenarios and preserve unaffected checks; run the complete
+   script on the integrated final site. These are advisory usability measures,
+   not a new mechanically binding prose rule.
+4. Both writers inspect whole pages before consolidation. Keep the final
+   page/section/anchor map and an advisory sentence-preservation report under
+   `docs/reviews/pages-structure-and-voice/`. Extract baseline sentences
+   containing MUST, never, only, approve or authority as review candidates;
+   map them to their preserved final meaning/location or explain the editorial
+   disposition. This catches likely drift but is neither a complete semantic
+   inventory nor a new automated blocker. Review unflagged safeguards too.
+5. Obtain distinct-model rendered web-UX review and factual review per slice and
+   for the integrated candidate. Rework findings, run required exact-head CI and
+   request Gate 2. Peer agreement and green builds never supply gate authority.
+6. Only after all required content and navigation slices are accepted may
+   release planning select a patch version and deployment. Verify the published
+   site after deployment. If one slice changes a normative contract, stop it for
+   reclassification rather than carrying it into the documentation patch.
+
+### Baseline and comparison question script
+
+Use the same questions on the current and candidate built site. The reviewer
+must not be an author of the evaluated slice. Record pass/fail, route, correct
+answer source, observed ambiguity and whether prior project knowledge helped.
+A desk review is not an unbiased first-time-user study; record that limitation.
+Use a fresh independent reviewer where available rather than treating familiar
+maintainers as representative users. No invented timings or conversion claims.
+
+| Audience | Four questions, scored separately |
+|---|---|
+| First-time visitor | What does AGF supply? What runs the AI? Who approves work? Where do I start deciding or trying it? |
+| Business owner | What human attention is required? What costs/risks remain? What terms apply? Can we leave while preserving our work/history? |
+| CTO | Where do approvals sit relative to CI? Which responsibilities must be assigned? What changes in the repository and rollout? What does the evidence not establish? |
+| AI lead | How do role definitions differ from running assistants? What is shipped versus active? How do I request an inactive specialist? Which CLI/MCP/third-party tooling claims are actually supported? |
+
+Record 16 individual baseline and final outcomes, not just an aggregate score.
+Each baseline failure must have a traced correction or explicit accepted
+residual; the final walkthrough must resolve all essential understanding and
+routing questions above. Explain improvements through evidence, not a menu
+count alone. Add the separate solo/active-specialist scenarios in acceptance.
 
 Collision scan on the committed plan found 16 declared-path predecessor
 intersections, all currently marked approved. They are explicitly listed in
@@ -338,20 +451,30 @@ The implementation handoff must include:
    who approves and what to do next. Record actual route and points of confusion.
    This is an expert walkthrough, not evidence of measured human usability or
    a guarantee that every visitor understands within a fixed time.
-4. A first-use terminology and addressee sweep of all public source pages, not
+4. Explicit role comprehension scenarios, answered against reconciled canonical
+   owners: distinguish a shipped definition, skipped example and assigned active
+   role from a running process; identify the solo model's preparer and approver
+   at both gates; explain the applicable self-approval boundary; request an
+   inactive specialist through approval/assignment; distinguish that from
+   consulting an active specialist or designing a new role. A keyword match or
+   presence of a table is not evidence of understanding.
+5. A first-use terminology and addressee sweep of all public source pages, not
    just Home; ambiguous uses of "you", unexplained governor/gate terms and
    incorrect human/AI authority statements resolved or explicitly justified.
-5. Strict MkDocs build; existing docs, link, commissioning, figure/accessibility
+6. Strict MkDocs build; existing docs, link, commissioning, figure/accessibility
    and provenance checks appropriate to changed paths; generated dossier and
    release-information inspection. Preserve the current checks' material intent.
-6. Rendered desktop and narrow/mobile checks in light/dark modes: usable
+7. Rendered desktop (1440×900) and mobile (390×844) checks in light/dark modes: usable
    section landings, keyboard focus/order, headings, contrast, no horizontal
-   overflow and no missing destinations. The independent reviewer must inspect
+   overflow and no missing destinations. Capture the first-screen primary CTA
+   location: the reader sees a concise explanation and an identifiable next
+   action without scrolling past a large figure, long notice or role catalog.
+   The independent reviewer must inspect
    rendered output; source-only critique does not close this criterion.
-7. Factual checks of roles, optional tooling, supported installation, current
+8. Factual checks of roles, optional tooling, supported installation, current
    status, delegation, privacy, licensing and integration evidence against
    canonical owners. A change to their meaning is outside this patch plan.
-8. Before merge, exact-head pipeline/jobs and resolved findings; after deployment,
+9. Before merge, exact-head pipeline/jobs and resolved findings; after deployment,
    public checks of Home, all section landings and representative old deep links,
    with build source SHA and UTC timestamp. Record any blocked check honestly.
 
@@ -364,3 +487,12 @@ explanations, duplicated orientation, premature inventory and exceptional
 workflows dominating the operations hub. This draft accepts those findings but
 rejects blind licensing merges, a new glossary page and preservation of Home
 without a deeper rewrite. Concrete-head review is still pending.
+
+Concrete-head review of b968a1fb requested revision: the contribution auditor
+required canonical six-surface projection evidence and conditional patch
+classification; web-UX requested role comprehension scenarios, explicit
+first-screen CTA checks and a shared-summary contract decision; Claude
+requested bounded slices, a baseline, unique navigation owners, static anchor
+compatibility, explicit section-index mechanics, llms.txt coverage and stronger
+authority-preservation evidence. The revision incorporates these. InfoSec
+cleared the original plan's boundaries but must review the final delta.
