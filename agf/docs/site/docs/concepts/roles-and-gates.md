@@ -29,7 +29,7 @@ plan and implement a change; neither task gives it approval authority. Prefer a
 human approver who did not implement the change. Phase 1 is the starting
 arrangement, in which related responsibilities are combined into a few roles. In
 Phase 1, if that separation is not possible, the
-[adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md) permits one person to play both the
+[adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md#11-assign-roles) permits one person to play both the
 Coder-Tester and Governor-Reviewer roles and accept the conflict temporarily.
 Record the assignment and the approval explicitly. This human role conflict does
 not permit an implementing assistant to approve its own work. Eligible Gate 2
@@ -117,16 +117,16 @@ Your project uses only the roles it assigns. The definitions in `agf/agents/` ar
 library, and having a definition does not make a role active. Start from your
 operating model, then add a specialist when its trigger applies.
 
-| Situation | Roles to assign | Notes |
-|---|---|---|
-| Solo trial | `planner-architect`, `coder-tester`, `governor-reviewer` | You are the human governor. One assistant may play both `planner-architect` and `coder-tester`. Planning and Gate 1 plan authorship still happen. |
-| Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` | The players may be separate. Name each one. |
-| Project with a CI pipeline | add `build-engineer` | Trigger in its definition: "project has a CI pipeline". |
-| Project that submits learning records | add `infosec-sentinel` | Trigger: "project submits learning records". Required once the project submits them. |
-| Project that takes contributions | add `contribution-auditor` | Trigger: "first contribution to the framework or an adopter project". |
-| Project that publishes factual claims | add `fact-checker` | Recommended from the first release, as needed. |
-| Change to the public site or its build configuration | add `web-ux-reviewer` | Trigger: "any change to agf/docs/site/** or agf/docs/build/mkdocs.yml". |
-| A non-trivial Gate 2 candidate that needs independent review | name `independent-implementation-reviewer` for that candidate | Not a gate for every change. Its findings are advice. |
+| Situation | Roles and guidance |
+|---|---|
+| Solo trial | `planner-architect`, `coder-tester`, `governor-reviewer`<br>You are the human governor. One assistant may play both `planner-architect` and `coder-tester`. Planning and Gate 1 plan authorship still happen. |
+| Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer`<br>The players may be separate. Name each one. |
+| Project with a CI pipeline | add `build-engineer`<br>Trigger in its definition: "project has a CI pipeline". |
+| Project that submits learning records | add `infosec-sentinel`<br>Trigger: "project submits learning records". Required once the project submits them. |
+| Project that takes contributions | add `contribution-auditor`<br>Trigger: "first contribution to the framework or an adopter project". |
+| Project that publishes factual claims | add `fact-checker`<br>Recommended from the first release, as needed. |
+| Change to the public site or its build configuration | add `web-ux-reviewer`<br>Trigger: "any change to agf/docs/site/** or agf/docs/build/mkdocs.yml". |
+| A non-trivial Gate 2 candidate that needs independent review | name `independent-implementation-reviewer` for that candidate<br>Not a gate for every change. Its findings are advice. |
 
 Some shipped roles declare no activation condition. For those, read the role file
 and the growth signals in `agf/ADOPTING.md`. The agent schema makes the
@@ -154,7 +154,7 @@ depends on the kind of specialist:
   project keeps a manifest. The assistant then routes a bounded handoff to the
   specialist, and the findings return to the requester and the approver named in
   that handoff.
-- **An informal adviser.** The [adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md) allows
+- **An informal adviser.** The [adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md#11-assign-roles) allows
   project-specific advisers who take part in planning without a YAML definition or
   framework tracking. They have no pipeline authority.
 
