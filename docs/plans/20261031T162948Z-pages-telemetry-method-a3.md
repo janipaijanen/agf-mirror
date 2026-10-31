@@ -1,7 +1,7 @@
 ---
 {
   "id": "20261031T162948Z-pages-telemetry-method-a3",
-  "status": "pending-gate1",
+  "status": "approved",
   "topic": "bounded-telemetry-method-example-current-pages-work",
   "affected_paths": [
     "agf/docs/site/docs/adopt/tooling-and-tokens.md",
@@ -44,7 +44,9 @@
       "status": "consulted",
       "reason": "Independent exact-body/projection consultation CLEAR on reviewed plan 43c25461. Final delta report 75e3f4f3b0b5d8b6a7e683969bc7064291f06ba2d3c3d37e6a5668bbbd869017. Collision, ownership, publication and binding Gate 1 remain separate."
     }
-  ]
+  ],
+  "gate1_approved_by": "20261031T165937Z-governor-reviewer-nmrq",
+  "gate1_approved_at": "2026-10-31T16:59:37Z"
 }
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
@@ -52,13 +54,13 @@
 
 # Pages amendment A3: what our telemetry measures
 
-Governance mode: STRICT. Pending Gate 1. This local draft is not approved, published allocation, or source-edit authority. Jani approved the bounded “What our telemetry measures” proposal in the current live session. A binding governor scope decision and consulted adviser dispositions remain required before implementation. The approved parent 20261030T163253Z-pages-structure-and-voice defines six bounded slices; merely falling within its broad site glob is not permission for this additional telemetry topic. This explicit supplement proposes the smallest current-work addition. It leaves the parent and approved A1/A2 files unchanged. A2 is already Gate 1 approved by published decision 20261031T160614Z-governor-reviewer-jaa4 (carrier 18371d0a); its approved plan branch head is 7a2eb2a9. That approval does not approve A3.
+Governance mode: STRICT. Gate 1 approved by published governor decision 20261031T165937Z-governor-reviewer-nmrq, binding the reviewed design on shared branch b7a5191c. This lifecycle paragraph, approval metadata and the exact anchor statement are the only post-review changes authorized by that decision. Parent/A1/A2 files and the reviewed scope remain unchanged. The proposal/start-condition sections below record preparation provenance; actual implementation requires nmrq, the precise published s4pq claim, the receiving actor acknowledgement and fresh target/claim checks. Exact-head acceptance, Gate 2 and release remain separate.
 
 ## Scope and purpose
 
 Only product path: `agf/docs/site/docs/adopt/tooling-and-tokens.md`. Add no page, diagram, numeric dataset, raw log, dependency, runtime feature or savings claim. Necessary governance artifacts are this plan, its six-surface projection and the dated assessment summary named in affected_paths. Foundry-local review evidence is not adopter payload.
 
-Replace the old unqualified foundry sub-100ms / orders-of-magnitude paragraph with the dated method/limitations subsection. Narrowly correct the connected “Why meter at the governance gate” claims that every invocation crosses gates, metering captures model tokens, role/gate costs are caused or attributed, or the report proves savings. Remove the unsupported 40% example rather than leaving it to imply measured cost attribution. Preserve the existing headings/anchors, commands and environment controls, optional-tooling/install guidance and unrelated copy. Add only the new subsection anchor; do not silently change existing destinations. The remaining adjacent autonomy paragraph is outside these matched edits.
+Replace the old unqualified foundry sub-100ms / orders-of-magnitude paragraph with the dated method/limitations subsection. Narrowly correct the connected “Why meter at the governance gate” claims that every invocation crosses gates, metering captures model tokens, role/gate costs are caused or attributed, or the report proves savings. Remove the unsupported 40% example rather than leaving it to imply measured cost attribution. Preserve the existing headings/anchors, commands and environment controls, optional-tooling/install guidance and unrelated copy. The sole new subsection heading is “What our telemetry measures”, with generated fragment #what-our-telemetry-measures. Add only that new subsection anchor; do not silently change existing destinations. The remaining adjacent autonomy paragraph is outside these matched edits.
 
 ## Required semantics
 
