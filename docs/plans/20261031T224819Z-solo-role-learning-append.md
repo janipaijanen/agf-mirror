@@ -8,7 +8,10 @@
     "docs/plans/20261031T224819Z-solo-role-learning-append.md"
   ],
   "depends_on": [
-    "20261031T223500Z-pages-scope-supplement-s1-roles-notice-examples"
+    "20261031T223500Z-pages-scope-supplement-s1-roles-notice-examples",
+    "20261027T235807Z-v212-release-publication",
+    "20261029T220500Z-v213-release-publication",
+    "20261030T064744Z-v2131-release-publication"
   ],
   "advisory_consultation": [
     {
@@ -22,7 +25,7 @@
       "reason": "Resolved CLEAR in governor-reviewer decision 20261031T230626Z-governor-reviewer-qsjp; consultation evidence and report hashes are recorded in governor-reviewer p1k2."
     }
   ],
-  "gate1_approved_by": "governor-reviewer decision 20261031T230626Z-governor-reviewer-qsjp",
+  "gate1_approved_by": "20261031T230626Z-governor-reviewer-qsjp",
   "gate1_approved_at": "2026-10-31T23:06:26Z"
 }
 ---
@@ -38,6 +41,8 @@ Governance mode: STRICT. Status is approved by governor-reviewer decision 202610
 Reviewer question: does this change append exactly one truthful, sanitized learning while preserving every prior learning, adoption field and sentinel acknowledgement?
 
 Only content target: agf/learnings/foundry.yaml. Only companion path: this plan. Append learning 20261031T223724Z-uq2c immediately before sentinel_ack. Exact reviewed entry bytes are learning-entry.yaml in the root-held packet, SHA-256 b6f6b8f602c43b6acd93e6a511d397f9560ea2cec01535bc1890c476f54ac93a, embedded in coordination packet s7h4, SHA-256 fb2f9d75fd49c43539aa9a8c14ff62bf4d7dd2220071d409f75ac34b89b1ab8a. Entry category gap, scope framework, severity minor, confidence single-adopter with one reported exchange; recommendation status proposed. Do not invent independent-adopter corroboration, verified external reading coverage, measured burden, zero overhead or savings.
+
+Recommendation basis: Theoretical. One reported exchange informs the proposed wording remedy; its broader cost and effectiveness are not validated.
 
 State the solo arrangement before role inventory; distinguish definitions, assignments, players/sessions and applicable reviews. Retain specialist/independent-review requirements and optional unpruned use. Separate schema validity, capability maturity, empirical evidence and completed remediation. The prior stale-carrier count digression has been removed; no current-target 16/15 discrepancy is asserted. This record changes no rule, authority, role or supported product capability. Existing S1 under jmkh owns actual documentation changes, independently.
 
