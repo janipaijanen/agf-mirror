@@ -34,7 +34,9 @@ key applied to specific artifacts.
 
 ![Default model: human decision authority, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
 
-*AI-generated figure. It illustrates the default operating model; its "human-only" labels describe that default. Publication remains the responsibility of the human maintainer.*
+*AI-generated figure. Publication remains the responsibility of the human maintainer.*
+
+The figure illustrates the default operating model; its "human-only" labels describe that default.
 
 Table 1 separates the work by authority mode so teams can see what stays with
 the human by default, what an AI agent may execute, and what both sides handle together.
