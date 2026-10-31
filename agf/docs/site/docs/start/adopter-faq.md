@@ -125,10 +125,12 @@ Gate 2. AGF does not require two people, and its validated minimum remains one
 governor at a time. Treat split-person gates as a pilot and write a learning
 record when you try it.
 
-If you split the gates, record who owns each gate and the period it covers,
-give the Gate 2 reviewer the exact approved plan and accepted risks, compare the
-diff with that exact plan, send scope changes back to Gate 1, and name one
-primary governor who resolves disagreement.
+If you split the gates, record who owns each gate and the repository, change,
+and period it covers. Give the Gate 2 reviewer the exact approved plan, the
+Gate 1 decision, its conditions, and the accepted risks. At Gate 2, compare both
+the diff and the evidence with that exact plan. Send scope changes back to
+Gate 1 instead of rewriting the plan at Gate 2. Name one primary governor or
+project authority who resolves disagreement.
 
 Prefer an approver who did not implement the change. The adoption guide
 ([section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md#11-assign-roles))

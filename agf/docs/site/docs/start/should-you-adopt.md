@@ -136,7 +136,8 @@ and applicable to any governance design, not only AGF — see
 ## Understand the basics
 
 AGF is a set of files in your repository. They tell an AI assistant how to plan,
-build, and report its work, and they place a human approval at two checkpoints.
+build, and report its work. AGF defines two approval checkpoints. By default, a
+human approves at both.
 [Roles in plain terms](../concepts/roles-and-gates.md#roles-in-plain-terms)
 explains who does what. The [framework map](framework-map.md) shows the parts.
 [What AGF is / is not](#what-agf-is-is-not) gives the longer statement.
@@ -154,14 +155,20 @@ The human governor stays accountable for gate decisions.
 AGF works beside your repository, CI, review, and assistant tools. It adds no
 hosted service. [AGF and agent runtimes](../concepts/position.md) explains how it
 relates to assistants and other frameworks, and where its enterprise boundary
-lies. The [applicability catalog](../adopt/applicability-catalog.md) shows what
-you can prune. [Evidence and learnings](../concepts/evidence-and-learnings.md)
-states the evidence limits.
+lies. The [applicability catalog](../adopt/applicability-catalog.md) is an
+incomplete pilot. For the artifacts it covers, it gives an activation condition
+and a removal consequence. It is not a validated pruning guide.
+[Evidence and learnings](../concepts/evidence-and-learnings.md) states the
+evidence limits.
 
 ## Assistant workflows
 
-Any assistant that loads the rule files can fill roles in turn. Several can work
-at once when each has a role and a branch and they hand off through
+Loading rules does not assign a role or grant approval authority. An assistant
+can play eligible roles only through an authorized assignment and within their
+limits. The human governor stays accountable for approvals; see
+[Roles in plain terms](../concepts/roles-and-gates.md#roles-in-plain-terms).
+Parallel work needs separate work boundaries, claims for non-trivial tasks, any
+required recorded and acknowledged allocation, and recorded handoffs through
 `docs/coordination/`. See
 [one assistant, several roles](adopter-faq.md#can-one-ai-assistant-play-several-roles)
 and [several assistants at once](adopter-faq.md#can-several-ai-assistants-work-at-once).
@@ -173,8 +180,9 @@ covers coexistence limits.
 
 - **Solo maintainer with AI assistants doing most implementation.** The gates give
   the maintainer recorded checkpoints.
-- **Small team making existing conventions binding on assistants.** The benefit is
-  consistency across sessions.
+- **Small team writing existing conventions down for assistants.** Assistants
+  receive the same written rules across sessions. Consistency is the intended
+  benefit, and adherence still needs review.
 - **Audit or compliance pressure.** AGF supplies a decision trail. It does not
   certify compliance.
 
@@ -233,9 +241,10 @@ the maintainer's own deployments.
 
 For a first, still-incomplete answer to *which specific rules and roles you
 can safely remove and what each removal costs, if you choose to prune*, see
-the [adopter applicability catalog](../adopt/applicability-catalog.md) — it
-classifies a first slice of 8 governed artifacts (of 58 total) with an
-activation condition and a removal consequence for each.
+the [adopter applicability catalog](../adopt/applicability-catalog.md). It is an
+incomplete pilot classification that gives an activation condition and a removal
+consequence for each artifact it covers. Its current coverage is stated on that
+page.
 
 The current coordination schema still exposes the full message-kind vocabulary,
 and the release provides the general validator and CI surfaces. A smaller

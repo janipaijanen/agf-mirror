@@ -62,6 +62,7 @@ Base ref: origin/main (6bd6cfb02b594ecc5a2ce94eb96f56374cb330cd)
 - should-you-adopt.md -> ../concepts/roles-and-gates.md#roles-in-plain-terms: ok
 - should-you-adopt.md -> (same file)#what-agf-is-is-not: ok
 - should-you-adopt.md -> (same file)#what-adoption-asks-of-you: ok
+- should-you-adopt.md -> ../concepts/roles-and-gates.md#roles-in-plain-terms: ok
 - should-you-adopt.md -> adopter-faq.md#can-one-ai-assistant-play-several-roles: ok
 - should-you-adopt.md -> adopter-faq.md#can-several-ai-assistants-work-at-once: ok
 - should-you-adopt.md -> ../../use-cases.md#credible-use-cases: ok
@@ -89,15 +90,26 @@ Base ref: origin/main (6bd6cfb02b594ecc5a2ce94eb96f56374cb330cd)
 |---|---|---|
 | "In plain terms: it is a set of files ... a review process that a human approves before anything merges, and a decision log ..." | should-you-adopt.md | Reworded to "a review process in which, by default, a human approves before anything merges". A new paragraph states the default human path and points to the narrow, default-off, provisional deputy route. Finding 3 of review 8ksb. Owner: `agf/rules/workflow/deputy-governor-rule.md`. |
 | "Evaluators should judge both the complete distributed surface ... - AI assistants write a significant share of your code, **and** you have ... a human governor who approves plans and merges. ..." | should-you-adopt.md | One extractor block spans two sections that are now separated by the reorder. The first sentence is unchanged. In "Adopt now if", "a human governor who approves plans and merges" is now "a human governor accountable for plans and merges" (same word count). Finding 3. |
-| "Use this minimum checklist: ... do not let either approver approve implementation they personally performed while acting as coder-tester." | adopter-faq.md | Shortened to prose. Kept: record who owns each gate and the period, give the Gate 2 reviewer the exact approved plan and accepted risks, compare the diff with that plan, send scope changes to Gate 1, name one primary governor. The blanket conflict prohibition is replaced by the canonical rule: prefer an approver who did not implement the change; ADOPTING section 1.1 permits one person to play both Coder-Tester and Governor-Reviewer temporarily in Phase 1; record it; an implementing assistant never approves its own work. Finding 2. Owners: `agf/ADOPTING.md` section 1.1 and `roles-and-gates.md`. |
+| "Use this minimum checklist: ... do not let either approver approve implementation they personally performed while acting as coder-tester." | adopter-faq.md | Condensed to prose. Kept, each as a clause: who owns each gate and the repository, change and period it covers; the Gate 2 reviewer receives the exact approved plan, the Gate 1 decision, its conditions and the accepted risks; at Gate 2 both the diff and the evidence are compared with that plan; scope changes go back to Gate 1 instead of rewriting the plan; one primary governor or project authority resolves disagreement. The first condensed version dropped the Gate 1 decision and conditions and the evidence comparison, and the earlier report overstated what was kept (finding 5 of review 5gkr). The blanket conflict prohibition is replaced by the canonical rule: prefer an approver who did not implement the change; `ADOPTING.md` section 1.1 permits one person to play both Coder-Tester and Governor-Reviewer temporarily in Phase 1; record it; an implementing assistant never approves its own work. Owners: `agf/ADOPTING.md` section 1.1 and `roles-and-gates.md`. |
 | "Delegation does not transfer gate authority." and the "A principal may authorize ..." sentence | adopter-faq.md | Unchanged from the first slice 2 candidate: reworded as recorded in b87a. Same meaning. Deputy rule is the only delegated Gate 2 route. |
 
 ## Other changes in this batch
 
+- `use-cases.md` (batch 2 only): the two assistant paragraphs, see Batch 2.
 - `should-you-adopt.md`: sections reordered so the decision comes before the inventory: intro, practical test, Adopt/Wait/Skip, what adoption asks of you, then new short sections **Understand the basics**, **Cost and accountability**, **Technical fit**, **Assistant workflows**, **Selected use cases**, then the retained inventory (**What AGF is / is not**, **What ships and what you activate**) and **Next**. The new sections are pointers (about 50 words each) to the canonical owners. No existing heading text or id is removed. New ids: `understand-the-basics`, `cost-and-accountability`, `technical-fit`, `assistant-workflows`, `selected-use-cases` (the Home audience links target the first four).
 - `adopter-faq.md`: the AI-governor answer now puts the deputy route's written scope, severity ceiling and expiry, red list, default-off and provisional status, no self-approval, and ultimate human authority in one paragraph. Finding 4. The gate-split answer is shorter and points to the roles page. No heading change.
 - `downstream-impact.md`: new section "What adoption asks of the people involved" before the implementation inventory (attention, repository changes, responsibility and privacy, terms and exit) with links to the owners. One id added: `what-adoption-asks-of-the-people-involved`. The earlier sentence pointing to Licensing stays.
 - `use-cases.md`: no change. The detailed examples stay there; Decide links to them.
+
+## Batch 2 (review `20261031T104910Z-governor-reviewer-5gkr`, five fidelity groups)
+
+| Group | Where | Change |
+|---|---|---|
+| 1 Default approval wording | `should-you-adopt.md`, Understand the basics | "AGF defines two approval checkpoints. By default, a human approves at both." The Roles pointer stays. |
+| 2 Loading is not assignment | `should-you-adopt.md` Assistant workflows; `use-cases.md` single- and multi-assistant paragraphs | Wording follows the Codex preflight in ACS seq 1122. Loading rules does not assign a role or grant approval authority. An assistant can play eligible roles only through an authorized assignment and within their limits. The human governor stays accountable for approvals. Parallel work needs separate work boundaries, claims for non-trivial tasks, any required recorded and acknowledged allocation, and recorded handoffs. The sentence "Role boundaries and claims ... do not themselves prevent conflicting writes" is kept. `use-cases.md` is inside claim 6d8r. |
+| 3 Catalog | `should-you-adopt.md` Technical fit and What ships | The catalog is called an incomplete pilot that gives activation conditions and removal consequences for the artifacts it covers, not a validated pruning guide. The stale "8 of 58" is removed; current coverage stays on the catalog page. The unvalidated-pruning distinction is kept. |
+| 4 Small-team example | `should-you-adopt.md` Selected use cases | "Small team writing existing conventions down for assistants ... Consistency is the intended benefit, and adherence still needs review." |
+| 5 Handoff safeguards | `adopter-faq.md` | Restored as described in the disposition table above. |
 
 ## A1 Evaluate answer-key sections (should-you-adopt.md)
 
