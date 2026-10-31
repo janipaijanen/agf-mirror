@@ -34,7 +34,8 @@
     "20261030T054200Z-pages-reader-journey-patch",
     "20261030T064744Z-v2131-release-publication",
     "20261030T072047Z-v2131-readme-journey-followup",
-    "20261030T160040Z-forge-evidence-rule"
+    "20261030T160040Z-forge-evidence-rule",
+    "20261030T210529Z-pages-source-consistency-g1-g5"
   ],
   "advisory_consultation": [
     {
@@ -81,3 +82,7 @@ Claude must reference habh and this approved supplement in a published exact-pat
 - Re-run original A1 counters and necessary answer-key/findability checks. Caps, ranges and all parent residuals stay unchanged. Gate 2, Codex/Claude consensus where required, main CI and actual Pages verification remain separate. Final parent release is still contingent on remaining operation, Home/nav and estate work.
 
 Rollback: stop before mutation if scope/authority conflicts. Revert an implemented candidate through normal gated review if needed; retain claims, approvals and evidence history. No irreversible history rewrite or automatic scope extension.
+
+## Dependency metadata acknowledgement
+
+Governor decision 20261031T165346Z-governor-reviewer-q74s authorizes only the explicit depends_on acknowledgement of 20261030T210529Z-pages-source-consistency-g1-g5. Its accepted source/safeguard work is the baseline preserved by A2; this is sequencing acknowledgement, not permission to revise that plan or its owners. Existing jaa4 approval fields and all reviewed scope, semantic safeguards, CI, rendered and Gate 2 conditions remain unchanged.
