@@ -24,8 +24,19 @@ of the finished change is Gate 2. The person accountable for approvals is the
 
 ## The core idea: separated authority
 
-No agent both implements and approves its own work. Authority is split
-across role definitions, each a YAML contract stating jurisdiction (what
+Planning, building and approving are separate responsibilities. An assistant may
+plan and implement a change; neither task gives it approval authority. Prefer a
+human approver who did not implement the change. Phase 1 is the starting
+arrangement, in which related responsibilities are combined into a few roles. In
+Phase 1, if that separation is not possible, the
+[adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md) permits one person to play both the
+Coder-Tester and Governor-Reviewer roles and accept the conflict temporarily.
+Record the assignment and the approval explicitly. This human role conflict does
+not permit an implementing assistant to approve its own work. Eligible Gate 2
+delegation remains subject to the bounded deputy route described
+[below](#approval-authority-and-optional-deputies).
+
+Authority is split across role definitions, each a YAML contract stating jurisdiction (what
 the role owns), authority (what it may decide), and escalation (what it
 must hand upward). An implementing agent that "approves" its own merge has
 acted outside its definition, and the audit trail shows it. Some checks are
@@ -129,21 +140,35 @@ the template as your roster.
 
 ## Ask for a specialist during a change
 
-Say what you need: "Ask for a security review of this plan." The steps are separate:
+Say what you need: "Ask for a security review of this plan." What happens next
+depends on the kind of specialist:
 
-1. **The assistant proposes.** It names the role that fits and why, using the role's
-   declared trigger when it has one, and the role's stated purpose when it has none.
-2. **A person approves and assigns.** Activating a role is a human decision. The
-   human records who or what plays the role. If the project keeps a manifest, the
-   record goes there.
-3. **The specialist advises.** Findings are advice. An advisory reviewer does not
-   approve a gate.
-4. **The approver decides.** By default the human governor decides, using the
-   findings.
+- **An already active role.** The assistant consults it within its current scope.
+  That is not a new activation.
+- **A shipped role your project has not activated.** A request alone does not
+  activate it or assign its player. The assistant proposes the role and says why,
+  using the role's declared trigger, or its stated purpose when it declares none.
+  The authorized human decides whether to activate the role and who or what plays
+  it. The project records the player, the responsibilities, the limits and the
+  review handoff in its governed record path, and in a manifest entry where the
+  project keeps a manifest. The assistant then routes a bounded handoff to the
+  specialist, and the findings return to the requester and the approver named in
+  that handoff.
+- **An informal adviser.** The [adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md) allows
+  project-specific advisers who take part in planning without a YAML definition or
+  framework tracking. They have no pipeline authority.
 
-An already active specialist can be consulted within its current scope. That is not
-a new activation. Designing a new role, or changing a role's authority, follows the
-approval process in [customizing the framework](../advanced/customizing-the-framework.md).
+Specialist output is not always advice. A role can own work: `build-engineer`, for
+example, owns CI configuration and build automation. A role can carry a named
+requirement: the `web-ux-reviewer` definition sends accessibility findings rated
+"Needs work" or "Poor" to the `governor-reviewer`, because WCAG AA findings block
+under `ui/accessibility-rule.md`. Tool output does not become a mechanical gate
+unless a named rule grants that authority. An advisory reviewer never approves a
+gate. The authorized approver makes the gate decision, by default the human
+governor, using the findings.
+
+Designing a new role, or changing a role's authority, follows the approval process
+in [customizing the framework](../advanced/customizing-the-framework.md).
 
 ## The two gates
 
