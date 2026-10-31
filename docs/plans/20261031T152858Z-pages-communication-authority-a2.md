@@ -1,7 +1,7 @@
 ---
 {
   "id": "20261031T152858Z-pages-communication-authority-a2",
-  "status": "pending-gate1",
+  "status": "approved",
   "topic": "communication-authority-clarification-current-pages-work",
   "affected_paths": [
     "agf/docs/site/docs/concepts/coordination-protocol.md",
@@ -47,7 +47,9 @@
       "status": "consulted",
       "reason": "Exact scope/body reviewed at plan SHA d62bb0bf and projection SHA 2581e107; final delta CLEAR. Report contribution reviewer final exact-delta response; no pending scope finding. Root separately inspected named ref/open-MR overlap evidence; limitations remain disclosed."
     }
-  ]
+  ],
+  "gate1_approved_by": "20261031T160614Z-governor-reviewer-jaa4",
+  "gate1_approved_at": "2026-10-31T16:06:14Z"
 }
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
@@ -55,7 +57,7 @@
 
 # Pages amendment A2: communication authority, using existing figures
 
-Governance mode: STRICT. Pending Gate 1; no implementation authority from this draft. Jani explicitly instructed inclusion of the Codex/Claude consensus in the current work order. Published allocation habh (20261031T151346Z-governor-reviewer-habh) assigns Claude the six paths above; root handles this supplement and independent reviews. Parent rp8p and A1 remain unchanged; this adds only necessary canonical figure-source paths omitted from the parent's original affected-path list. No new figure or reader page is proposed.
+Governance mode: STRICT. Gate 1 approved by published governor decision 20261031T160614Z-governor-reviewer-jaa4 (carrier commit 18371d0a), binding the reviewed scope at f36a9a4d. This paragraph and lifecycle metadata are the only post-review changes authorized by jaa4; all actual implementation and Gate 2 conditions remain. Jani explicitly instructed inclusion of the Codex/Claude consensus in the current work order. Published allocation habh (20261031T151346Z-governor-reviewer-habh) assigns Claude the six paths above; root handles this supplement and independent reviews. Parent rp8p and A1 remain unchanged; this adds only necessary canonical figure-source paths omitted from the parent's original affected-path list. No new figure or reader page is proposed.
 
 The reader question is: how does a request become visible work, who acts next, and what actually grants approval? Existing gate-handoff-sequence, gate-pipeline, governed-change-flow and coordination-channel figures already cover the sequence. Another diagram would duplicate them and increase drift.
 
