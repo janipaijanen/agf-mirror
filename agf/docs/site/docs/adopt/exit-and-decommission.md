@@ -9,16 +9,16 @@ conventions; it has no runtime, no service registration, and no data it
 holds hostage. This page summarises the three exit modes and is the canonical
 public reference for leaving cleanly.
 
-Leaving AGF is a decision for the human governor, made with the same
-discipline as adopting. Start with Table 1: it names the three ways out, from
-pausing the gates to removing every framework file.
+Leaving AGF is a decision for the human governor: the person accountable for
+approval decisions (you, in a solo project). Start with the
+[three exit modes](#three-exit-modes). They range from pausing the gates to
+removing the framework-owned integration. Every mode keeps your Git history.
 
 Figure 1 shows pause, downgrade and remove as branches of the same adoption
-timeline, not as three unrelated procedures. All three start from one
-decision ("stop using some or all of AGF") and differ only in how much
-governed history and tooling stays behind. Exit is a branch on the same
-timeline as adoption, not an emergency procedure reached only after something
-has gone wrong.
+timeline. All three start from one decision, to stop using some or all of AGF,
+and differ in how much active governance and tooling stays in the working
+tree. Exit follows the same decision discipline as adopting. It is not an
+emergency procedure reached only after something has gone wrong.
 
 ![Adoption timeline branching into freeze, replacement, and decommission exit paths](../../reference/figures/adoption-exit-flow.svg)
 
