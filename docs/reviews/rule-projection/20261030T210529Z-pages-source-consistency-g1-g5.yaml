@@ -33,7 +33,7 @@
         "agf/docs/site/docs/concepts/roles-and-gates.md",
         "agf/docs/site/docs/advanced/customizing-the-framework.md"
       ],
-      "reason": "G5 adds a short non-exhaustive pointer to the deputy rule in the approval and delegation passages. Exact G4 and G5 wording follows governor decision rbkp, review n4rq and proposal corrections qn7r, and keeps the preserved items (privacy warning, no-self-approval, full owner link, unchanged figure bytes). G4 adds a documentation-only statement that activation_condition is optional. The pages remain projections of their owners."
+      "reason": "G5 adds a short non-exhaustive pointer to the deputy rule in the approval and delegation passages. Exact G4 and G5 wording follows governor decision rbkp (the slash wording in its item 4 superseded by r6dd), review n4rq and proposal corrections qn7r, and keeps the preserved items (privacy warning, no-self-approval, full owner link, unchanged figure bytes). G4 adds a documentation-only statement that activation_condition is optional. The pages remain projections of their owners."
     },
     "runbook_situation_map": {
       "disposition": "updated",

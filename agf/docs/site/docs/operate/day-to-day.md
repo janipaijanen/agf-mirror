@@ -43,7 +43,7 @@ the human by default, what an AI agent may execute, and what both sides handle t
 
 | Mode | Applies to | Typical artifacts |
 |---|---|---|
-| Human decision authority | Gate 1 approvals; Gate 2 approvals and merge decisions (human by default; eligible Gate 2 decisions may use the [narrow opt-in deputy route](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md)); risk acceptance; role activation/deactivation; adopting or exiting the framework | Decision records, merge approvals, explicit governor instructions |
+| Human decision authority | Gate 1 approvals; Gate 2 approvals and merge decisions (human by default; eligible Gate 2 decisions may use the [narrow opt-in deputy route](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md)); risk acceptance; role activation and deactivation; adopting or exiting the framework | Decision records, merge approvals, explicit governor instructions |
 | AI-executed work | Drafting plans or docs, implementing scoped changes, running tests and validators, generating candidate figures, preparing handoffs | Branch commits, validation logs, generated artifacts, Gate 2 handoffs |
 | Mixed human + AI work | Reading the coordination channel, sizing tasks, reviewing evidence, sharpening docs and rules, recording learnings | Claims, reviews, handoffs, learning records, rule or documentation changes |
 
