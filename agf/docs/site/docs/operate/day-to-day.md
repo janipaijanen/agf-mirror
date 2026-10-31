@@ -15,11 +15,13 @@ failure modes to watch for.*
 
 ## The daily shape
 
-The operating model is easiest to read as three responsibility modes:
-human-only authority, AI-executed work, and mixed work in the audit
+The default operating model is easiest to read as three responsibility modes:
+human decision authority, AI-executed work, and mixed work in the audit
 trail. **AI-executed** means an agent may do the task after delegation;
 it does not mean the agent can approve its own gate, accept project
-risk, or decide exit.
+risk, or decide exit. A narrow opt-in deputy route for eligible Gate 2
+decisions is described in the [deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md);
+it does not change the default shown here.
 
 Figure 1 places those three modes side by side rather than on a
 spectrum, because the boundary between them is not "how much the AI can
@@ -30,16 +32,18 @@ to retain before reading Table 1: the figure's three columns are the
 answer key for "who does this," and the table below is that same answer
 key applied to specific artifacts.
 
-![Human-only, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
+![Default model: human decision authority, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
 
 *AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
-Table 1 separates the work by authority mode so teams can see what remains
-human-only, what an AI agent may execute, and what both sides handle together.
+The figure illustrates the default operating model; its "human-only" labels describe that default.
+
+Table 1 separates the work by authority mode so teams can see what stays with
+the human by default, what an AI agent may execute, and what both sides handle together.
 
 | Mode | Applies to | Typical artifacts |
 |---|---|---|
-| Human-only authority | Gate approvals, merge decisions, risk acceptance, role activation/deactivation, adopting or exiting the framework | Decision records, merge approvals, explicit governor instructions |
+| Human decision authority | Gate 1 approvals; Gate 2 approvals and merge decisions (human by default; eligible Gate 2 decisions may use the [narrow opt-in deputy route](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md)); risk acceptance; role activation and deactivation; adopting or exiting the framework | Decision records, merge approvals, explicit governor instructions |
 | AI-executed work | Drafting plans or docs, implementing scoped changes, running tests and validators, generating candidate figures, preparing handoffs | Branch commits, validation logs, generated artifacts, Gate 2 handoffs |
 | Mixed human + AI work | Reading the coordination channel, sizing tasks, reviewing evidence, sharpening docs and rules, recording learnings | Claims, reviews, handoffs, learning records, rule or documentation changes |
 

@@ -52,7 +52,10 @@ present.
 - **Adding roles.** New agent definitions for project-specific concerns
   (a data-quality reviewer, a domain modeller) extend the pipeline; the
   framework's evidence base includes adopter-originated roles that later
-  surfaced gaps no shipped role covered.
+  surfaced gaps no shipped role covered. A role definition may include an
+  `activation_condition` stating the project condition that makes the role
+  needed. The agent schema makes this field optional; omitting it alone is not
+  a schema error.
 
 ## Customizations that weaken
 

@@ -34,10 +34,13 @@ Around the core pipeline sit supporting roles — build engineering,
 security sentinel, contribution auditing, and others. The shipped
 [quick reference](https://gitlab.com/janipaijanen/agents-govern-framework)
 (`docs/reference/quick-reference.md` in the distribution) lists all
-sixteen with one-line responsibilities. The **human governor** sits above
-all of them: every agent authority is delegated, revocable, and bounded
-by the red list in the deputy-governor rule (security boundaries,
-destructive operations, and meta-governance are never delegable).
+sixteen with one-line responsibilities. The **human governor** retains
+ultimate approval authority. Deputy approval authority is opt-in, revocable,
+and bounded by the [deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md)'s
+full red list. That red list limits approval delegation; it does not by itself
+prohibit an agent from performing otherwise-authorized implementation or
+review work, which remains subject to its role boundaries and the applicable
+gates.
 
 One of those sixteen, **independent-implementation-reviewer**, is worth
 naming here specifically: it performs a read-only, exact-head review of
@@ -69,10 +72,20 @@ For teams, record the operating model before the first busy week:
   owners, whose advice may be required before the governor decides;
 - revocation path for any delegated authority.
 
+## Approval authority and optional deputies
+
 AI assistants may prepare gate packets, compare diffs against plans, summarize
 risks, or draft decision-record skeletons. That is AI-assisted review, not AI
-governorship. The human governor still owns Gate 1, Gate 2, release approval,
-and binding risk acceptance.
+governorship. The human governor retains ultimate approval authority. The
+framework offers one narrow, opt-in route for eligible Gate 2 decisions: the
+[deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md). It is off by
+default and provisional. It needs a written delegation with scope, severity
+ceiling, expiry, audit trigger and revocation. Every deputized decision is
+logged, the rule's full red list is never delegable, and role definitions still
+forbid self-approval. Anything the rule does not expressly cover stays with the
+human governor. This page does not make Gate 1, release approval, or binding
+risk acceptance delegable. Ordinary task grants, described below, are distinct
+from deputy approval.
 
 ## The two gates
 
@@ -194,9 +207,12 @@ Minimum useful convention fields are `principal_kind`,
 `identifier_namespace`, `identifier`, and `delegation_scope`. `valid_until` is
 strongly recommended for every grant; open-ended delegation is high-risk
 because it leaves old authority too easy to reuse. `cannot_approve` is
-defense-in-depth wording, not the source of gate authority: Gate 1, Gate 2,
-release approval, and binding risk acceptance remain non-delegable unless a
-future AGF version explicitly changes the role model.
+defense-in-depth wording, not the source of gate authority. These grants never
+delegate Gate 1, release approval, or binding risk acceptance. A grant alone
+never delegates a Gate 2 decision. The only delegated Gate 2 approval route
+described here is the narrow opt-in deputy route summarized
+[above](#approval-authority-and-optional-deputies) and defined in the
+[deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md).
 
 If a principal disputes a grant or believes an AI exceeded the delegated scope,
 file a later immutable `kind: note` with `note_type: contestation` and a
