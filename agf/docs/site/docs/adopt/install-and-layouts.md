@@ -3,7 +3,7 @@
 *Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: administrators and
 developers who want the full layout, rule-customization, agent-definition,
 validator, and evidence reference. First-time commissioning starts at
-[commission AGF and AGOV](../start/commission.md) instead — it links back
+[Set up AGF](../start/commission.md) instead — it links back
 into this page for everything below. After this page you have chosen the
 supported layout, reviewed rule customization, adopted agent definitions,
 wired validators, and initialized your evidence.*
@@ -23,11 +23,11 @@ wired validators, and initialized your evidence.*
   to choose and verify the separate framework and tooling artifacts. In a full
   checkout, use its existing `tooling/agov` wrapper directly or symlink that
   wrapper into `~/.local/bin/agov`; do not overwrite it with a release binary.
-- A human willing to act as governor — without one, stop here and re-read
+- A person accountable for approvals (the human governor). Without one, stop here and re-read
   [should you adopt?](../start/should-you-adopt.md).
 
 For the ordered setup path and the single assistant prompt, use
-[Commission AGF](../start/commission.md). Return here for layout choices,
+[Set up AGF](../start/commission.md). Return here for layout choices,
 customization, validators, evidence, and collision troubleshooting.
 
 ## First decide the repository layout
@@ -90,7 +90,7 @@ upgrade.
 ## Step 2: Commission the install with your assistant
 
 The commissioning prompt lives on one page:
-[commission AGF and AGOV](../start/commission.md). That page covers both the
+[Set up AGF](../start/commission.md). That page covers both the
 AGF layout and the optional AGOV binary, and branches correctly for a new or
 existing project. Use it, then return here for Step 3 onward.
 

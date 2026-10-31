@@ -1,4 +1,4 @@
-# Commission AGF and AGOV
+# Set up AGF
 
 *Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: anyone
 setting up a repository — no prior AGF install assumed.*
@@ -18,7 +18,8 @@ change once commissioning is done.
 - An AI coding assistant that loads natural-language instructions (see
   [assistant loader configuration](../adopt/assistant-loader-configuration.md)
   for tool-specific setup).
-- A human willing to act as governor — without one, stop here and re-read
+- A person accountable for approvals: you, in a solo project. AGF calls this
+  person the human governor. Without one, stop here and re-read
   [should you adopt?](should-you-adopt.md).
 
 ## Step 1: Choose new or existing project
@@ -27,9 +28,8 @@ change once commissioning is done.
 repository.
 
 **Why:** A new project has nothing to conflict with. An existing project may
-already have a `docs/` directory used for something else, CI configuration,
-or a prior partial AGF install — the commissioning prompt in step 3 branches
-on this and must never silently overwrite what is already there.
+already use `docs/`, hold CI configuration, or contain a partial AGF install.
+The step 3 prompt branches on this and never silently overwrites what is there.
 
 **How:** No prior AGF install and no colliding `docs/`, CI, or assistant
 loader content: this is a **new project**. Anything else — including a
