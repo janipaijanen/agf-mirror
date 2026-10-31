@@ -40,10 +40,20 @@ packaged in the archive) and edit before use; see
 
 | Trial shape | Active roles | Use when |
 |---|---|---|
-| Solo trial | coder-tester, governor-reviewer | One human wants to test whether gates help |
+| Solo trial | planner-architect, coder-tester, governor-reviewer | One human wants to test whether gates help |
 | Standard governed project | planner-architect, coder-tester, governor-reviewer | A team wants plans before non-trivial implementation |
-| CI/security-conscious project | Standard roles plus contribution-auditor, infosec-sentinel, fact-checker as needed | Security, compliance, or external evidence matters |
-| Independent-review project | Standard or CI roles plus independent-implementation-reviewer, named per non-trivial Gate 2 candidate | Cross-model or cross-session implementation review evidence is needed before Gate 2 |
+| Project with a CI pipeline | Standard roles plus build-engineer | The project has a CI pipeline |
+| Project that submits learning records | Standard roles plus infosec-sentinel, which screens learning records for credential and cross-record leaks; required once the project submits learning records | The project submits learning records |
+| Project that takes contributions | Standard roles plus contribution-auditor, which reviews contribution integrity; required from the first contribution to the framework or to the project | The project takes contributions |
+| Project that publishes factual claims | Standard roles plus fact-checker, which checks factual claims; recommended from the first release, as needed | The project publishes factual claims |
+| Independent-review project | Standard roles, plus any rows above, plus independent-implementation-reviewer, named per non-trivial Gate 2 candidate | Cross-model or cross-session implementation review evidence is needed before Gate 2 |
+
+In a solo trial one assistant may perform both the planner-architect and
+coder-tester responsibilities. Planning and Gate 1 plan authorship still
+happen, and the human governor decides Gate 1.
+
+Security, compliance, or external evidence matters: apply the role triggers
+above. Each role's own trigger decides whether it is active.
 
 External gateways and agent runtimes are execution surfaces. They do not become
 AGF approval authorities unless the governor records that role decision.

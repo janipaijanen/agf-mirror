@@ -112,10 +112,21 @@ extracted as `agf/` in your existing project.
 
    | Trial shape | Active roles |
    |---|---|
-   | Solo trial | `coder-tester`, `governor-reviewer` |
+   | Solo trial | `planner-architect`, `coder-tester`, `governor-reviewer` |
    | Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` |
-   | CI/security-conscious project | Standard roles plus active `contribution-auditor`, `infosec-sentinel`, and `fact-checker` as needed |
-   | Independent-review project | Standard or CI-conscious roles plus active `independent-implementation-reviewer`, named per non-trivial Gate 2 candidate |
+   | Project with a CI pipeline | Standard roles plus active `build-engineer`, which owns CI configuration and build automation |
+   | Project that submits learning records | Standard roles plus active `infosec-sentinel`, which screens learning records for credential and cross-record leaks. Required once the project submits learning records |
+   | Project that takes contributions | Standard roles plus active `contribution-auditor`, which reviews contribution integrity. Required from the first contribution to the framework or to the project |
+   | Project that publishes factual claims | Standard roles plus active `fact-checker`, which checks factual claims. Recommended from the first release, as needed |
+   | Independent-review project | Standard roles, plus any rows above, plus active `independent-implementation-reviewer`, named per non-trivial Gate 2 candidate |
+
+   In a solo trial one assistant may perform both the `planner-architect` and
+   `coder-tester` responsibilities. Planning and Gate 1 plan authorship still
+   happen, and the human governor decides Gate 1. If the project keeps a
+   manifest, name `planner-architect` there, with the same player as
+   `coder-tester` if one assistant does both. If the project has a CI pipeline,
+   confirm that `build-engineer` has a named player. No new person or session is
+   required.
 
    Gateway assistants and agent runtimes are execution surfaces, not AGF gate
    authorities.
