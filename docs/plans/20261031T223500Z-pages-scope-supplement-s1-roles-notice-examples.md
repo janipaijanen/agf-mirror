@@ -16,7 +16,13 @@
     "20261030T163253Z-pages-structure-and-voice",
     "20261030T214700Z-pages-task-metrics-amendment-a1",
     "20261031T152858Z-pages-communication-authority-a2",
-    "20261030T210529Z-pages-source-consistency-g1-g5"
+    "20261030T210529Z-pages-source-consistency-g1-g5",
+    "20261023T155559Z-agov-strict-args-ref-list",
+    "20261024T070435Z-timer-reality-polling-alignment",
+    "20261025T192020Z-supersedes-adopter-docs",
+    "20261027T045944Z-record-only-publication-termination",
+    "20261027T230355Z-v212-release-freeze-corrections",
+    "20261030T054200Z-pages-reader-journey-patch"
   ],
   "advisory_consultation": [
     {
