@@ -41,7 +41,7 @@ Base ref: origin/main (6bd6cfb02b594ecc5a2ce94eb96f56374cb330cd)
 
 | Page | Change | Disposition |
 |---|---|---|
-| `day-to-day.md`, "The daily shape" | The paragraph after Figure 1 and the paragraph before Figure 2 are shortened. | Both said the same things twice: the figure's caption-like explanation and a "point to retain". Kept: modes are sorted by action, not by trust; planning and approving differ even when one agent does both; Table 1 applies the split; the six steps form a cycle; the completion or learning record feeds step 1 and skipping it breaks the cycle for the next reader. Figures, captions, tables and the deputy pointer are unchanged. |
+| `day-to-day.md`, "The daily shape" | The paragraph after Figure 1 and the paragraph before Figure 2 are shortened. | Both said the same things twice: the figure's caption-like explanation and a "point to retain". Kept: modes are sorted by action, not by trust; planning and approving are different actions and, per review mpq4, the assigned approver decides and an AI assistant that prepared or implemented the work cannot approve its own (the earlier shorthand "even when one agent does both" is removed because it invited a self-approval reading); Table 1 applies the split; the six steps form a cycle; the completion or learning record feeds step 1 and skipping it breaks the cycle for the next reader. Figures, captions, tables and the deputy pointer are unchanged. |
 | `runbook.md` | The "Beginning ordinary governed work" row moves to the top of the table. A one-sentence pointer leads the page. | Order and pointer only. All 12 situations and their links are kept. |
 
 ## A1 Operate route
