@@ -68,7 +68,7 @@ The two "not found" lines for `coordination-protocol.md` are the four replaced e
 | `roles-and-gates.md` | One paragraph inserted after the first paragraph of "Roles in plain terms". | Nothing removed. All 48 keyword sentences are present verbatim. No heading id added or removed. |
 | `should-you-adopt.md` | One sentence and a link added at the end of "Understand the basics". | Nothing removed. All 17 keyword sentences are present verbatim. The section is not in the A1 Evaluate range. |
 | `coordination-protocol.md` | The "Miniature example thread" section: four records replaced by five. | Replaced on purpose. The old records lacked required fields (`timestamp`, `immutable`, `requires-ack`, the `handoff` object) and used a `status` field the schema does not define. The thread ended without a Gate 2 decision. The old closure said "Merged... at commit abc1234". |
-| `overrides/main.html` | A Material `announce` block added: one conditional-purpose sentence linking to the dossier on every page except the dossier. Whitespace control keeps the dossier page free of an empty banner. | The template had no announce block. Nothing removed. |
+| `overrides/main.html` | A Material `announce` block added: one conditional-purpose sentence linking to the dossier on every public page except the dossier. The guard hides the notice only when page metadata positively identifies the dossier source file; absent page metadata (the 404 page) shows the notice. Whitespace control keeps the dossier page free of an empty banner. | The template had no announce block. Nothing removed. |
 
 ## Evidence from the final source
 
@@ -80,5 +80,5 @@ The two "not found" lines for `coordination-protocol.md` are the four replaced e
 ## Not yet shown
 
 - Strict build, hook results and the original A1 recount on the CI artifact. None of the edited sections is in a counted range, so the counter should not move.
-- The notice's measured visible height on desktop and mobile in light and dark, keyboard order to the link, primary calls to action in the first screen, and the dossier page with no `md-banner` element. The notice is outside the article, so the original counter does not count it. It is still visible reading and it still moves content down.
+- The notice's measured visible height on desktop and mobile in light and dark, keyboard order to the link, primary calls to action in the first screen, the dossier page with no `md-banner` element, and the 404 page with the notice. The notice is outside the article, so the original counter does not count it. It is still visible reading and it still moves content down.
 - Independent source review and the distinct-model rendered web-UX review. Neither is supplied by the author.

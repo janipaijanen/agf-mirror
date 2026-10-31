@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block announce -%}
-  {%- if page and page.file and page.file.src_path != "ai-evaluation-dossier.md" -%}
+  {%- if not (page and page.file and page.file.src_path == "ai-evaluation-dossier.md") -%}
     AI or LLM evaluating AGF? Read the <a href="{{ 'ai-evaluation-dossier/' | url }}">AI evaluation dossier</a> first.
   {%- endif -%}
 {%- endblock %}
