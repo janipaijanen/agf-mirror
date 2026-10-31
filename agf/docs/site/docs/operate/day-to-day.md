@@ -160,6 +160,11 @@ projects without these exact research artifacts have no eligible work.
   (recording the outcome). Silent action breaks the causal chain.
 - **Never edit a filed entry.** Files are immutable; corrections are new
   entries referencing the old.
+- **Evidence is not approval.** Conversation, receipt acknowledgements,
+  reviewer agreement and passing checks do not by themselves approve a change.
+  Approval requires a published decision by the authorized role under the
+  applicable rules. See
+  [how agents communicate](../concepts/coordination-protocol.md#how-agents-communicate).
 - **Use tooling-generated readable IDs for new entries.** Historical
   sequence-numbered and ULID files remain immutable history, but new
   coordination records should use `agov coord brief --id-format readable`.
