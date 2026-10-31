@@ -9,6 +9,19 @@ roles, say what each gate decides, and read a coordination chain.*
     adopter-owned coordination and plan paths, `docs/coordination/` and
     `docs/plans/` by default.
 
+## Roles in plain terms
+
+A role is a responsibility with written limits: what it owns, what it may decide,
+and what it must hand to someone else. A role is not a separate program, and it is
+not necessarily another person. Your assistant, a person or a session plays it, and
+one participant can play more than one role. Roles are definitions in your
+repository, and they do not run by themselves.
+
+Three responsibilities matter first. Someone plans the work, someone implements and
+tests it, and someone approves it. Approval of the plan is called Gate 1. Approval
+of the finished change is Gate 2. The person accountable for approvals is the
+**human governor**. In a solo project, that is you.
+
 ## The core idea: separated authority
 
 No agent both implements and approves its own work. Authority is split
@@ -86,6 +99,51 @@ forbid self-approval. Anything the rule does not expressly cover stays with the
 human governor. This page does not make Gate 1, release approval, or binding
 risk acceptance delegable. Ordinary task grants, described below, are distinct
 from deputy approval.
+
+## Which roles does my project need?
+
+Your project uses only the roles it assigns. The definitions in `agf/agents/` are a
+library, and having a definition does not make a role active. Start from your
+operating model, then add a specialist when its trigger applies.
+
+| Situation | Roles to assign | Notes |
+|---|---|---|
+| Solo trial | `planner-architect`, `coder-tester`, `governor-reviewer` | You are the human governor. One assistant may play both `planner-architect` and `coder-tester`. Planning and Gate 1 plan authorship still happen. |
+| Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer` | The players may be separate. Name each one. |
+| Project with a CI pipeline | add `build-engineer` | Trigger in its definition: "project has a CI pipeline". |
+| Project that submits learning records | add `infosec-sentinel` | Trigger: "project submits learning records". Required once the project submits them. |
+| Project that takes contributions | add `contribution-auditor` | Trigger: "first contribution to the framework or an adopter project". |
+| Project that publishes factual claims | add `fact-checker` | Recommended from the first release, as needed. |
+| Change to the public site or its build configuration | add `web-ux-reviewer` | Trigger: "any change to agf/docs/site/** or agf/docs/build/mkdocs.yml". |
+| A non-trivial Gate 2 candidate that needs independent review | name `independent-implementation-reviewer` for that candidate | Not a gate for every change. Its findings are advice. |
+
+Some shipped roles declare no activation condition. For those, read the role file
+and the growth signals in `agf/ADOPTING.md`. The agent schema makes the
+`activation_condition` field optional, so a missing one is not an error.
+
+To see which roles your own project uses, read your project's manifest,
+`agf/agents/MANIFEST.yaml`, if it keeps one. It records each role's status and who
+or what plays it. The shipped `agf/agents/MANIFEST.example.yaml` is only a template:
+every entry starts as `skipped`, and `agov` reads only `MANIFEST.yaml`. Do not read
+the template as your roster.
+
+## Ask for a specialist during a change
+
+Say what you need: "Ask for a security review of this plan." The steps are separate:
+
+1. **The assistant proposes.** It names the role that fits and why, using the role's
+   declared trigger when it has one, and the role's stated purpose when it has none.
+2. **A person approves and assigns.** Activating a role is a human decision. The
+   human records who or what plays the role. If the project keeps a manifest, the
+   record goes there.
+3. **The specialist advises.** Findings are advice. An advisory reviewer does not
+   approve a gate.
+4. **The approver decides.** By default the human governor decides, using the
+   findings.
+
+An already active specialist can be consulted within its current scope. That is not
+a new activation. Designing a new role, or changing a role's authority, follows the
+approval process in [customizing the framework](../advanced/customizing-the-framework.md).
 
 ## The two gates
 

@@ -11,6 +11,9 @@ per-tool notes apply to your stack.*
 agents-govern is a governance layer, not an agent runtime. The two are
 complementary: an orchestrator runs agents; AGF defines which agents
 exist, what they may do, and which gates they pass through.
+In AGF, an agent is a role definition: a responsibility with written limits.
+Your assistant or orchestrator plays it. See
+[roles in plain terms](roles-and-gates.md#roles-in-plain-terms).
 
 ## Concrete relationship
 
