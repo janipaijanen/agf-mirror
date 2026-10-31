@@ -1,7 +1,7 @@
 ---
 {
   "id": "20261031T223500Z-pages-scope-supplement-s1-roles-notice-examples",
-  "status": "pending-gate1",
+  "status": "approved",
   "topic": "pages-scope-supplement-roles-wording-evaluator-notice-coordination-examples",
   "affected_paths": [
     "agf/docs/site/docs/concepts/roles-and-gates.md",
@@ -21,20 +21,22 @@
   "advisory_consultation": [
     {
       "role": "infosec-sentinel",
-      "status": "pending",
-      "reason": "Requested on the exact plan head. The change adds a visible link in the shared template and edits public prose; no credential or personal data change, new data collection or cross-provider flow."
+      "status": "consulted",
+      "reason": "Independent exact-delta reviews CLEAR: corrected plan review fe97c1c4f0de0baba240a466067779a307eb5055c1a15656933267dd5d192f51 (contribution) and c4246118550052189dddff9bb3ae99ef1cafacf30514e1302cb00fd7c976461d (InfoSec), then the explicit-target InfoSec erratum a700d6f18b0091f2bbe0a060cdb9fcbb62362fb3c8926be6a6f30f53b3cd2597 for the sixteen-entry sentence. The earlier factual blocker aff0ef3b and 9c3305c8 reports were withdrawn for the actual target in governor decision jmkh. Recorded in jmkh."
     },
     {
       "role": "contribution-auditor",
-      "status": "pending",
-      "reason": "Requested on the exact plan head. Checks scope fidelity to the governor requests and the three corrections in md3r, and that no rule, authority or role changes."
+      "status": "consulted",
+      "reason": "Independent exact-delta reviews CLEAR: corrected contribution review fe97c1c4f0de0baba240a466067779a307eb5055c1a15656933267dd5d192f51 and the explicit-target contribution erratum e6328b14bce1d7ec01c3497a3b14e117678bf0682d08e41c7945f8ea6c1a5e6a, which reviewed the exact inventory sentence against the actual target. Recorded in jmkh."
     },
     {
       "role": "web-ux-reviewer",
-      "status": "pending",
-      "reason": "Requested on the exact plan head and again on the rendered candidate: the shared notice adds visible header cost on every page."
+      "status": "consulted",
+      "reason": "Plan-design review CLEAR and carried forward in jmkh. Actual rendered review of the shared notice (desktop and mobile, light and dark, keyboard order, the dossier page with no banner, measured added height) is still required before Gate 2 and is not supplied by this consultation."
     }
-  ]
+  ],
+  "gate1_approved_by": "20261031T224419Z-governor-reviewer-jmkh",
+  "gate1_approved_at": "2026-10-31T22:45:40Z"
 }
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
@@ -43,7 +45,7 @@
 # Pages scope supplement S1: role-weight wording, evaluator notice, valid coordination examples
 
 Governance mode: STRICT, because the shared notice changes the rendering of every public page and two frozen pages are reopened.
-Status `pending-gate1`. This draft grants no authority and starts no work.
+Status `approved`. Gate 1 approved by governor decision `20261031T224419Z-governor-reviewer-jmkh` (actual timestamp 2026-10-31T22:45:40Z). This is not Gate 2, a merge, a deployment or a release.
 
 Lifecycle: supplements `20261030T163253Z-pages-structure-and-voice`; the parent file is not edited. Depends on the parent, A1, A2
 and the source-consistency plan. Overlap with A2 (`roles-and-gates.md`, `coordination-protocol.md`) is acknowledged here. This plan
