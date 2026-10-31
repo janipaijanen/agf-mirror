@@ -23,6 +23,26 @@ exit-and-decommission page.
 
 *AI-generated figure. Publication remains the responsibility of the human maintainer.*
 
+## What adoption asks of the people involved
+
+In plain terms, adoption asks for four things.
+
+- **Attention.** A human governor is accountable for plan and merge decisions.
+  Non-trivial changes carry a plan and two gates. The
+  [FAQ](../start/adopter-faq.md#how-much-governor-time-should-we-expect) gives
+  planning ranges.
+- **Repository changes.** Files, CI jobs, and an assistant loader, itemised below.
+  They live in your repository and you can remove them.
+- **Responsibility and privacy.** AGF records who decided what. That record can
+  reveal names, timestamps, and review activity to anyone with repository
+  access. The
+  [privacy and labor checklist](../start/should-you-adopt.md#privacy-labor-and-provider-boundary-checklist)
+  lists the questions to answer locally.
+- **Terms and exit.** [Licensing](licensing.md) states the terms.
+  [Exit and decommission](exit-and-decommission.md) states how to leave.
+
+The sections below list the implementation detail.
+
 ## Files added to your repository
 
 Table 1 lists the repository artifacts adoption adds or expects you to

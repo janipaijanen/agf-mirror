@@ -121,28 +121,22 @@ governor become ceremony.
 
 Yes, when the arrangement is explicit, authorized, and sequential. Person A
 may approve the plan at Gate 1 and Person B may review the implementation at
-Gate 2. This can add an independent implementation review, but AGF does not
-require two people.
+Gate 2. AGF does not require two people, and its validated minimum remains one
+governor at a time. Treat split-person gates as a pilot and write a learning
+record when you try it.
 
-Use this minimum checklist:
+If you split the gates, record who owns each gate and the period it covers,
+give the Gate 2 reviewer the exact approved plan and accepted risks, compare the
+diff with that exact plan, send scope changes back to Gate 1, and name one
+primary governor who resolves disagreement.
 
-- record who owns each gate, including the repository, change, and time period
-  covered by that authority;
-- give the Gate 2 reviewer the exact approved plan, Gate 1 decision, conditions,
-  and accepted risks;
-- at Gate 2, compare the diff and evidence with that exact plan;
-- send scope changes back to Gate 1 instead of silently rewriting the plan at
-  Gate 2;
-- name one primary governor or project authority who resolves disagreement;
-- do not let either approver approve implementation they personally performed
-  while acting as coder-tester.
-
-This is a handoff of one decision role between people, not two simultaneous
-governors with unclear precedence. AGF v2's validated minimum remains one
-governor at a time. Treat split-person gates as a team operating pattern or
-pilot, not as a universally validated design, and write a learning record when
-you try it. See [roles and gates](../concepts/roles-and-gates.md) for the
-canonical rotation, delegation, and conflict-of-interest guidance.
+Prefer an approver who did not implement the change. The adoption guide
+([section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md#11-assign-roles))
+allows one person to play both Coder-Tester and Governor-Reviewer temporarily
+in Phase 1, when separation is not possible. Record that choice. An
+implementing assistant never approves its own work. See
+[roles and gates](../concepts/roles-and-gates.md) for the canonical rotation,
+delegation, and conflict-of-interest guidance.
 
 ## Can AI act as a governor?
 
@@ -160,12 +154,14 @@ extension, with a human explicitly accepting the risk, defining what the AI is
 allowed to approve, and staying accountable for the outcome. If nobody human is
 prepared to bear that risk, the project does not have a governor.
 
-AGF does ship one narrow, opt-in route for eligible Gate 2 decisions: a named
-deputy may approve certain Gate 2 items for a limited time under a written
-delegation. It is off by default and provisional, and the
-[deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md) limits it with a full red list.
-It does not make an AI the governor, and the human governor retains ultimate
-approval authority. See
+AGF does ship one narrow route for eligible Gate 2 decisions. It is off by
+default and provisional. A named deputy may approve certain Gate 2 items under
+a written delegation with scope, severity ceiling, and expiry. The
+[deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md)
+keeps a red list that is never delegable. A deputy does not approve its own
+work: role definitions still forbid self-approval. The route does not make an
+AI the governor, and the human governor retains ultimate approval authority.
+See
 [approval authority and optional deputies](../concepts/roles-and-gates.md#approval-authority-and-optional-deputies).
 
 ## How much governor time should we expect?
