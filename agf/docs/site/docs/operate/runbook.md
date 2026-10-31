@@ -2,8 +2,9 @@
 
 *Status: Released. Audience: operators and AI assistants running an adopted AGF project. This page is the canonical map for choosing an operating procedure; linked pages contain the detailed contracts.*
 
-Use this map when work crosses a session boundary or the next AGF action is
-unclear. GitLab Pages renders this Markdown, but the source page remains the
+For an ordinary governed change, go straight to
+[Day-to-day operation](day-to-day.md). Use this map when work crosses a session
+boundary or the next AGF action is unclear. GitLab Pages renders this Markdown, but the source page remains the
 authority. Product- and assistant-specific sections are adapters: removing one
 must not change the core workflow or role authority.
 
@@ -11,6 +12,7 @@ must not change the core workflow or role authority.
 
 | Situation | Start here | Then |
 |---|---|---|
+| Beginning ordinary governed work | [Day-to-day operation](day-to-day.md) | Claim, implement, validate, and hand off within the approved scope |
 | New or returning session | [Session continuity](session-continuity.md#start-or-resume) | Run the unscoped and role-specific resume steps before acting |
 | Planned `/compact`, IDE update, reboot, model switch, or pause | [Graceful checkpoint](session-continuity.md#graceful-checkpoint) | Validate and publish the record before leaving |
 | Crash, unexpected reboot, context loss, or another machine | [Abrupt-loss recovery](session-continuity.md#abrupt-loss-recovery) | Reconstruct from Git, coordination, and forge evidence without inventing state |
@@ -18,7 +20,6 @@ must not change the core workflow or role authority.
 | At a safe wait boundary (healthy pipeline, external review, another agent's claimed work) | [Poll and coordinate](poll-and-coordinate.md#collision-safe-selection-role-consensus-and-stopping) | Ask the recurring question: what is the highest-priority authorized small item I can advance now without delaying or colliding with the work in flight? Claim one bounded item or record the specific blocker |
 | Activated Improvement Propeller weekly wake | [Day-to-day operation](day-to-day.md#optional-improvement-propeller-cycle) | At a safe non-reentrant boundary, deduplicate and publish at most three opportunities or stay quiet; monthly and after a release, synthesize at most three bounded friction findings |
 | Improvement Propeller cursor loss, missed-record evidence, pause, or deactivation | [`improvement-propeller-rule.md`](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/always/improvement-propeller-rule.md#cursor-recovery-and-truthfulness) | Stop normal advancement, disclose the gap, seek governor-authorized bounded reconciliation, or pause the real wake while retaining cursor/history |
-| Beginning ordinary governed work | [Day-to-day operation](day-to-day.md) | Claim, implement, validate, and hand off within the approved scope |
 | Need a prompt for a real situation | [Run AGF in real situations](run-agf-in-real-situations.md) | Use the prompt as direction, never as authority |
 | Reviewing, blocked, or preparing a release | [Review and release](review-and-release.md) | Preserve exact-head evidence and human gate decisions |
 | Commissioning or upgrading AGF | [Install](../adopt/install-and-layouts.md) or [upgrade](../adopt/upgrade-from-v1.md) | Verify framework, tooling, loaders, and documentation have installation parity |
