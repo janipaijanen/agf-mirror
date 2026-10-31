@@ -3235,3 +3235,52 @@ second authority channel. Do not install Kungfu, import `.kungfu/` state,
 create an integration issue, or adopt any Work/Attempt/settlement invariant
 without a separately approved plan and a bounded export, reconstruction,
 privacy, concurrency, and removability evaluation.
+
+# Batch 43 (2026-10-31) — practitioner verification pattern and runtime-enforcement platform
+
+## Classified
+
+- https://lethain.com/adopting-verification-pattern/
+  type: practice | relation: prior-art, complement | action: watch,
+  compare-in-docs
+  note: Practitioner post dated 2026-10-30 (author and date as shown by a
+  summarized fetch; not independently confirmed on the page). It describes a
+  "verification pattern": each pull request carries a `verifications/{pr_num}.md`
+  file in which the AI harness records the steps it took to verify the change and
+  what it could not verify, and a pull request cannot move from draft to ready
+  without it; a separate feedback tool, a daily maintenance loop and centralized
+  guidance are described around it. This is relevant prior art for AGF's Gate 2
+  handoff evidence and for a required "not verified" statement, and it matches
+  AGF's one-owner guidance principle. The post is anecdotal single-organization
+  experience with no measurements or comparison, and the pattern depends on the
+  harness reporting its own steps honestly, which the post does not test; AGF's
+  answer to that dependence is independent exact-head review. Evidence status:
+  Theoretical, at most Empirically informed. (accessed 2026-10-31)
+
+- https://openap.org
+  type: tooling, framework | relation: complement, prior-art | action: watch,
+  compare-in-docs
+  note: Site titled "Open Agent Primitives (OAP)", presented as built by AuthZed on
+  SpiceDB and open source under Apache 2.0 according to its footer. It describes a
+  runtime platform that checks every agent action against a permission graph at
+  execution time, brokers credentials so the model never sees them, can require
+  human approval of an agent's plan, renders approval prompts in the platform
+  rather than through the model, and keeps a signed, hash-chained audit log. It
+  lists no adopters and no formal specification; the evidence cited is internal
+  testing, and it self-reports six of ten OWASP agentic risks as "In progress".
+  This is a runtime-enforcement layer of the kind AGF says it does not provide, so
+  it is complementary prior art: AGF decides who approves and what is recorded, and
+  a runtime like this could enforce permissions at execution. Parallels to Gate 1,
+  no self-approval, bounded delegation and tamper-evident logging are conceptual
+  and untested. Read through one summarized fetch of the landing page on
+  2026-10-31; the repository and documentation were not read, and the fetch tool
+  flagged a name mismatch ("OAP" versus the domain "openap.org"), so confirm site
+  identity before relying on it. Vendor self-description; Theoretical. AGF has not
+  run or integrated it and makes no coexistence claim. (accessed 2026-10-31)
+
+## Evaluation boundary
+
+This classification adopts no practice, tool, schema, hook, dependency or
+integration, adds no AGF requirement, and grants neither source any AGF authority.
+Neither source's descriptions may be cited as AGF measurements or validation. The
+matching non-binding questions are retained in `docs/radar.md`.

@@ -413,6 +413,33 @@ Next review: 2026-10.
   source: MR !967 (its `docs/sources.md` edit stays only on the retained branch) |
   status: parked, folded under the re-assessment question | review-by: 2027-01-31
 
+- **Required "not verified" statement in Gate 2 handoffs** — a practitioner post
+  (Batch 43) requires each change to carry a verification record that also states
+  what could not be verified. AGF's Gate 2 handoffs already carry validation results
+  and limits by habit. Open question: would a required limits statement improve
+  review, or become boilerplate that a signal-gaming pressure fills in without
+  meaning? Controversial: one anecdotal source, and a presence check could only be
+  advisory evidence under the tool-authority rule. source: Larson post in
+  `docs/sources.md` Batch 43 | status: question, no commitment | review-by: 2027-01-31
+
+- **Runtime enforcement beside governance files** — an open-source runtime platform
+  (Batch 43) enforces per-action authorization, credential brokering and signed audit
+  at execution, which AGF explicitly leaves to the adopter's runtime. Open question:
+  does AGF need a documented, evidence-labelled pattern for pairing role decisions with
+  a runtime's permission checks, or does naming the layer boundary on the runtime
+  comparison page suffice? Controversial: vendor self-description without adopters, and
+  any pairing guidance risks implying coexistence AGF has not validated. source: OAP
+  in `docs/sources.md` Batch 43 | status: question, no commitment | review-by: 2027-01-31
+
+- **AI evaluators and the philosophical-lenses page** — two relayed assistant answers
+  to "which frameworks have a page like the philosophical lenses page?" differed:
+  one described a set of philosophical branches the page does not contain; the other
+  read the six actual lenses correctly and stated its search limits. Open question: how
+  often do AI evaluators mis-describe AGF pages, and should the evaluation dossier's
+  checks say to read the page itself before comparing it? Controversial: two private
+  conversations that cannot be reproduced or published, so this is an observation, not
+  evidence of a rate. status: observation | review-by: 2027-01-31
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
