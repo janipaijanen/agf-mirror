@@ -3,44 +3,38 @@
 {
   "plan_id": "20261030T163253Z-pages-structure-and-voice",
   "changed_pages_or_runbooks": [
-    "agf/docs/site/docs/concepts/roles-and-gates.md",
-    "agf/docs/site/docs/concepts/position.md"
+    "agf/docs/site/docs/start/should-you-adopt.md",
+    "agf/docs/site/docs/start/adopter-faq.md",
+    "agf/docs/site/docs/adopt/downstream-impact.md",
+    "agf/docs/site/use-cases.md"
   ],
   "surfaces": {
     "normative_owner": {
-      "disposition": "existing pointer sufficient (applicable owners, unchanged by slice 1)",
+      "disposition": "existing pointer sufficient (applicable owners, unchanged by slice 2)",
       "paths": [
         "agf/framework.md",
         "agf/ADOPTING.md",
-        "agf/agents/MANIFEST.example.yaml",
-        "agf/schemas/agent.schema.json",
         "agf/agents/planner-architect.yaml",
         "agf/agents/coder-tester.yaml",
         "agf/agents/governor-reviewer.yaml",
-        "agf/agents/build-engineer.yaml",
-        "agf/agents/infosec-sentinel.yaml",
-        "agf/agents/contribution-auditor.yaml",
-        "agf/agents/fact-checker.yaml",
-        "agf/agents/web-ux-reviewer.yaml",
-        "agf/agents/independent-implementation-reviewer.yaml",
-        "agf/rules/workflow/deputy-governor-rule.md",
-        "agf/rules/always/tool-authority-boundary-rule.md",
-        "agf/rules/ui/accessibility-rule.md"
+        "agf/rules/workflow/deputy-governor-rule.md"
       ],
-      "reason": "Slice 1 (Who does what?) edits no owner. Owner-by-owner preservation: framework.md owns the three core roles and the conditional Build Engineer activation; ADOPTING.md section 1.1 owns the role-assignment guidance, the temporary human Coder-Tester and Governor-Reviewer conflict and the informal advisory agents, and its role-selection table owns the situations the new roles table mirrors; the role definitions own the quoted activation_condition triggers, the web-ux-reviewer escalation to the governor-reviewer and the governor-reviewer self-approval prohibition; MANIFEST.example.yaml owns the template-versus-live-manifest distinction; agent.schema.json owns the optional activation_condition field; the deputy rule owns the narrow opt-in Gate 2 route that the page points to; tool-authority-boundary-rule.md owns the statement that tool output is advisory unless a named rule grants blocking authority; accessibility-rule.md owns the WCAG AA bar. The new text restates each, adds no obligation and no delegable category. The base sentence 'No agent both implements and approves its own work.' is replaced under governor decision 5sh2 by the text derived from ADOPTING.md section 1.1; its disposition is in docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md. Later slices extend this inventory with their own pages and owners."
+      "reason": "Slice 2 (Should I adopt?) edits no owner. Owner-by-owner preservation: framework.md owns the three core roles; ADOPTING.md owns the role-selection table and Step 1.1 (the solo trial lists planner-architect, coder-tester and governor-reviewer; Phase 1 temporarily permits one person to play both Coder-Tester and Governor-Reviewer, which the FAQ gate-split answer now states instead of a blanket prohibition); the three role definitions own the responsibilities named; the deputy rule owns the narrow opt-in Gate 2 route (default-off, provisional, written delegation with scope, severity ceiling and expiry, full red list, no self-approval, no Gate 1, release or binding-risk delegation, ultimate approval authority with the human governor). Decide states the default human approval path and points to that route; the FAQ keeps the no-self-approval statement beside the route. Dispositions of every changed or replaced sentence are in docs/reviews/pages-structure-and-voice/20261031-slice-2-preservation-and-anchor-map.md. The A1 Evaluate answer-key sections of should-you-adopt.md keep their lengths (one 8-word phrase replaced by 8 words). Earlier slices' pages are frozen. Later slices extend this inventory."
     },
     "adopter_facing_explanation": {
       "disposition": "updated",
       "paths": [
-        "agf/docs/site/docs/concepts/roles-and-gates.md",
-        "agf/docs/site/docs/concepts/position.md"
+        "agf/docs/site/docs/start/should-you-adopt.md",
+        "agf/docs/site/docs/start/adopter-faq.md",
+        "agf/docs/site/docs/adopt/downstream-impact.md",
+        "agf/docs/site/use-cases.md"
       ],
-      "reason": "roles-and-gates.md gains a plain-language role explanation, a roster table with quoted triggers, a three-path specialist request section and a corrected opening. position.md defines an agent as a role definition and names the human player case. Under governor decision pbp8 it also corrects four reversed left and right direction words so the prose matches the unchanged runtime-governance-boundary.svg. These are projections of the owners above and do not redefine them."
+      "reason": "should-you-adopt.md: the decision (fit, non-fit, commitments) now precedes the inventory; new short pointer sections (Understand the basics, Cost and accountability, Technical fit, Assistant workflows, Selected use cases) route to the canonical owners; the intro states the default human approval path with a pointer to the deputy route; roles match the owners. adopter-faq.md: the AI-governor answer keeps the deputy route and no-self-approval together; the gate-split answer projects ADOPTING section 1.1 faithfully and is shorter. downstream-impact.md: a plain-language summary of attention, repository changes, responsibility and privacy, terms and exit before the implementation inventory, plus the Licensing pointer. use-cases.md: the two assistant paragraphs now separate loading rule files from role assignment and require explicit allocation or claims for concurrent assistants; the detailed examples are otherwise unchanged. should-you-adopt.md also calls the applicability catalog an incomplete pilot and leaves its coverage numbers on that page. These are projections of the owners and do not redefine them."
     },
     "runbook_situation_map": {
       "disposition": "not applicable",
       "paths": [],
-      "reason": "Slice 1 changes no runbook or situation map. The specialist request steps are an explanation on the roles page, not a procedure in the operations hub. Slice 4 handles the operating hub."
+      "reason": "Slice 2 changes no runbook or situation map. Slice 4 handles the operating hub."
     },
     "ai_landing_loaders": {
       "disposition": "existing pointer sufficient",
@@ -56,34 +50,26 @@
       "paths": [
         "agf/rules/workflow/documentation-rule-projection-rule.md",
         "docs/reviews/pages-structure-and-voice/slice-report-extractor.py",
-        "docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md"
+        "docs/reviews/pages-structure-and-voice/20261031-slice-2-preservation-and-anchor-map.md"
       ],
-      "reason": "Strict agov plan projection-check checks structure and distribution. The committed extractor and its report give reproducible keyword-sentence, heading-id and anchor-link evidence. They cannot establish semantic equality. Independent factual review of the new sections against the owners, and independent rendered review, remain required."
+      "reason": "Strict agov plan projection-check checks structure and distribution. The committed extractor and its report give reproducible keyword-sentence, heading-id and anchor-link evidence. They cannot establish semantic equality. Independent factual review and independent rendered review remain required."
     },
     "distribution": {
       "disposition": "existing pointer sufficient",
       "paths": [
-        "agf/docs/site/docs/concepts/roles-and-gates.md",
-        "agf/docs/site/docs/concepts/position.md",
+        "agf/docs/site/docs/start/should-you-adopt.md",
+        "agf/docs/site/docs/start/adopter-faq.md",
+        "agf/docs/site/docs/adopt/downstream-impact.md",
         "agf/framework.md",
         "agf/ADOPTING.md",
-        "agf/agents/MANIFEST.example.yaml",
-        "agf/schemas/agent.schema.json",
         "agf/agents/planner-architect.yaml",
         "agf/agents/coder-tester.yaml",
         "agf/agents/governor-reviewer.yaml",
-        "agf/agents/build-engineer.yaml",
-        "agf/agents/infosec-sentinel.yaml",
-        "agf/agents/contribution-auditor.yaml",
-        "agf/agents/fact-checker.yaml",
-        "agf/agents/web-ux-reviewer.yaml",
-        "agf/agents/independent-implementation-reviewer.yaml",
         "agf/rules/workflow/deputy-governor-rule.md",
-        "agf/rules/always/tool-authority-boundary-rule.md",
-        "agf/rules/ui/accessibility-rule.md",
-        "agf/templates/AGENTS.md"
+        "agf/templates/AGENTS.md",
+        "agf/docs/site/use-cases.md"
       ],
-      "reason": "The two edited pages and the cited owners ship in the AGF distribution. Recheck archive inclusion at implementation acceptance. The review artifacts, the extractor and the Foundry-local loaders are project-local.",
+      "reason": "The three edited pages and the cited owners ship in the AGF distribution. Recheck archive inclusion at implementation acceptance. The review artifacts, the extractor and the Foundry-local loaders are project-local.",
       "not_applicable": [
         {
           "path": "AGENTS.md",
@@ -98,7 +84,7 @@
           "reason": "Foundry-local review evidence, not an adopter payload."
         },
         {
-          "path": "docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md",
+          "path": "docs/reviews/pages-structure-and-voice/20261031-slice-2-preservation-and-anchor-map.md",
           "reason": "Foundry-local review evidence, not an adopter payload."
         },
         {
