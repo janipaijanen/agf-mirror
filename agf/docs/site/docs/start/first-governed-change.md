@@ -1,7 +1,7 @@
 # Your first governed change
 
 *Status: Released. Current framework version: see [Release information](../../reference/release-info.md). Audience: developers who have
-completed [Set up AGF](commission.md). After
+completed [install and layouts](../adopt/install-and-layouts.md). After
 this page you have taken one real change through both gates and validated the
 files that make the audit trail.*
 
