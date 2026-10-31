@@ -25,8 +25,8 @@ it does not change the default shown here.
 
 Figure 1 sorts actions by mode, not by how far the AI is trusted.
 Drafting a plan and approving it are different actions in different
-modes. The assigned approver decides; an agent that drafted or
-implemented work does not approve it. Table 1 applies the same split to
+modes. The assigned approver decides; an AI assistant that prepared
+or implemented the work cannot approve its own. Table 1 applies the same split to
 specific artifacts.
 
 ![Default model: human decision authority, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
