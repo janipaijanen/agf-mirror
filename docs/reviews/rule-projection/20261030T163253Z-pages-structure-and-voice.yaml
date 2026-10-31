@@ -35,7 +35,7 @@
         "agf/docs/site/docs/concepts/roles-and-gates.md",
         "agf/docs/site/docs/concepts/position.md"
       ],
-      "reason": "roles-and-gates.md gains a plain-language role explanation, a roster table with quoted triggers, a three-path specialist request section and a corrected opening. position.md defines an agent as a role definition and names the human player case. These are projections of the owners above and do not redefine them."
+      "reason": "roles-and-gates.md gains a plain-language role explanation, a roster table with quoted triggers, a three-path specialist request section and a corrected opening. position.md defines an agent as a role definition and names the human player case. Under governor decision pbp8 it also corrects four reversed left and right direction words so the prose matches the unchanged runtime-governance-boundary.svg. These are projections of the owners above and do not redefine them."
     },
     "runbook_situation_map": {
       "disposition": "not applicable",

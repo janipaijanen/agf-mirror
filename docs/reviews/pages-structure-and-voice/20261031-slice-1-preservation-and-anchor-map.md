@@ -30,7 +30,8 @@ Base ref: origin/main (705114ccb85d143065f56f72504d5edd4ab43e77)
 
 ## position.md
 
-- Candidate sentences in base: 4; present verbatim in final: 4; not found: 0
+- Candidate sentences in base: 4; present verbatim in final: 3; not found: 1
+  - NOT FOUND: "Governance (left in the diagram) defines authority boundaries and collects learning; the runtime (right) executes agents under those boundaries."
 - Headings before: 11; after: 11
 - Heading ids before: agf-and-agent-runtimes, concrete-relationship, per-tool-notes, claude-code, codex-openai, cursor-windsurf, langgraph-crewai-autogen, how-agf-relates-to-other-frameworks, enterprise-boundary, what-agf-does-not-do, next
 - Heading ids after:  agf-and-agent-runtimes, concrete-relationship, per-tool-notes, claude-code, codex-openai, cursor-windsurf, langgraph-crewai-autogen, how-agf-relates-to-other-frameworks, enterprise-boundary, what-agf-does-not-do, next
@@ -44,16 +45,17 @@ Base ref: origin/main (705114ccb85d143065f56f72504d5edd4ab43e77)
 - position.md -> ../adopt/assistant-loader-configuration.md#verify-the-loader: ok
 ```
 
-## Disposition of the one replaced sentence
+## Disposition of the two replaced sentences
 
 | Base sentence | Where | Disposition |
 |---|---|---|
 | "No agent both implements and approves its own work." | `roles-and-gates.md`, "The core idea" | Replaced under 5sh2 by the opening "Planning, building and approving are separate responsibilities. An assistant may plan and implement a change; neither task gives it approval authority. ... This human role conflict does not permit an implementing assistant to approve its own work." Owner: `agf/ADOPTING.md` section 1.1 (the temporary human Coder-Tester and Governor-Reviewer conflict) and `agf/agents/governor-reviewer.yaml` (self-approval prohibition). The jurisdiction, authority and escalation sentence, the "acted outside its definition" sentence and the structural-versus-participant-discipline sentence are kept unchanged. |
+| "Governance (left in the diagram) defines authority boundaries and collects learning; the runtime (right) executes agents under those boundaries." | `position.md`, "Concrete relationship" | Factual correction under governor decision pbp8. The unchanged `runtime-governance-boundary.svg` places the runtime cluster on the left (label at x 178) and the governance cluster on the right (label at x 662). The sentence now reads "Governance (right in the diagram) defines ... the runtime (left) executes ...". Only the two direction words changed; the meaning of the sentence is otherwise unchanged. The Palette paragraph had the same reversal in two more words and is corrected the same way; it contains no keyword sentence. Owner: the figure asset. |
 
 ## What the slice adds
 
 - `roles-and-gates.md`: the new opening of "The core idea" and the sections "Roles in plain terms", "Which roles does my project need?" and "Ask for a specialist during a change". The anchor `#approval-authority-and-optional-deputies` is kept.
-- `position.md`: five lines in the opening paragraph that define an agent as a role definition, name the people, assistants or sessions that play it, say that an orchestrator is an execution surface and not automatically the authorized role holder, and link to `roles-and-gates.md#roles-in-plain-terms`.
+- `position.md`: five lines in the opening paragraph that define an agent as a role definition, name the people, assistants or sessions that play it, say that an orchestrator is an execution surface and not automatically the authorized role holder, and link to `roles-and-gates.md#roles-in-plain-terms`. It also corrects four reversed direction words (left and right) in "Concrete relationship" and the Palette note, as pbp8 directs.
 
 ## What the slice does not do
 
