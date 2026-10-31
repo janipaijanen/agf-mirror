@@ -23,10 +23,11 @@ risk, or decide exit. A narrow opt-in deputy route for eligible Gate 2
 decisions is described in the [deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md);
 it does not change the default shown here.
 
-Figure 1 sorts actions by mode, not by how far the AI is trusted:
-drafting a plan and approving it are different actions in different
-modes, even when one person or agent does both. Table 1 applies the same
-split to specific artifacts.
+Figure 1 sorts actions by mode, not by how far the AI is trusted.
+Drafting a plan and approving it are different actions in different
+modes. The assigned approver decides; an agent that drafted or
+implemented work does not approve it. Table 1 applies the same split to
+specific artifacts.
 
 ![Default model: human decision authority, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
 
