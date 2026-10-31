@@ -9,10 +9,34 @@ roles, say what each gate decides, and read a coordination chain.*
     adopter-owned coordination and plan paths, `docs/coordination/` and
     `docs/plans/` by default.
 
+## Roles in plain terms
+
+A role is a responsibility with written limits: what it owns, what it may decide,
+and what it must hand to someone else. A role is not a separate program, and it is
+not necessarily another person. Your assistant, a person or a session plays it, and
+one participant can play more than one role. Roles are definitions in your
+repository, and they do not run by themselves.
+
+Three responsibilities matter first. Someone plans the work, someone implements and
+tests it, and someone approves it. Approval of the plan is called Gate 1. Approval
+of the finished change is Gate 2. The person accountable for approvals is the
+**human governor**. In a solo project, that is you.
+
 ## The core idea: separated authority
 
-No agent both implements and approves its own work. Authority is split
-across role definitions, each a YAML contract stating jurisdiction (what
+Planning, building and approving are separate responsibilities. An assistant may
+plan and implement a change; neither task gives it approval authority. Prefer a
+human approver who did not implement the change. Phase 1 is the starting
+arrangement, in which related responsibilities are combined into a few roles. In
+Phase 1, if that separation is not possible, the
+[adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md#11-assign-roles) permits one person to play both the
+Coder-Tester and Governor-Reviewer roles and accept the conflict temporarily.
+Record the assignment and the approval explicitly. This human role conflict does
+not permit an implementing assistant to approve its own work. Eligible Gate 2
+delegation remains subject to the bounded deputy route described
+[below](#approval-authority-and-optional-deputies).
+
+Authority is split across role definitions, each a YAML contract stating jurisdiction (what
 the role owns), authority (what it may decide), and escalation (what it
 must hand upward). An implementing agent that "approves" its own merge has
 acted outside its definition, and the audit trail shows it. Some checks are
@@ -86,6 +110,65 @@ forbid self-approval. Anything the rule does not expressly cover stays with the
 human governor. This page does not make Gate 1, release approval, or binding
 risk acceptance delegable. Ordinary task grants, described below, are distinct
 from deputy approval.
+
+## Which roles does my project need?
+
+Your project uses only the roles it assigns. The definitions in `agf/agents/` are a
+library, and having a definition does not make a role active. Start from your
+operating model, then add a specialist when its trigger applies.
+
+| Situation | Roles and guidance |
+|---|---|
+| Solo trial | `planner-architect`, `coder-tester`, `governor-reviewer`<br>You are the human governor. One assistant may play both `planner-architect` and `coder-tester`. Planning and Gate 1 plan authorship still happen. |
+| Standard governed project | `planner-architect`, `coder-tester`, `governor-reviewer`<br>The players may be separate. Name each one. |
+| Project with a CI pipeline | add `build-engineer`<br>Trigger in its definition: "project has a CI pipeline". |
+| Project that submits learning records | add `infosec-sentinel`<br>Trigger: "project submits learning records". Required once the project submits them. |
+| Project that takes contributions | add `contribution-auditor`<br>Trigger: "first contribution to the framework or an adopter project". |
+| Project that publishes factual claims | add `fact-checker`<br>Recommended from the first release, as needed. |
+| Change to the public site or its build configuration | add `web-ux-reviewer`<br>Trigger: "any change to agf/docs/site/** or agf/docs/build/mkdocs.yml". |
+| A non-trivial Gate 2 candidate that needs independent review | name `independent-implementation-reviewer` for that candidate<br>Not a gate for every change. Its findings are advice. |
+
+Some shipped roles declare no activation condition. For those, read the role file
+and the growth signals in `agf/ADOPTING.md`. The agent schema makes the
+`activation_condition` field optional, so a missing one is not an error.
+
+To see which roles your own project uses, read your project's manifest,
+`agf/agents/MANIFEST.yaml`, if it keeps one. It records each role's status and who
+or what plays it. The shipped `agf/agents/MANIFEST.example.yaml` is only a template:
+every entry starts as `skipped`, and `agov` reads only `MANIFEST.yaml`. Do not read
+the template as your roster.
+
+## Ask for a specialist during a change
+
+Say what you need: "Ask for a security review of this plan." What happens next
+depends on the kind of specialist:
+
+- **An already active role.** The assistant consults it within its current scope.
+  That is not a new activation.
+- **A shipped role your project has not activated.** A request alone does not
+  activate it or assign its player. The assistant proposes the role and says why,
+  using the role's declared trigger, or its stated purpose when it declares none.
+  The authorized human decides whether to activate the role and who or what plays
+  it. The project records the player, the responsibilities, the limits and the
+  review handoff in its governed record path, and in a manifest entry where the
+  project keeps a manifest. The assistant then routes a bounded handoff to the
+  specialist, and the findings return to the requester and the approver named in
+  that handoff.
+- **An informal adviser.** The [adoption guide, section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md#11-assign-roles) allows
+  project-specific advisers who take part in planning without a YAML definition or
+  framework tracking. They have no pipeline authority.
+
+Specialist output is not always advice. A role can own work: `build-engineer`, for
+example, owns CI configuration and build automation. A role can carry a named
+requirement: the `web-ux-reviewer` definition sends accessibility findings rated
+"Needs work" or "Poor" to the `governor-reviewer`, because WCAG AA findings block
+under `ui/accessibility-rule.md`. Tool output does not become a mechanical gate
+unless a named rule grants that authority. An advisory reviewer never approves a
+gate. The authorized approver makes the gate decision, by default the human
+governor, using the findings.
+
+Designing a new role, or changing a role's authority, follows the approval process
+in [customizing the framework](../advanced/customizing-the-framework.md).
 
 ## The two gates
 

@@ -3,136 +3,44 @@
 {
   "plan_id": "20261030T163253Z-pages-structure-and-voice",
   "changed_pages_or_runbooks": [
-    "agf/docs/site/acknowledgements.md",
-    "agf/docs/site/ai-evaluation-dossier.md",
-    "agf/docs/site/contribute.md",
-    "agf/docs/site/docs/adopt/applicability-catalog.md",
-    "agf/docs/site/docs/adopt/assistant-loader-configuration.md",
-    "agf/docs/site/docs/adopt/commercial-licensing.md",
-    "agf/docs/site/docs/adopt/downstream-impact.md",
-    "agf/docs/site/docs/adopt/exit-and-decommission.md",
-    "agf/docs/site/docs/adopt/install-and-layouts.md",
-    "agf/docs/site/docs/adopt/licensing.md",
-    "agf/docs/site/docs/adopt/mcp-server.md",
-    "agf/docs/site/docs/adopt/third-party-plugin-coexistence.md",
-    "agf/docs/site/docs/adopt/tooling-and-tokens.md",
-    "agf/docs/site/docs/adopt/upgrade-from-v1.md",
-    "agf/docs/site/docs/advanced/contracts-and-validators.md",
-    "agf/docs/site/docs/advanced/customizing-the-framework.md",
-    "agf/docs/site/docs/concepts/coordination-protocol.md",
-    "agf/docs/site/docs/concepts/evidence-and-learnings.md",
-    "agf/docs/site/docs/concepts/philosophical-lenses.md",
-    "agf/docs/site/docs/concepts/position.md",
     "agf/docs/site/docs/concepts/roles-and-gates.md",
-    "agf/docs/site/docs/index.md",
-    "agf/docs/site/docs/operate/day-to-day.md",
-    "agf/docs/site/docs/operate/poll-and-coordinate.md",
-    "agf/docs/site/docs/operate/review-and-release.md",
-    "agf/docs/site/docs/operate/run-agf-in-real-situations.md",
-    "agf/docs/site/docs/operate/runbook.md",
-    "agf/docs/site/docs/operate/session-continuity.md",
-    "agf/docs/site/docs/start/adopter-faq.md",
-    "agf/docs/site/docs/start/commission.md",
-    "agf/docs/site/docs/start/first-governed-change.md",
-    "agf/docs/site/docs/start/framework-map.md",
-    "agf/docs/site/docs/start/should-you-adopt.md",
-    "agf/docs/site/evaluate.md",
-    "agf/docs/site/future/evolution.md",
-    "agf/docs/site/index.md",
-    "agf/docs/site/reference/artifact-registry.md",
-    "agf/docs/site/reference/coord-graph-index.md",
-    "agf/docs/site/reference/disclaimer.md",
-    "agf/docs/site/reference/environment-variables.md",
-    "agf/docs/site/reference/figures.md",
-    "agf/docs/site/reference/maturity-vocabulary.md",
-    "agf/docs/site/reference/palette.md",
-    "agf/docs/site/reference/release-artifacts.md",
-    "agf/docs/site/reference/review-findings.md",
-    "agf/docs/site/reference/tooling-conformance.md",
-    "agf/docs/site/roadmap.md",
-    "agf/docs/site/use-cases.md",
-    "agf/docs/site/llms.txt"
+    "agf/docs/site/docs/concepts/position.md"
   ],
   "surfaces": {
     "normative_owner": {
-      "disposition": "existing pointer sufficient",
+      "disposition": "existing pointer sufficient (applicable owners, unchanged by slice 1)",
       "paths": [
         "agf/framework.md",
         "agf/ADOPTING.md",
         "agf/agents/MANIFEST.example.yaml",
+        "agf/schemas/agent.schema.json",
+        "agf/agents/planner-architect.yaml",
+        "agf/agents/coder-tester.yaml",
         "agf/agents/governor-reviewer.yaml",
-        "agf/rules/workflow/development-workflow-rule.md",
+        "agf/agents/build-engineer.yaml",
+        "agf/agents/infosec-sentinel.yaml",
+        "agf/agents/contribution-auditor.yaml",
+        "agf/agents/fact-checker.yaml",
+        "agf/agents/web-ux-reviewer.yaml",
+        "agf/agents/independent-implementation-reviewer.yaml",
         "agf/rules/workflow/deputy-governor-rule.md",
-        "agf/rules/workflow/coordination-publication-rule.md",
-        "agf/rules/workflow/release-via-merge-request-rule.md",
-        "agf/rules/always/external-anonymization-rule.md",
-        "agf/rules/docs/documentation-audience-rule.md"
+        "agf/rules/always/tool-authority-boundary-rule.md",
+        "agf/rules/ui/accessibility-rule.md"
       ],
-      "reason": "Planning inventory of existing owners, not implementation evidence. No normative owner is changed. Before Gate 2 record owner-by-owner semantic preservation and extend this inventory for every actual referenced owner. The role/self-approval/delegation tension must be resolved by factual review or stop for a separate policy decision."
+      "reason": "Slice 1 (Who does what?) edits no owner. Owner-by-owner preservation: framework.md owns the three core roles and the conditional Build Engineer activation; ADOPTING.md section 1.1 owns the role-assignment guidance, the temporary human Coder-Tester and Governor-Reviewer conflict and the informal advisory agents, and its role-selection table owns the situations the new roles table mirrors; the role definitions own the quoted activation_condition triggers, the web-ux-reviewer escalation to the governor-reviewer and the governor-reviewer self-approval prohibition; MANIFEST.example.yaml owns the template-versus-live-manifest distinction; agent.schema.json owns the optional activation_condition field; the deputy rule owns the narrow opt-in Gate 2 route that the page points to; tool-authority-boundary-rule.md owns the statement that tool output is advisory unless a named rule grants blocking authority; accessibility-rule.md owns the WCAG AA bar. The new text restates each, adds no obligation and no delegable category. The base sentence 'No agent both implements and approves its own work.' is replaced under governor decision 5sh2 by the text derived from ADOPTING.md section 1.1; its disposition is in docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md. Later slices extend this inventory with their own pages and owners."
     },
     "adopter_facing_explanation": {
       "disposition": "updated",
       "paths": [
-        "agf/docs/site/acknowledgements.md",
-        "agf/docs/site/ai-evaluation-dossier.md",
-        "agf/docs/site/contribute.md",
-        "agf/docs/site/docs/adopt/applicability-catalog.md",
-        "agf/docs/site/docs/adopt/assistant-loader-configuration.md",
-        "agf/docs/site/docs/adopt/commercial-licensing.md",
-        "agf/docs/site/docs/adopt/downstream-impact.md",
-        "agf/docs/site/docs/adopt/exit-and-decommission.md",
-        "agf/docs/site/docs/adopt/install-and-layouts.md",
-        "agf/docs/site/docs/adopt/licensing.md",
-        "agf/docs/site/docs/adopt/mcp-server.md",
-        "agf/docs/site/docs/adopt/third-party-plugin-coexistence.md",
-        "agf/docs/site/docs/adopt/tooling-and-tokens.md",
-        "agf/docs/site/docs/adopt/upgrade-from-v1.md",
-        "agf/docs/site/docs/advanced/contracts-and-validators.md",
-        "agf/docs/site/docs/advanced/customizing-the-framework.md",
-        "agf/docs/site/docs/concepts/coordination-protocol.md",
-        "agf/docs/site/docs/concepts/evidence-and-learnings.md",
-        "agf/docs/site/docs/concepts/philosophical-lenses.md",
-        "agf/docs/site/docs/concepts/position.md",
         "agf/docs/site/docs/concepts/roles-and-gates.md",
-        "agf/docs/site/docs/index.md",
-        "agf/docs/site/docs/operate/day-to-day.md",
-        "agf/docs/site/docs/operate/poll-and-coordinate.md",
-        "agf/docs/site/docs/operate/review-and-release.md",
-        "agf/docs/site/docs/operate/run-agf-in-real-situations.md",
-        "agf/docs/site/docs/operate/runbook.md",
-        "agf/docs/site/docs/operate/session-continuity.md",
-        "agf/docs/site/docs/start/adopter-faq.md",
-        "agf/docs/site/docs/start/commission.md",
-        "agf/docs/site/docs/start/first-governed-change.md",
-        "agf/docs/site/docs/start/framework-map.md",
-        "agf/docs/site/docs/start/should-you-adopt.md",
-        "agf/docs/site/evaluate.md",
-        "agf/docs/site/future/evolution.md",
-        "agf/docs/site/index.md",
-        "agf/docs/site/reference/artifact-registry.md",
-        "agf/docs/site/reference/coord-graph-index.md",
-        "agf/docs/site/reference/disclaimer.md",
-        "agf/docs/site/reference/environment-variables.md",
-        "agf/docs/site/reference/figures.md",
-        "agf/docs/site/reference/maturity-vocabulary.md",
-        "agf/docs/site/reference/palette.md",
-        "agf/docs/site/reference/release-artifacts.md",
-        "agf/docs/site/reference/review-findings.md",
-        "agf/docs/site/reference/tooling-conformance.md",
-        "agf/docs/site/roadmap.md",
-        "agf/docs/site/use-cases.md",
-        "agf/docs/site/llms.txt"
+        "agf/docs/site/docs/concepts/position.md"
       ],
-      "reason": "Proposed editorial/navigation changes only. Existing source inventory declared conservatively; final implementation must narrow to actual changed pages and include the new About index after it exists. Plain-language explanations remain projections of their canonical owners."
+      "reason": "roles-and-gates.md gains a plain-language role explanation, a roster table with quoted triggers, a three-path specialist request section and a corrected opening. position.md defines an agent as a role definition and names the human player case. Under governor decision pbp8 it also corrects four reversed left and right direction words so the prose matches the unchanged runtime-governance-boundary.svg. These are projections of the owners above and do not redefine them."
     },
     "runbook_situation_map": {
-      "disposition": "updated",
-      "paths": [
-        "agf/docs/site/docs/operate/runbook.md",
-        "agf/docs/site/docs/operate/day-to-day.md",
-        "agf/docs/site/docs/operate/review-and-release.md"
-      ],
-      "reason": "Proposed ordering emphasizes ordinary work and explains human/assistant/check responsibilities; retain canonical approval, privacy, recovery and release requirements. No procedure is changed by this planning artifact."
+      "disposition": "not applicable",
+      "paths": [],
+      "reason": "Slice 1 changes no runbook or situation map. The specialist request steps are an explanation on the roles page, not a procedure in the operations hub. Slice 4 handles the operating hub."
     },
     "ai_landing_loaders": {
       "disposition": "existing pointer sufficient",
@@ -141,98 +49,61 @@
         "agf/templates/AGENTS.md",
         ".claude/CLAUDE.md"
       ],
-      "reason": "Existing loader routes and role authority remain unchanged because page URLs and canonical owner paths are preserved. Inspect all supported loader links against final output. Any required loader mutation is outside scope until plan amendment."
+      "reason": "Loader routes and role authority are unchanged. No loader edit is in scope."
     },
     "validation_drift_evidence": {
       "disposition": "advisory only",
       "paths": [
         "agf/rules/workflow/documentation-rule-projection-rule.md",
-        "tooling/tests/test_public_feature_summary.py",
-        "agf/docs/build/hooks/check_commissioning_links.py"
+        "docs/reviews/pages-structure-and-voice/slice-report-extractor.py",
+        "docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md"
       ],
-      "reason": "Strict agov plan projection-check checks structural coverage and distribution under its named rule; semantic equality is advisory human/role review. Existing shared-block and commissioning checks remain unchanged in intent. Final implementation requires strict docs checks, route/anchor mapping, factual review and independent rendered UX evidence; none is claimed complete here."
+      "reason": "Strict agov plan projection-check checks structure and distribution. The committed extractor and its report give reproducible keyword-sentence, heading-id and anchor-link evidence. They cannot establish semantic equality. Independent factual review of the new sections against the owners, and independent rendered review, remain required."
     },
     "distribution": {
       "disposition": "existing pointer sufficient",
       "paths": [
-        "agf/ADOPTING.md",
-        "agf/framework.md",
-        "agf/templates/AGENTS.md",
-        "agf/docs/site/acknowledgements.md",
-        "agf/docs/site/ai-evaluation-dossier.md",
-        "agf/docs/site/contribute.md",
-        "agf/docs/site/docs/adopt/applicability-catalog.md",
-        "agf/docs/site/docs/adopt/assistant-loader-configuration.md",
-        "agf/docs/site/docs/adopt/commercial-licensing.md",
-        "agf/docs/site/docs/adopt/downstream-impact.md",
-        "agf/docs/site/docs/adopt/exit-and-decommission.md",
-        "agf/docs/site/docs/adopt/install-and-layouts.md",
-        "agf/docs/site/docs/adopt/licensing.md",
-        "agf/docs/site/docs/adopt/mcp-server.md",
-        "agf/docs/site/docs/adopt/third-party-plugin-coexistence.md",
-        "agf/docs/site/docs/adopt/tooling-and-tokens.md",
-        "agf/docs/site/docs/adopt/upgrade-from-v1.md",
-        "agf/docs/site/docs/advanced/contracts-and-validators.md",
-        "agf/docs/site/docs/advanced/customizing-the-framework.md",
-        "agf/docs/site/docs/concepts/coordination-protocol.md",
-        "agf/docs/site/docs/concepts/evidence-and-learnings.md",
-        "agf/docs/site/docs/concepts/philosophical-lenses.md",
-        "agf/docs/site/docs/concepts/position.md",
         "agf/docs/site/docs/concepts/roles-and-gates.md",
-        "agf/docs/site/docs/index.md",
-        "agf/docs/site/docs/operate/day-to-day.md",
-        "agf/docs/site/docs/operate/poll-and-coordinate.md",
-        "agf/docs/site/docs/operate/review-and-release.md",
-        "agf/docs/site/docs/operate/run-agf-in-real-situations.md",
-        "agf/docs/site/docs/operate/runbook.md",
-        "agf/docs/site/docs/operate/session-continuity.md",
-        "agf/docs/site/docs/start/adopter-faq.md",
-        "agf/docs/site/docs/start/commission.md",
-        "agf/docs/site/docs/start/first-governed-change.md",
-        "agf/docs/site/docs/start/framework-map.md",
-        "agf/docs/site/docs/start/should-you-adopt.md",
-        "agf/docs/site/evaluate.md",
-        "agf/docs/site/future/evolution.md",
-        "agf/docs/site/index.md",
-        "agf/docs/site/reference/artifact-registry.md",
-        "agf/docs/site/reference/coord-graph-index.md",
-        "agf/docs/site/reference/disclaimer.md",
-        "agf/docs/site/reference/environment-variables.md",
-        "agf/docs/site/reference/figures.md",
-        "agf/docs/site/reference/maturity-vocabulary.md",
-        "agf/docs/site/reference/palette.md",
-        "agf/docs/site/reference/release-artifacts.md",
-        "agf/docs/site/reference/review-findings.md",
-        "agf/docs/site/reference/tooling-conformance.md",
-        "agf/docs/site/roadmap.md",
-        "agf/docs/site/use-cases.md",
+        "agf/docs/site/docs/concepts/position.md",
+        "agf/framework.md",
+        "agf/ADOPTING.md",
         "agf/agents/MANIFEST.example.yaml",
+        "agf/schemas/agent.schema.json",
+        "agf/agents/planner-architect.yaml",
+        "agf/agents/coder-tester.yaml",
         "agf/agents/governor-reviewer.yaml",
-        "agf/rules/workflow/development-workflow-rule.md",
+        "agf/agents/build-engineer.yaml",
+        "agf/agents/infosec-sentinel.yaml",
+        "agf/agents/contribution-auditor.yaml",
+        "agf/agents/fact-checker.yaml",
+        "agf/agents/web-ux-reviewer.yaml",
+        "agf/agents/independent-implementation-reviewer.yaml",
         "agf/rules/workflow/deputy-governor-rule.md",
-        "agf/rules/workflow/coordination-publication-rule.md",
-        "agf/rules/workflow/release-via-merge-request-rule.md",
-        "agf/rules/always/external-anonymization-rule.md",
-        "agf/rules/docs/documentation-audience-rule.md",
-        "agf/docs/site/llms.txt"
+        "agf/rules/always/tool-authority-boundary-rule.md",
+        "agf/rules/ui/accessibility-rule.md",
+        "agf/templates/AGENTS.md"
       ],
-      "reason": "These existing adopter artifacts are supplied by the current AGF distribution manifest. Recheck actual archive inclusion at implementation acceptance. New About page must be added here when created. Foundry root loaders, tests, plan and review evidence are project-local, not adopter files.",
+      "reason": "The two edited pages and the cited owners ship in the AGF distribution. Recheck archive inclusion at implementation acceptance. The review artifacts, the extractor and the Foundry-local loaders are project-local.",
       "not_applicable": [
         {
           "path": "AGENTS.md",
-          "reason": "Foundry-local loader or review/check artifact, not a promised adopter payload."
+          "reason": "Foundry-local loader, not a promised adopter payload."
         },
         {
           "path": ".claude/CLAUDE.md",
-          "reason": "Foundry-local loader or review/check artifact, not a promised adopter payload."
+          "reason": "Foundry-local loader, not a promised adopter payload."
         },
         {
-          "path": "tooling/tests/test_public_feature_summary.py",
-          "reason": "Foundry-local loader or review/check artifact, not a promised adopter payload."
+          "path": "docs/reviews/pages-structure-and-voice/slice-report-extractor.py",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md",
+          "reason": "Foundry-local review evidence, not an adopter payload."
         },
         {
           "path": "docs/reviews/rule-projection/20261030T163253Z-pages-structure-and-voice.yaml",
-          "reason": "Foundry-local loader or review/check artifact, not a promised adopter payload."
+          "reason": "Foundry-local review evidence, not an adopter payload."
         }
       ]
     }

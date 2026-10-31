@@ -11,11 +11,16 @@ per-tool notes apply to your stack.*
 agents-govern is a governance layer, not an agent runtime. The two are
 complementary: an orchestrator runs agents; AGF defines which agents
 exist, what they may do, and which gates they pass through.
+In AGF, an agent is a role definition: a responsibility with written limits. A
+person, an assistant or a session plays it, as your project explicitly assigns. An
+orchestrator or runtime is an execution surface. It is not automatically the
+authorized role holder, and runtime software does not grant approval authority. See
+[roles in plain terms](roles-and-gates.md#roles-in-plain-terms).
 
 ## Concrete relationship
 
-Governance (left in the diagram) defines
-authority boundaries and collects learning; the runtime (right) executes
+Governance (right in the diagram) defines
+authority boundaries and collects learning; the runtime (left) executes
 agents under those boundaries.
 
 [![Runtime execution alongside AGF governance boundaries](../../reference/figures/runtime-governance-boundary.svg)](../../reference/figures/runtime-governance-boundary.svg)
@@ -24,9 +29,9 @@ agents under those boundaries.
 
 [Open the full-size runtime and governance boundary figure (SVG)](../../reference/figures/runtime-governance-boundary.svg)
 
-*Palette: runtime/orchestrator nodes (right) use the AI action treatment
+*Palette: runtime/orchestrator nodes (left) use the AI action treatment
 (rounded, blue-light fill) — this diagram's own body text calls the
-runtime side "executes agents." Governance nodes (left) use the Shared
+runtime side "executes agents." Governance nodes (right) use the Shared
 concept treatment (white fill, blue-mid border) — jurisdictions,
 forbidden actions, communication topology, and learning records are
 framework concepts and artifacts, not actions performed by a single
