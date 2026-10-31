@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // svg-title: Coordination channel
-// svg-desc: Claims, handoffs, reviews, decision records, completions, and notes connect governed roles while decision records alone carry gating authority.
+// svg-desc: Claims, handoffs, reviews, decision records, completions, and notes connect governed roles. Authority follows the authorized actor and the governed decision, not the message kind alone.
 // agents-govern: coordination channel and handoff resolution
 // Generate: dot -Tsvg coordination-channel.dot -o ../coordination-channel.svg
 //

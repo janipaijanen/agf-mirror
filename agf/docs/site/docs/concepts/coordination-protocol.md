@@ -203,6 +203,11 @@ immediate.
 
 [Open the full-size Gate 1-to-Gate 2 handoff sequence (SVG)](../../reference/figures/gate-handoff-sequence.svg)
 
+Conversation, receipt acknowledgements, reviewer agreement and passing checks do
+not by themselves approve a change. Approval requires a published decision by
+the authorized actor, a role or a principal, for that gate under the applicable
+rules. The message kind alone does not decide who may approve.
+
 *Palette note: AI actions and handoffs use rounded blue nodes, human Gate
 review and the decision record use amber diamonds, and acknowledgement and
 completion records use dashed grey nodes. The same meanings are carried by
