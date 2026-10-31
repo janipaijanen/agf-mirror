@@ -63,7 +63,7 @@ def main():
     print(f'Base ref: {base} ({subprocess.run(["git","rev-parse",base],capture_output=True,text=True).stdout.strip()})')
     for f in files:
         b, fin = git_show(base, f), finals[f]
-        nf = norm(fin)
+        nf = norm(strip_markup(fin))
         ss = sentences(b)
         missing = [x for x in ss if x not in nf]
         print(f'\n## {os.path.basename(f)}\n')

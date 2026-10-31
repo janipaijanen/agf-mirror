@@ -160,6 +160,14 @@ extension, with a human explicitly accepting the risk, defining what the AI is
 allowed to approve, and staying accountable for the outcome. If nobody human is
 prepared to bear that risk, the project does not have a governor.
 
+AGF does ship one narrow, opt-in route for eligible Gate 2 decisions: a named
+deputy may approve certain Gate 2 items for a limited time under a written
+delegation. It is off by default and provisional, and the
+[deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md) limits it with a full red list.
+It does not make an AI the governor, and the human governor retains ultimate
+approval authority. See
+[approval authority and optional deputies](../concepts/roles-and-gates.md#approval-authority-and-optional-deputies).
+
 ## How much governor time should we expect?
 
 Budget real human attention. AGF has no server to operate, but it does add a
@@ -325,9 +333,12 @@ authority you name in `identifier_namespace`, for example a GitLab project or
 organisation namespace. If individual attribution creates more privacy risk
 than audit value, use a team alias, rotating duty alias, or batch grant instead.
 
-Delegation does not transfer gate authority. A principal may authorize patch
-preparation, evidence collection, or test runs; Gate 1, Gate 2, release
-approval, and binding risk acceptance still require the governor-reviewer.
+A delegation grant does not transfer gate authority. A principal may authorize
+patch preparation, evidence collection, or test runs. These grants never
+delegate Gate 1, release approval, or binding risk acceptance, and a grant alone
+never delegates a Gate 2 decision. The only delegated Gate 2 approval route
+described here is the narrow opt-in deputy route in
+[approval authority and optional deputies](../concepts/roles-and-gates.md#approval-authority-and-optional-deputies).
 
 This convention is optional and docs-only in v2.x. Tooling may accept the
 fields syntactically, but it does not enforce delegation semantics yet.

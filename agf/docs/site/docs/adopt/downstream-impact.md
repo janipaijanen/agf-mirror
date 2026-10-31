@@ -127,4 +127,5 @@ produce a significant share of changes and the project lives long enough
 for reconstructible decisions to matter. Where those conditions do not
 hold, the obligations above are overhead without return — the
 [should you adopt?](../start/should-you-adopt.md) page is the honest
-filter.
+filter. The licence terms that apply to the framework content, the tooling and
+commercial use are on the [licensing](licensing.md) page.

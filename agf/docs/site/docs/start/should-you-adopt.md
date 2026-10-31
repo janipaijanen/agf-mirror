@@ -67,10 +67,12 @@ unpruned path: the full rule set left active and running without incident.
 Pruning down to a smaller subset is supported and configurable, but it is
 not itself validated by any maintainer deployment to date.
 
-For a solo trial, the documented minimum is `coder-tester` plus the human
-`governor-reviewer`. A standard governed project adds `planner-architect`.
-Activate advisory and specialist roles when the work creates the need they
-address — this incremental, roles-added-as-needed pattern is what the
+For a solo trial, the documented minimum is `planner-architect`, `coder-tester`
+and the human `governor-reviewer`. One assistant may play both `planner-architect`
+and `coder-tester`. A standard governed project may use separate players for them.
+Activate specialist roles when their trigger applies; the
+[roles page](../concepts/roles-and-gates.md#which-roles-does-my-project-need)
+lists the triggers. This incremental, roles-added-as-needed pattern is what the
 maintainer's own projects have followed. Core rules remain binding;
 workflow, documentation, UI, and other task-specific rules apply when their
 subject is present. If a rule clearly does not and will not apply to the
@@ -202,6 +204,7 @@ and applicable to any governance design, not only AGF — see
 ## Next
 
 Decided to try it → [Set up AGF](commission.md).
+Want to check the terms first → [Licensing](../adopt/licensing.md).
 Want concrete examples → [Use cases](../../use-cases.md).
 Still unsure about overhead → [Downstream impact](../adopt/downstream-impact.md).
 Recognized a non-fit → stop here; AGF is not a prerequisite for responsible AI
