@@ -16,6 +16,7 @@
   ],
   "depends_on": [
     "20261030T163253Z-pages-structure-and-voice",
+    "20261030T210529Z-pages-source-consistency-g1-g5",
     "20260916T002012Z-roadmap-refresh-post-v2101-issue130",
     "20261021T220000Z-retire-windows-support",
     "20261023T045214Z-remove-elixir-references",
