@@ -23,14 +23,11 @@ risk, or decide exit. A narrow opt-in deputy route for eligible Gate 2
 decisions is described in the [deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md);
 it does not change the default shown here.
 
-Figure 1 places those three modes side by side rather than on a
-spectrum, because the boundary between them is not "how much the AI can
-be trusted with" but "which mode this specific action belongs to" —
-drafting a plan and approving it are different actions in different
-modes even when the same person or agent is involved in both. The point
-to retain before reading Table 1: the figure's three columns are the
-answer key for "who does this," and the table below is that same answer
-key applied to specific artifacts.
+Figure 1 sorts actions by mode, not by how far the AI is trusted.
+Drafting a plan and approving it are different actions in different
+modes. The assigned approver decides; an AI assistant that prepared
+or implemented the work cannot approve its own work. Table 1 applies the same split to
+specific artifacts.
 
 ![Default model: human decision authority, AI-executed, and mixed responsibility modes separated by authority](../../reference/figures/operating-responsibility-map.svg)
 
@@ -56,14 +53,11 @@ routing table and the boundary against self-authorization.
 
 A governed working session, in order:
 
-Where Figure 1 answered "who does this," Figure 2 answers "in what
-order": it draws the same six steps enumerated below — read, claim, gate,
-implement, review, close — as a cycle that returns to its own start,
-not a checklist that ends at completion. The point to retain: "close the
-loop" in step 6 means the completion or learning record feeds back into
-what the next reader finds in step 1, which is why skipping the
-completion step (common under time pressure) breaks the cycle for
-whoever reads the channel next, not just for the current task.
+Figure 2 shows six actions as a cycle, not a checklist that ends: read,
+claim, gate, implement, review and close. The four numbered stages below
+group them. The completion or learning record that closes the cycle is what
+the next reader finds in stage 1, so skipping it under time pressure breaks
+the cycle for them.
 
 ![Closed governance cycle from planning through learning and back to planning](../../reference/figures/governance-loop.svg)
 
@@ -167,6 +161,13 @@ projects without these exact research artifacts have no eligible work.
   (recording the outcome). Silent action breaks the causal chain.
 - **Never edit a filed entry.** Files are immutable; corrections are new
   entries referencing the old.
+- **Evidence is not approval.** Conversation, receipt acknowledgements,
+  reviewer agreement and passing checks do not by themselves approve a change.
+  Approval requires a governed, published decision by the authorized actor
+  (a role or a principal) for that gate, in the form its owner defines. The
+  message kind alone is not enough, and a deputy decision stays subject to its
+  written conditions. See
+  [how agents communicate](../concepts/coordination-protocol.md#how-agents-communicate).
 - **Use tooling-generated readable IDs for new entries.** Historical
   sequence-numbered and ULID files remain immutable history, but new
   coordination records should use `agov coord brief --id-format readable`.
