@@ -5,9 +5,10 @@ completed [install and layouts](../adopt/install-and-layouts.md). After
 this page you have taken one real change through both gates and validated the
 files that make the audit trail.*
 
-Two approvals frame this change. Gate 1 is your approval of the written plan
-before work starts. Gate 2 is your approval of the finished change before it
-merges. Your assistant does the work in between and cannot approve its own.
+Two approvals frame this change. Gate 1 is the human governor's approval of the
+written plan before work starts. Gate 2 is the human governor's approval of the
+finished change before it merges. In a solo project, that is you. Your assistant
+does the work in between and cannot approve its own.
 
 Pick a small, real change: a modest bug fix or feature that is large enough to
 need review, but small enough that the mechanics stay visible. The example
