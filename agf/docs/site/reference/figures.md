@@ -71,9 +71,10 @@ site assume you have already seen. Figure 3 groups messages by what they
 do rather than by who sends them: handoffs direct attention to the next
 agent, decision records gate or block, completions close tasks, and
 notes carry advisory or status information that does not itself gate
-anything. The point to retain: only decision records carry gating
-authority — a handoff, note, or completion cannot substitute for one,
-regardless of how much detail it contains.
+anything. The point to retain: a message gates only when an authorized actor
+publishes it as a decision under the applicable rules. The message kind alone
+does not approve anything, and a handoff, note or completion cannot substitute
+for that decision, regardless of how much detail it contains.
 
 <figure markdown>
 <div class="figure-scroll" markdown>

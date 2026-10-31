@@ -205,8 +205,8 @@ them apart. See `rules/workflow/simplicity-rule.md` and
 **Gate 2 — review before merge.** After implementation, before the merge
 request lands. Evidence-based: tests green, checklist run, diff scoped to
 the approved plan, visual inspection where the output is visible.
-Findings are filed as review entries; approval is a decision record that
-may carry conditions, and the merge must honour them.
+Findings are filed as review entries; approval is a published decision by the
+authorized actor that may carry conditions, and the merge must honour them.
 
 ## The coordination channel
 

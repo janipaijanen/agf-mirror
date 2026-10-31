@@ -1,0 +1,105 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+{
+  "plan_id": "20261031T152858Z-pages-communication-authority-a2",
+  "changed_pages_or_runbooks": [
+    "agf/docs/site/docs/concepts/coordination-protocol.md",
+    "agf/docs/site/reference/figures.md",
+    "agf/docs/site/docs/concepts/roles-and-gates.md",
+    "agf/docs/site/reference/figures/coordination-channel.svg"
+  ],
+  "surfaces": {
+    "normative_owner": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "agf/rules/workflow/development-workflow-rule.md",
+        "agf/rules/workflow/coordination-publication-rule.md",
+        "agf/rules/always/tool-authority-boundary-rule.md",
+        "agf/agents/governor-reviewer.yaml",
+        "agf/schemas/coordination-message.schema.json",
+        "agf/rules/workflow/deputy-governor-rule.md"
+      ],
+      "reason": "Existing owners retain authority for authorized actors (roles or principals) and gate-valid decision forms. Preserve the separately bounded default-off Deputy Governor Gate 2 exception, red list, local scope/severity/expiry and no self-approval; this correction creates no permission or blocking tool."
+    },
+    "adopter_facing_explanation": {
+      "disposition": "updated",
+      "paths": [
+        "agf/docs/site/docs/concepts/coordination-protocol.md",
+        "agf/docs/site/reference/figures.md",
+        "agf/docs/site/docs/concepts/roles-and-gates.md",
+        "agf/docs/figures/src/coordination-channel.dot",
+        "agf/docs/figures/coordination-channel.svg",
+        "agf/docs/site/reference/figures/coordination-channel.svg"
+      ],
+      "reason": "Planned bounded authority caption/prose and synchronized existing figure metadata; no new figure or page."
+    },
+    "runbook_situation_map": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "agf/docs/site/docs/operate/day-to-day.md"
+      ],
+      "reason": "Its hygiene link is owned by the existing operation claim; no duplicated procedure or separate edit here."
+    },
+    "ai_landing_loaders": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "AGENTS.md",
+        "agf/templates/AGENTS.md",
+        ".claude/CLAUDE.md"
+      ],
+      "reason": "Existing loaders retain role/rule authority; no loader edits."
+    },
+    "validation_drift_evidence": {
+      "disposition": "advisory only",
+      "paths": [
+        "agf/docs/figures/render_svg.py",
+        "agf/docs/figures/test_render_svg.py",
+        "docs/reviews/pages-structure-and-voice/20261031T152858Z-pages-communication-authority-a2.md"
+      ],
+      "reason": "Use existing tests/render checks and independent bounded exact-head source/rendered evidence. No new check receives blocking authority."
+    },
+    "distribution": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "agf/docs/site/docs/concepts/coordination-protocol.md",
+        "agf/docs/site/reference/figures.md",
+        "agf/docs/site/docs/concepts/roles-and-gates.md",
+        "agf/docs/figures/src/coordination-channel.dot",
+        "agf/docs/figures/coordination-channel.svg",
+        "agf/docs/site/reference/figures/coordination-channel.svg",
+        "agf/rules/workflow/development-workflow-rule.md",
+        "agf/rules/workflow/coordination-publication-rule.md",
+        "agf/rules/always/tool-authority-boundary-rule.md",
+        "agf/agents/governor-reviewer.yaml",
+        "agf/schemas/coordination-message.schema.json",
+        "agf/templates/AGENTS.md",
+        "agf/docs/figures/render_svg.py",
+        "agf/docs/figures/test_render_svg.py",
+        "agf/rules/workflow/deputy-governor-rule.md"
+      ],
+      "reason": "Referenced adopter and figure-source files ship through current release-manifest globs; prove actual candidate archive at acceptance.",
+      "not_applicable": [
+        {
+          "path": "AGENTS.md",
+          "reason": "Foundry-local planning, review evidence or loader; not adopter payload."
+        },
+        {
+          "path": ".claude/CLAUDE.md",
+          "reason": "Foundry-local planning, review evidence or loader; not adopter payload."
+        },
+        {
+          "path": "docs/plans/20261031T152858Z-pages-communication-authority-a2.md",
+          "reason": "Foundry-local planning, review evidence or loader; not adopter payload."
+        },
+        {
+          "path": "docs/reviews/rule-projection/20261031T152858Z-pages-communication-authority-a2.yaml",
+          "reason": "Foundry-local planning, review evidence or loader; not adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/20261031T152858Z-pages-communication-authority-a2.md",
+          "reason": "Foundry-local planning, review evidence or loader; not adopter payload."
+        }
+      ]
+    }
+  }
+}
