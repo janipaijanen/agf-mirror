@@ -53,10 +53,11 @@ routing table and the boundary against self-authorization.
 
 A governed working session, in order:
 
-Figure 2 shows the order of the six steps below as a cycle, not a
-checklist that ends. The completion or learning record from step 6 is what
-the next reader finds in step 1, so skipping it under time pressure
-breaks the cycle for whoever reads the channel next.
+Figure 2 shows six actions as a cycle, not a checklist that ends: read,
+claim, gate, implement, review and close. The four numbered stages below
+group them. The completion or learning record that closes the cycle is what
+the next reader finds in stage 1, so skipping it under time pressure breaks
+the cycle for them.
 
 ![Closed governance cycle from planning through learning and back to planning](../../reference/figures/governance-loop.svg)
 
@@ -162,8 +163,10 @@ projects without these exact research artifacts have no eligible work.
   entries referencing the old.
 - **Evidence is not approval.** Conversation, receipt acknowledgements,
   reviewer agreement and passing checks do not by themselves approve a change.
-  Approval requires a published decision by the authorized role under the
-  applicable rules. See
+  Approval requires a governed, published decision by the authorized actor
+  (a role or a principal) for that gate, in the form its owner defines. The
+  message kind alone is not enough, and a deputy decision stays subject to its
+  written conditions. See
   [how agents communicate](../concepts/coordination-protocol.md#how-agents-communicate).
 - **Use tooling-generated readable IDs for new entries.** Historical
   sequence-numbered and ULID files remain immutable history, but new

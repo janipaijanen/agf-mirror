@@ -8,8 +8,9 @@ instruction surface that must be updated, not just the file copy.*
 
 Use this page if your project still runs v1 (`agents-govern/`) and you are
 moving to AGF v2. The human who approves changes decides whether and when to
-migrate and approves the result. Your assistant carries out the checklist. Begin
-with [Before you start](#before-you-start).
+migrate and approves the result. You can follow the checklist yourself or
+direct an assistant to carry it out; neither path skips a safeguard. Begin with
+[Before you start](#before-you-start).
 
 !!! note "What changed structurally"
     v1 placed framework files in `agents-govern/` (or a local copy) with numeric
