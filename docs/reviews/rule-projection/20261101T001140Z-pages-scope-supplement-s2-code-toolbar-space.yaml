@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+{
+  "plan_id": "20261101T001140Z-pages-scope-supplement-s2-code-toolbar-space",
+  "changed_pages_or_runbooks": [
+    "agf/docs/site/stylesheets/agf.css"
+  ],
+  "surfaces": {
+    "normative_owner": {
+      "disposition": "not applicable",
+      "reason": "S2 adds one presentation rule to the site stylesheet. It states, changes or removes no MUST, SHOULD, blocking, approve or prohibited guidance in any page, runbook or loader, so no normative owner is involved. Candidate detection by keyword is advisory only and finds no normative text in the changed path."
+    },
+    "adopter_facing_explanation": {
+      "disposition": "not applicable",
+      "reason": "No adopter-facing explanation changes. The rule changes how code blocks render on narrow displays. No page text, link, heading or claim is edited."
+    },
+    "runbook_situation_map": {
+      "disposition": "not applicable",
+      "reason": "No runbook or situation map changes."
+    },
+    "ai_landing_loaders": {
+      "disposition": "not applicable",
+      "reason": "No loader, landing file or assistant instruction changes. AGENTS.md, agf/templates/AGENTS.md and .claude/CLAUDE.md are untouched."
+    },
+    "validation_drift_evidence": {
+      "disposition": "advisory only",
+      "paths": [
+        "docs/reviews/pages-structure-and-voice/20261101T001140Z-pages-scope-supplement-s2-code-toolbar-space.md"
+      ],
+      "reason": "A stylesheet rule cannot be fully checked by a structural validator. The acceptance report holds the offline replay of the toolbar geometry (derived), the site-wide survey of code blocks from the CI HTML artifact, and the rendered review. None of those is mechanically decidable as legibility, and none of them grants authority."
+    },
+    "distribution": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "agf/docs/site/stylesheets/agf.css"
+      ],
+      "reason": "agf.css ships with the Pages build named in the site configuration (extra_css). The plan, this manifest and the report are project-local.",
+      "not_applicable": [
+        {
+          "path": "docs/plans/20261101T001140Z-pages-scope-supplement-s2-code-toolbar-space.md",
+          "reason": "Foundry-local plan, not an adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/20261101T001140Z-pages-scope-supplement-s2-code-toolbar-space.md",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        }
+      ]
+    }
+  }
+}
