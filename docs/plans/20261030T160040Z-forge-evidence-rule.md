@@ -35,26 +35,30 @@ affected_paths:
   - docs/reviews/rule-projection/20261030T160040Z-forge-evidence-rule.yaml
   - .claude/rules/workflow/forge-publication-evidence-rule.md
   - .claude/rules/INDEX.md
+  - .claude/settings.json
   - AGENTS.md
 advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      Two independent reviews returned BLOCK findings. Round 1, exact 66e5ab2e:
-      `20261030T160913Z-contribution-auditor-gdjm` (F2 privacy boundary, F1
-      scope). Round 2, exact 5e2f8221: `20261030T165922Z-contribution-auditor-q48r`
-      (F2 option-B privacy wording and destination boundary). This revision
-      answers both rounds. It is NOT cleared: the revised exact head still needs
-      independent re-review.
+      Three independent review rounds returned BLOCK findings. Round 1, exact
+      66e5ab2e: `20261030T160913Z-contribution-auditor-gdjm`. Round 2, exact
+      5e2f8221: `20261030T165922Z-contribution-auditor-q48r`. Round 3, exact
+      ff368bdb: an independent InfoSec and privacy review (two blocking findings
+      on the privacy examples and on the attribution of inherited exclusions,
+      two advisory), recorded in the review record named in the round-3
+      handoff. This revision answers all three rounds. It is NOT cleared: the
+      revised exact head still needs independent re-review.
   - role: contribution-auditor
     status: consulted
     reason: >-
-      Two independent reviews returned BLOCK findings. Round 1, exact 66e5ab2e:
-      `20261030T160913Z-contribution-auditor-gdjm` (F1 to F4 blocking, F5
-      advisory). Round 2, exact 5e2f8221: `20261030T165922Z-contribution-auditor-q48r`
-      (F1 strength propagation, F2 privacy wording, F3 major-release sequencing;
-      3 blocking). This revision answers both rounds. It is NOT cleared: the
-      revised exact head still needs independent re-review.
+      Three independent review rounds returned BLOCK findings. Round 1, exact
+      66e5ab2e: `20261030T160913Z-contribution-auditor-gdjm`. Round 2, exact
+      5e2f8221: `20261030T165922Z-contribution-auditor-q48r`. Round 3, exact
+      ff368bdb: an independent contribution audit (one blocking finding, a
+      missed foundry-local surface; six advisory), recorded in the review record
+      named in the round-3 handoff. This revision answers all three rounds. It
+      is NOT cleared: the revised exact head still needs independent re-review.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -68,10 +72,11 @@ note deletion.
 
 Source: governor record `20261030T155116Z-governor-reviewer-ghgs`; combined review
 `20261030T160913Z-contribution-auditor-gdjm` (F1 to F5); revision review
-`20261030T165922Z-contribution-auditor-q48r` (F1 to F3, round 2). Claims:
+`20261030T165922Z-contribution-auditor-q48r` (F1 to F3, round 2); governor
+decision `20261101T105902Z-governor-reviewer-kqgp` (D1 is option A); independent
+exact-head review of `ff368bdb` (round 3, below). Claims:
 `20261030T160040Z-planner-architect-gr51` (released by `7nhr`),
-`20261030T162930Z-planner-architect-mjbh` and the round-2 claim named in the
-revision handoff.
+`20261030T162930Z-planner-architect-mjbh` and `20261101T100151Z-planner-architect-e22d`.
 
 ## Two layers, kept separate
 
@@ -106,8 +111,31 @@ the evidence. Chat provenance stays in the coordination audit trail.
 | Finding | Answer in this revision |
 |---|---|
 | F1 strength propagation | The projection section now lists every surface that expresses the behavior and requires the D1 strength on all of them: owner front matter and text, manifest statements, page, template route, rules index and changelog. Pointers that only name the owner stay neutral. The foundry `AGENTS.md` route keeps the stricter `ghgs` direction in its own words and does not route to the weaker option. |
-| F2 privacy wording | The privacy paragraph is split into inherited mandatory exclusions and advisory minimization. It names the destination boundary and removes the absolute ban on private references in access-controlled coordination records. Under both options the new privacy guidance is advisory. |
-| F3 major-release sequencing | The plan records no D1 choice. If the governor selects option A, the implementation stays unmerged until a separate, approved major-release sequence exists. If the governor selects option B, the additive test below must hold across the whole projected change. |
+| F2 privacy wording | The privacy text was split into existing-rule restatement and advisory minimization, with a destination boundary and no absolute ban on private references in access-controlled coordination records. Round 3 below corrected how the existing rules are described. |
+| F3 major-release sequencing | Round 2 bound option A to a separately approved major-release sequence. The governor has since selected option A (below); the plan now carries only that path. |
+
+### D1 is decided: option A
+
+Governor decision `20261101T105902Z-governor-reviewer-kqgp` selects option A.
+This revision removes the option B wording and its additive test, so a reader of
+the plan sees one path. Option B appears only as a "Not selected" note in the
+D1 section. The decision does not approve Gate 1.
+
+### Round 3: independent exact-head review of `ff368bdb` (not cleared)
+
+| Finding | Answer in this revision |
+|---|---|
+| InfoSec F2-R1: example row 3 called a "private link" forbidden | The row now names only a credential or token, citing `security-hardening-rule.md`. A separate row says a private thread link without a secret is not forbidden by the privacy text. Chat-as-evidence still applies. |
+| InfoSec F2-R2: inherited-exclusion sentences overstated the owner rules | The paragraph now restates the owners' real scope: secrets stay out of committed text; across the codebase boundary only the project codename appears. It says this rule extends neither. The claim "adds no new privacy prohibition" is true of the new text. |
+| InfoSec A1: AI-provider prompts are an external destination | Added to the destination paragraph. |
+| InfoSec A2: chat provenance must be a pointer | The clause now says a minimal reference, not a transcript, with no credential or tokenized URL. |
+| Contribution F1-miss: `.claude/settings.json` omitted | Added to `affected_paths`, the propagation table and the manifest. The implementation adds the new rule's exclude glob there, neutral and with no strength. |
+| Contribution A1: manifest loader paths incomplete | The manifest lists `AGENTS.md` and `.claude/rules/INDEX.md` and records `.claude/CLAUDE.md` as unchanged. |
+| Contribution A2: uncited SemVer claim | Cites the framework versioning section. |
+| Contribution A3: approver of the major-release sequence | Criterion 4a names a binding `governor-reviewer` decision and an unmerged implementation merge request. |
+| Contribution A4: "inherited" overstated | Fixed with InfoSec F2-R2. |
+| Contribution A5: template placement | Names the "Rules" section of `agf/templates/AGENTS.md`, after the directory table. |
+| Contribution A6: D1 not recorded in the plan | Recorded above, with a link to the governor decision. |
 
 ## Canonical owner (decision: one new file)
 
@@ -122,26 +150,27 @@ audience.
 ## Draft rule text (for Gate 1 review; no product or tool name)
 
 > **Forge publications cite durable evidence.** A merge request or issue title,
-> description or note MUST NOT [option B: SHOULD NOT] rely on a live-chat
-> message as evidence of
+> description or note MUST NOT rely on a live-chat message as evidence of
 > approval, scope, status, verification or authority. That includes a message
 > number, link, quote or paraphrase of the conversation. Cite the durable
 > artifact instead: a coordination record ID or path, a plan file, a commit SHA,
 > a pipeline or job ID, or another Git or forge item. Chat provenance belongs in
-> the coordination audit trail.
+> the coordination audit trail as a minimal reference, not a transcript. The
+> reference carries no credential and no signed or tokenized URL.
 >
 > **Allowed.** Discuss a chat, messaging or relay system when it is the subject
 > of the work, for example an issue about an integration defect or a merge
 > request that changes a relay adapter. Include the minimum sanitized
 > reproducer needed to review that work.
 >
-> **Privacy: inherited exclusions.** This rule adds no new privacy
-> prohibition. Secrets and credentials never belong in a forge publication or a
-> coordination record. Identifying or sensitive project or customer data stays
-> out of any text that crosses the codebase boundary. Those exclusions come from
-> `security-hardening-rule.md` and `external-anonymization-rule.md` and keep
-> their own strength. Moving sensitive text into an immutable record does not
-> make it safe.
+> **Privacy: existing rules, unchanged.** This rule adds no new privacy
+> prohibition and extends the scope of no existing one. Secrets and credentials
+> stay out of committed text (`security-hardening-rule.md`;
+> `systematic-code-review-rule.md`, section 3). Across the codebase boundary
+> only the project codename may appear, and text an AI assistant sends to a
+> provider is an external destination (`external-anonymization-rule.md`). Those
+> rules keep their own scope and strength. Moving sensitive text into an
+> immutable record does not make it safe.
 >
 > **Privacy: minimization (advisory).** Authors SHOULD record only the minimum
 > decision or evidence summary needed for audit and SHOULD avoid copying raw
@@ -149,9 +178,11 @@ audience.
 >
 > **Destination.** Public or external forge text and access-controlled internal
 > coordination are different surfaces. When evidence crosses the codebase
-> boundary, a sanitized summary is the default. A private internal coordination
-> record MAY keep a necessary, access-appropriate reference when its governing
-> privacy and access rules allow it.
+> boundary, a sanitized summary is the default. Text that an AI assistant sends
+> to a provider is an external destination; "access-controlled" does not cover
+> it. A private internal coordination record MAY keep a necessary,
+> access-appropriate reference when its governing privacy and access rules
+> allow it.
 >
 > **Stricter project direction.** A project MAY forbid any mention of its chat
 > surface in forge text. This rule does not weaken such a direction.
@@ -163,9 +194,9 @@ audience.
 Front matter of the new file follows the sibling rules (id, scope: workflow,
 strength, status, `see_also`), marked provisional with evidence status
 **Theoretical** (one project, one governor direction, 2026-10-30). Its `strength`
-value is the D1 choice: `MUST` under option A, `SHOULD` under option B. Only the
-evidence clause carries that strength. Both privacy tiers and the destination
-paragraph read the same under both options.
+value is `MUST` (D1 option A). Only the evidence clause carries that strength.
+The privacy minimization sentence and the destination paragraph are advisory or
+restate existing rules.
 
 ## Semantic examples (review evidence, not a validator)
 
@@ -173,10 +204,11 @@ paragraph read the same under both options.
 |---|---|
 | MR description says "approved in chat, message 412" | Forbidden: chat as approval evidence. Cite the decision record ID. |
 | Issue says "scope agreed in the team thread" | Forbidden: chat as scope evidence. Cite the plan and its Gate 1 record. |
-| MR note quotes a private link and a token copied from a chat | Forbidden twice: chat evidence, and a secret or private link. |
+| MR note quotes a credential or token copied from a chat | Forbidden: chat as evidence, and a secret (`security-hardening-rule.md`). |
+| Internal MR note links a private thread, with no secret in the URL | Not forbidden by this rule's privacy text. Chat as evidence still applies: prefer a decision record ID. |
 | Issue reports that a webhook relay drops events, with a sanitized payload that reproduces it | Allowed: the relay is the subject; the payload is minimal and sanitized. |
 | MR changes a chat-integration adapter and describes its behavior | Allowed: chat is the artifact under review. |
-| Public issue pastes a customer name and a private thread link as evidence | Forbidden: chat as evidence, and identifying data crossing the boundary. Use a sanitized summary. |
+| Public issue pastes the project's real name and a private thread link as evidence | Forbidden: chat as evidence, and a non-codename project handle crossing the boundary (`external-anonymization-rule.md`). Use the codename and a sanitized summary. |
 | Internal coordination record cites a private design thread by an access-appropriate reference, with no sensitive content copied | Allowed where the project's privacy and access rules allow it. A decision record ID is still preferred as evidence. |
 | MR cites `20261030T151222Z-governor-reviewer-ph8p` and commit `4076884d` | Allowed and preferred. |
 
@@ -191,73 +223,64 @@ marked `stage: planned` until the rule exists.
 | Normative owner | Updated (new): `forge-publication-evidence-rule.md`, plus a pointer in `merge-request-description-rule.md`. |
 | Adopter-facing explanation | Updated: a concise pointer in `agf/docs/site/docs/operate/day-to-day.md`, section "Show the assistant and role on GitLab", which already tells authors to name a durable coordination record. |
 | Runbook/situation map | Existing pointer to day-to-day sufficient; the manifest records why. |
-| AI landing/loaders | Updated: `agf/templates/AGENTS.md` gains one route covering merge request and issue publication; `agf/rules/README.md` lists the rule. Foundry-local routes: `.claude/rules/workflow/` symlink, `.claude/rules/INDEX.md` row, and the `AGENTS.md` list line. |
+| AI landing/loaders | Updated: `agf/templates/AGENTS.md` gains one line in its "Rules" section, after the directory table, covering merge request and issue publication; `agf/rules/README.md` lists the rule. Foundry-local routes: `.claude/rules/workflow/` symlink, `.claude/rules/INDEX.md` row, the `claudeMdExcludes` glob for the new symlink in `.claude/settings.json`, and the `AGENTS.md` list line. `.claude/CLAUDE.md` is unchanged; it imports `AGENTS.md`. |
 | Validation/drift evidence | Not mechanically decidable; human review with the examples above. |
 | Distribution | The owner, README, template and page already ship through `agf/` coverage; foundry-local loaders are project-local. |
 
 ### Strength propagation (answers `q48r` F1)
 
-The governor's D1 choice sets one strength. The implementation MUST apply that
-strength, and no other, to every surface that expresses the behavior:
+D1 option A sets the strength: `MUST NOT` on the evidence clause. The
+implementation MUST apply that strength, and no other, to every surface that
+expresses the behavior:
 
 | Surface | Required handling |
 |---|---|
-| New owner front matter (`strength`) and text | `MUST` under A, `SHOULD` under B, in the clause and the front matter. |
-| Projection manifest (`reason` text for each row) | States the chosen strength. It does not call the owner an absolute invariant under B. |
-| Day-to-day page paragraph | Uses the chosen strength in its own words, or only names the owner. |
-| `agf/templates/AGENTS.md` route | Names the owner and uses the chosen strength, or stays a neutral pointer. |
+| New owner front matter (`strength`) and text | `MUST` in the clause and the front matter. |
+| Projection manifest (`reason` text for each row) | States `MUST` for the evidence clause only. |
+| Day-to-day page paragraph | Uses `MUST NOT` in its own words, or only names the owner. |
+| `agf/templates/AGENTS.md` line | Names the owner and uses `MUST NOT`, or stays a neutral pointer. |
 | `agf/rules/README.md` index line | Neutral pointer; names no strength. |
-| `agf/CHANGELOG.md` entry and migration note | States the chosen strength and the matching classification (A: BREAKING; B: ADDITIVE). |
+| `agf/CHANGELOG.md` entry and migration note | States `MUST NOT` and the BREAKING classification. |
 | `merge-request-description-rule.md` pointer | Neutral pointer to the owner. |
 | `.claude/rules/INDEX.md` row and `.claude/rules/workflow/` symlink | Neutral foundry-local discovery pointers. |
-| Foundry `AGENTS.md` route line | Keeps the stricter `ghgs` direction (no mention of the live chat surface in merge request or issue text) in the line's own words. It cites the generic owner as a floor and never replaces or weakens `ghgs`, even when the governor picks B. |
+| `.claude/settings.json` `claudeMdExcludes` | Adds `**/.claude/rules/workflow/forge-publication-evidence-rule.md` beside the other situational rules, so the rule is not loaded at startup. Neutral; no strength. |
+| Foundry `AGENTS.md` route line | Keeps the stricter `ghgs` direction (no mention of the live chat surface in merge request or issue text) in the line's own words. It cites the generic owner as a floor and never replaces or weakens `ghgs`. |
 
 A pointer that only names the owner stays neutral and needs no strength. A
-surface that restates behavior must match the D1 strength or be removed. Gate 2
-review checks each row of this table against the diff.
+surface that restates behavior must match option A or be removed. Gate 2 review
+checks each row of this table against the diff.
 
-## Downstream impact and SemVer (decision D1)
+## Downstream impact and SemVer (decision D1: option A)
 
 A new `MUST NOT` narrows a previously implicit permission, which
 `downstream-impact-rule.md` classifies as BREAKING. The framework's version
-policy reserves breaking changes for a MAJOR release.
+policy reserves breaking changes for a MAJOR release (`agf/framework.md`, the
+versioning section: "`MAJOR`: breaking changes").
 
-- **D1 option A (draft default): keep `MUST NOT`.** BREAKING. The change is
-  **ineligible for the v2.13.x maintenance line or any v2.x minor release** and
-  may ship only through a separately approved major-release plan. This chooses
-  no version number, milestone or date.
-- **D1 option B: weaken to `SHOULD NOT` for adopters.** The generic rule becomes
-  a recommendation (ADDITIVE, eligible for a minor release). Foundry keeps its
-  stricter local `MUST NOT` through `ghgs`.
+**D1 is option A: keep `MUST NOT`**, selected in governor decision
+`20261101T105902Z-governor-reviewer-kqgp`. The change is BREAKING and
+**ineligible for the v2.13.x maintenance line or any v2.x minor release**. It
+may ship only through a separately approved major-release plan. This plan
+chooses no version number, milestone or date and supplies no release authority.
 
-The plan recommends A because it keeps the direction's strength, and states B so
-the governor can choose the faster path. This plan and its reviews do not choose
-D1. Only a later `governor-reviewer` record can choose it, and Gate 1 approval
-must record that choice. The implementation, if approved, applies the chosen
-option on every surface in the strength-propagation table above.
+The implementation stays unmerged and unshipped until that major-release
+sequence exists, recorded by a binding `governor-reviewer` decision, and fresh,
+release-specific acceptance covers the implementation. The implementation merge
+request stays Draft or unmerged until then, because `agf/CHANGELOG.md`
+Unreleased on `main` flows into the next release. Gate 2 for the implementation
+MUST cite that decision.
 
-**If the governor chooses A.** The implementation stays unmerged and unshipped
-until a separately approved major-release sequence exists and fresh,
-release-specific acceptance covers it. This plan supplies no release authority,
-version, milestone or date. Gate 2 for the implementation MUST cite that
-separate sequence.
-
-**If the governor chooses B.** The classification is ADDITIVE only if all of
-these hold across the complete projected change: the evidence clause and the
-front matter say `SHOULD`; no surface restates the behavior as `MUST` or as an
-absolute invariant; the privacy paragraphs add no prohibition beyond the
-inherited owners (the minimization tier is advisory); and the changelog entry
-says ADDITIVE. Gate 2 checks each condition. Any surface that fails one makes the
-package BREAKING and returns it to this plan's option A path.
-
-Making the new minimization tier mandatory would be a further breaking change.
-This plan does not propose it.
+*Not selected:* option B, weakening the clause to `SHOULD NOT` as an ADDITIVE
+recommendation, was the alternative. It is not part of this plan. Making the new
+privacy minimization sentence mandatory would be a further breaking change and
+is not proposed.
 
 ```
 Impact:
   Foundry:          Already applied by governor direction; the generic rule adds the
                     adopter-facing invariant.
-  Direct adopters:  A: BREAKING (MAJOR only). B: ADDITIVE recommendation.
+  Direct adopters:  BREAKING (MAJOR only): merge request and issue text must not
+                    rely on live chat as evidence of authority.
   Downstream:       Forge text shape changes slightly; no artifact shape.
   Migration:        Author behavior only; an adopter-visible entry goes under
                     Unreleased in agf/CHANGELOG.md. No data, tooling, schema or
@@ -271,17 +294,18 @@ changelog migration entry).
 ## Acceptance criteria (after Gate 1, one implementation)
 
 1. Only the paths in `affected_paths` change; no other file.
-2. The new rule contains the clause, the allowed case, both privacy tiers and the
-   destination paragraph, the stricter-direction sentence, the limits and the
-   examples, and names no product or tool. Its front-matter `strength` equals the
-   governor's D1 choice.
+2. The new rule contains the clause, the allowed case, the privacy paragraphs and
+   the destination paragraph, the stricter-direction sentence, the limits and the
+   examples, and names no product or tool. Its front-matter `strength` is `MUST`
+   (D1 option A).
 3. `agov plan projection-check --base-ref origin/main <manifest>` passes without
    `--allow-planned` at the implementation head (the owner then exists).
-4. The changelog entry states the D1 outcome and the migration note. Every row of
-   the strength-propagation table is checked against the diff and the result is
-   recorded in the Gate 2 handoff.
-4a. Option A only: the Gate 2 handoff cites the separately approved major-release
-   sequence, and the implementation merge request is not merged before it exists.
+4. The changelog entry states `MUST NOT`, the BREAKING classification and the
+   migration note. Every row of the strength-propagation table is checked against
+   the diff and the result is recorded in the Gate 2 handoff.
+4a. The Gate 2 handoff cites the binding `governor-reviewer` decision that records
+   the separately approved major-release sequence. The implementation merge
+   request is not merged before that decision exists.
 5. `agov validate adoption`, `adopter-docs`, `infosec` pass; `git diff --check`
    is clean; exact-head pipeline green.
 6. Independent exact-head review and a separate binding Gate 2 precede merge.
@@ -329,7 +353,8 @@ and Gate 2.
 
 ## Gate 1 request
 
-Approve this plan with a decision on D1. Both advisory rows record the earlier
-BLOCK findings (rounds 1 and 2) and are not cleared; independent re-review of
-the revised exact head is required before the Gate 1 decision. Status stays
-`pending-gate1` until a `governor-reviewer` record chooses D1 and approves.
+Approve this plan; D1 is already decided as option A. Both advisory rows record
+the earlier BLOCK findings (rounds 1 to 3) and are not cleared; independent
+re-review of the revised exact head is requested before the Gate 1 decision.
+Status stays `pending-gate1` until a `governor-reviewer` record approves Gate 1
+and names the exact reviewed head.

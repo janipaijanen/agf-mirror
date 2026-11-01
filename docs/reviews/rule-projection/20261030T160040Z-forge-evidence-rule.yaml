@@ -14,9 +14,9 @@ surfaces:
     reason: >-
       New single owner for the evidence boundary: merge request and issue text
       does not rely on live chat as governance evidence. Its front-matter
-      strength and clause strength equal the governor's D1 choice (MUST under
-      option A, SHOULD under option B); the owner is not described as an absolute
-      invariant under option B. The merge-request description rule keeps its own
+      strength and clause strength are MUST (governor decision D1 option A,
+      20261101T105902Z-governor-reviewer-kqgp); only the evidence clause carries
+      that strength. The merge-request description rule keeps its own
       scope and gains one neutral pointer. The owner is created by the
       implementation after Gate 1.
 
@@ -41,14 +41,19 @@ surfaces:
     paths:
       - agf/templates/AGENTS.md
       - agf/rules/README.md
+      - AGENTS.md
+      - .claude/rules/INDEX.md
+      - .claude/settings.json
     reason: >-
-      The shipped loader gains one route covering merge request and issue
-      publication, with the D1 strength or as a neutral pointer; the rules index
-      lists the new rule as a neutral pointer. Foundry-local routes (.claude rule
-      symlink, rule index row) are neutral pointers. The foundry AGENTS.md route
-      line keeps the stricter governor direction in its own words and cites the
-      generic owner as a floor; it never routes only to a weaker option. All are
-      project-local except the shipped template.
+      The shipped loader gains one line in its Rules section covering merge
+      request and issue publication, with the MUST NOT strength or as a neutral
+      pointer; the rules index lists the new rule as a neutral pointer.
+      Foundry-local routes (.claude rule symlink, rule index row, the
+      claudeMdExcludes glob in .claude/settings.json) are neutral pointers. The
+      foundry AGENTS.md route line keeps the stricter governor direction in its
+      own words and cites the generic owner as a floor; it never replaces it.
+      .claude/CLAUDE.md is unchanged; it imports AGENTS.md. All are project-local
+      except the shipped template and rules index.
 
   validation_drift_evidence:
     disposition: not mechanically decidable
