@@ -61,6 +61,16 @@ Base ref: 5b4c3f110347a1e5fafd15647becee07dafbe652 (5b4c3f110347a1e5fafd15647bec
 
 The two "not found" lines for `coordination-protocol.md` are the four replaced examples and the "four-file" sentence. They are the intended replacement.
 
+## Notice link readability correction (finding in governor record g7sj)
+
+The first rendered observation (Home, desktop-light, one frame) showed the dossier link in the shared notice as `rgb(0,119,187)`, 14 px normal text, on the banner background `rgba(0,0,0,.87)`. Root's style-derived estimate was about 3.33:1, below the 4.5:1 reference for ordinary text. The link took the page link colour because the banner content carries the `md-typeset` class.
+
+Correction, one hunk in `agf/docs/site/overrides/main.html`: the `<a>` now carries `style="color: inherit; text-decoration: underline;"`. The notice text, the link destination, the dossier exclusion, the 404 behaviour and the whitespace control are unchanged. No stylesheet, script or navigation change. The link now inherits the banner's text colour (`--md-footer-fg-color`, `#fff`) and keeps a persistent underline, so it no longer relies on colour alone. The hover colour change is lost, because the inline style wins over the stylesheet; the underline remains and the existing `:focus-visible` outline in `agf.css` still applies.
+
+Modelled contrast (derived from the Material and palette CSS; not a pixel measurement): light scheme, banner `#000000de` over a white page gives about `rgb(33,33,33)`, so white text has about 16:1. Dark scheme, banner `hsla(hue,15%,10%,.87)`: any background of lightness up to 15 percent has relative luminance of about 0.03 or less, so white text is above 13:1; I did not resolve the site hue. Both are far above 4.5:1 and above the 7:1 enhanced reference. These numbers do not replace the rendered review in all four modes.
+
+Not shown: that any browser renders it so. Underline thickness and offset are the browser default. The notice's height is unchanged in the model (no size or padding change), but it is not measured.
+
 ## What changed
 
 | Path | Change | Disposition of old text |
@@ -68,7 +78,7 @@ The two "not found" lines for `coordination-protocol.md` are the four replaced e
 | `roles-and-gates.md` | One paragraph inserted after the first paragraph of "Roles in plain terms". | Nothing removed. All 48 keyword sentences are present verbatim. No heading id added or removed. |
 | `should-you-adopt.md` | One sentence and a link added at the end of "Understand the basics". | Nothing removed. All 17 keyword sentences are present verbatim. The section is not in the A1 Evaluate range. |
 | `coordination-protocol.md` | The "Miniature example thread" section: four records replaced by five. | Replaced on purpose. The old records lacked required fields (`timestamp`, `immutable`, `requires-ack`, the `handoff` object) and used a `status` field the schema does not define. The thread ended without a Gate 2 decision. The old closure said "Merged... at commit abc1234". |
-| `overrides/main.html` | A Material `announce` block added: one conditional-purpose sentence linking to the dossier on every public page except the dossier. The guard hides the notice only when page metadata positively identifies the dossier source file; absent page metadata (the 404 page) shows the notice. Whitespace control keeps the dossier page free of an empty banner. | The template had no announce block. Nothing removed. |
+| `overrides/main.html` | A Material `announce` block added: one conditional-purpose sentence linking to the dossier on every public page except the dossier. The link carries an inline `color: inherit; text-decoration: underline` (see the readability section). The guard hides the notice only when page metadata positively identifies the dossier source file; absent page metadata (the 404 page) shows the notice. Whitespace control keeps the dossier page free of an empty banner. | The template had no announce block. Nothing removed. |
 
 ## Evidence from the final source
 
