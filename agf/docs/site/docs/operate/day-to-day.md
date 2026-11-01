@@ -193,6 +193,12 @@ authentication or non-repudiation: GitLab's native author field still shows
 the shared account. Separate native identities require separate GitLab
 accounts and credentials, which this convention does not provide.
 
+Cite durable evidence in GitLab text. A merge request or issue should point to
+the coordination record, plan, commit or pipeline that shows an approval, a
+scope or a status, and should not rely on a chat message for it. The rule is
+`agf/rules/workflow/forge-publication-evidence-rule.md`; this page only points
+to it.
+
 Apply the convention prospectively after it is documented; do not edit old
 GitLab notes to add it. The merge-request description and Gate 2 handoff for
 the change that introduces this convention are its first pilot examples.

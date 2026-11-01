@@ -6,7 +6,7 @@ evidence: local-dogfood-2026-06-16, 20260720T164212Z-governor-reviewer-kser
 upstream_candidate: true
 strength: MUST
 status: active
-see_also: [merge-request-workflow-rule, audit-log-completeness-rule]
+see_also: [merge-request-workflow-rule, audit-log-completeness-rule, forge-publication-evidence-rule]
 provenance: foundry-native
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
@@ -81,6 +81,9 @@ The description MUST name:
 The description MUST NOT contain secrets, tokens, private credentials, or local
 machine-specific paths unless those paths are themselves the artifact under
 review.
+
+What the description may rely on as evidence of approval, scope or status is
+governed by `forge-publication-evidence-rule.md`.
 
 ## Timing
 

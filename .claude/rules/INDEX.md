@@ -21,6 +21,7 @@ with the Read tool BEFORE doing the matching work. Plan
 | write documentation, presentations, publications, or other external-facing material that describes what the project can do (maturity levels, capability tables) | `agf/rules/docs/implementation-honesty-rule.md` |
 | prepare a branch for merge request review, write an MR description, or run `glab mr create/update` | `agf/rules/workflow/merge-request-description-rule.md` |
 | change a protected branch (`main`, `production`, `release/*`) in any way, or open, update, or merge a merge request to one | `agf/rules/workflow/merge-request-workflow-rule.md` (core: never commit to `main`) |
+| write or review a merge request or issue title, description or note, or cite evidence of approval, scope or status in one | `agf/rules/workflow/forge-publication-evidence-rule.md` |
 | perform any git tag operation: create, push, move, delete, or retag | `agf/rules/workflow/immutable-tags-rule.md` |
 | run any command that could upgrade dependencies, or add or change a dependency | `agf/rules/workflow/no-auto-package-update.md` |
 | choose, bump, or write a `MAJOR.MINOR.PATCH` version number in a manifest, changelog, or tag | `agf/rules/workflow/semver-no-carry-rule.md` |
