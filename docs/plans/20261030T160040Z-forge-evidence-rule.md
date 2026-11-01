@@ -45,10 +45,13 @@ advisory_consultation:
       66e5ab2e: `20261030T160913Z-contribution-auditor-gdjm`. Round 2, exact
       5e2f8221: `20261030T165922Z-contribution-auditor-q48r`. Round 3, exact
       ff368bdb: an independent InfoSec and privacy review (two blocking findings
-      on the privacy examples and on the attribution of inherited exclusions,
-      two advisory), recorded in the review record named in the round-3
-      handoff. This revision answers all three rounds. It is NOT cleared: the
-      revised exact head still needs independent re-review.
+      on the privacy examples and on the attribution of existing exclusions,
+      two advisory), recorded in `20261101T111215Z-contribution-auditor-6kn8`.
+      Round 4, exact 6fe9948f: an independent re-review returned CLEAR with
+      three advisory wording findings, recorded in the round-4 review record
+      named in the round-4 handoff. This revision applies those wording fixes.
+      It is NOT cleared: the revised exact head still needs a decision on
+      further independent re-review.
   - role: contribution-auditor
     status: consulted
     reason: >-
@@ -56,9 +59,14 @@ advisory_consultation:
       66e5ab2e: `20261030T160913Z-contribution-auditor-gdjm`. Round 2, exact
       5e2f8221: `20261030T165922Z-contribution-auditor-q48r`. Round 3, exact
       ff368bdb: an independent contribution audit (one blocking finding, a
-      missed foundry-local surface; six advisory), recorded in the review record
-      named in the round-3 handoff. This revision answers all three rounds. It
-      is NOT cleared: the revised exact head still needs independent re-review.
+      missed foundry-local surface; six advisory), recorded in
+      `20261101T111215Z-contribution-auditor-6kn8`. Round 4, exact 6fe9948f:
+      an independent re-review resolved every earlier finding and returned
+      BLOCK on one stale sentence that let the implementation land before the
+      next freeze, plus advisory wording findings, recorded in the round-4
+      review record named in the round-4 handoff. This revision fixes them. It
+      is NOT cleared: the revised exact head still needs a decision on further
+      independent re-review.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -101,7 +109,7 @@ the evidence. Chat provenance stays in the coordination audit trail.
 | Finding | Answer in this revision |
 |---|---|
 | F1 over-broad all-chat ban | The generic clause targets chat used as governance evidence only. It expressly allows chat or relay systems as the subject of an issue or merge request, and the minimum sanitized reproducer needed to review that work. The foundry-specific stricter rule is kept separate (above). |
-| F2 privacy | The rule keeps the inherited secret and anonymization exclusions at their own strength, adds advisory minimization and a destination paragraph (revised in round 2 below), and states that moving sensitive text into an immutable record does not make it safe. It points to the existing secret and anonymization rules. |
+| F2 privacy | The rule keeps the existing secret and anonymization rules at their own scope and strength, adds advisory minimization and a destination paragraph (revised in round 2 below), and states that moving sensitive text into an immutable record does not make it safe. It points to the existing secret and anonymization rules. |
 | F3 owner scope | A new canonical owner covers merge request and issue titles, bodies and notes. The MR-description rule keeps its own scope and gains one pointer. |
 | F4 projections, migration, SemVer | Affected paths now include the adopter operating page, shipped loader routing, rules index, a changelog migration entry and the structured projection manifest. SemVer constraint stated below (decision D1). |
 | F5 semantic examples | Positive and negative examples are part of the rule text and acceptance criteria. Validation stays manual and advisory. |
@@ -125,7 +133,7 @@ D1 section. The decision does not approve Gate 1.
 
 | Finding | Answer in this revision |
 |---|---|
-| InfoSec F2-R1: example row 3 called a "private link" forbidden | The row now names only a credential or token, citing `security-hardening-rule.md`. A separate row says a private thread link without a secret is not forbidden by the privacy text. Chat-as-evidence still applies. |
+| InfoSec F2-R1: example row 3 called a "private link" forbidden | The row now names only a credential or token. A separate row covers a private thread link without a secret: the privacy text adds no ban, and chat-as-evidence still applies. |
 | InfoSec F2-R2: inherited-exclusion sentences overstated the owner rules | The paragraph now restates the owners' real scope: secrets stay out of committed text; across the codebase boundary only the project codename appears. It says this rule extends neither. The claim "adds no new privacy prohibition" is true of the new text. |
 | InfoSec A1: AI-provider prompts are an external destination | Added to the destination paragraph. |
 | InfoSec A2: chat provenance must be a pointer | The clause now says a minimal reference, not a transcript, with no credential or tokenized URL. |
@@ -136,6 +144,20 @@ D1 section. The decision does not approve Gate 1.
 | Contribution A4: "inherited" overstated | Fixed with InfoSec F2-R2. |
 | Contribution A5: template placement | Names the "Rules" section of `agf/templates/AGENTS.md`, after the directory table. |
 | Contribution A6: D1 not recorded in the plan | Recorded above, with a link to the governor decision. |
+
+### Round 4: independent re-review of `6fe9948f` (not cleared)
+
+Every round-3 finding was found resolved. Two new reviewers returned: InfoSec and
+privacy CLEAR with three advisory wording findings; contribution audit BLOCK on
+one finding and advisory wording findings.
+
+| Finding | Answer in this revision |
+|---|---|
+| Contribution N1 (BLOCK): a leftover sentence let the implementation land before the next freeze | Replaced. The implementation MUST NOT land before the next freeze or in any v2.x release, stays Draft until the D1 major-release decision exists, and is then rechecked against that release's freeze. |
+| Contribution N2 and N3, InfoSec N2: examples over-attributed or contradicted the evidence clause | Example rows 3 and 4 reworded: a credential in forge text is unsafe but this rule adds no separate ban; a private thread link cited as evidence of authority is forbidden as chat evidence. "Inherited" wording replaced. |
+| InfoSec N1: the "no credential or tokenized URL" sentence read as a new absolute | Now "SHOULD carry no credential", with a pointer to the existing rule. |
+| InfoSec N3: "sanitized summary is the default" could read as an exception | Now points at `external-anonymization-rule.md` and calls a sanitized summary the usual way to comply. |
+| Contribution N4: reviews named only by handoff | Named directly. The manifest keeps the foundry symlink in its reason text, not a path entry, because the file does not exist until implementation. |
 
 ## Canonical owner (decision: one new file)
 
@@ -156,7 +178,8 @@ audience.
 > artifact instead: a coordination record ID or path, a plan file, a commit SHA,
 > a pipeline or job ID, or another Git or forge item. Chat provenance belongs in
 > the coordination audit trail as a minimal reference, not a transcript. The
-> reference carries no credential and no signed or tokenized URL.
+> reference SHOULD carry no credential, which `security-hardening-rule.md`
+> already keeps out of committed text, and no signed or tokenized URL.
 >
 > **Allowed.** Discuss a chat, messaging or relay system when it is the subject
 > of the work, for example an issue about an integration defect or a merge
@@ -178,7 +201,8 @@ audience.
 >
 > **Destination.** Public or external forge text and access-controlled internal
 > coordination are different surfaces. When evidence crosses the codebase
-> boundary, a sanitized summary is the default. Text that an AI assistant sends
+> boundary, `external-anonymization-rule.md` applies; a sanitized summary is the
+> usual way to comply. Text that an AI assistant sends
 > to a provider is an external destination; "access-controlled" does not cover
 > it. A private internal coordination record MAY keep a necessary,
 > access-appropriate reference when its governing privacy and access rules
@@ -204,8 +228,8 @@ restate existing rules.
 |---|---|
 | MR description says "approved in chat, message 412" | Forbidden: chat as approval evidence. Cite the decision record ID. |
 | Issue says "scope agreed in the team thread" | Forbidden: chat as scope evidence. Cite the plan and its Gate 1 record. |
-| MR note quotes a credential or token copied from a chat | Forbidden: chat as evidence, and a secret (`security-hardening-rule.md`). |
-| Internal MR note links a private thread, with no secret in the URL | Not forbidden by this rule's privacy text. Chat as evidence still applies: prefer a decision record ID. |
+| MR note quotes a credential or token copied from a chat | Forbidden: chat as evidence. A credential in forge text is also unsafe; this rule adds no separate ban, and `security-hardening-rule.md` already keeps credentials out of committed text. |
+| Internal MR note cites a private thread link, with no secret in the URL, as evidence of authority | Forbidden: chat as evidence. The privacy text adds no separate ban on the link. Cite a decision record ID instead. |
 | Issue reports that a webhook relay drops events, with a sanitized payload that reproduces it | Allowed: the relay is the subject; the payload is minimal and sanitized. |
 | MR changes a chat-integration adapter and describes its behavior | Allowed: chat is the artifact under review. |
 | Public issue pastes the project's real name and a private thread link as evidence | Forbidden: chat as evidence, and a non-codename project handle crossing the boundary (`external-anonymization-rule.md`). Use the codename and a sanitized summary. |
@@ -334,8 +358,9 @@ The target section "Show the assistant and role on GitLab" still exists on
 Before implementation the owner refetches refs, confirms no active claim on
 these paths, rebases onto any merged change, and rechecks collisions for every
 newly affected path. The adopter changelog is shared with release publication
-plans, so the implementation either lands before the next freeze or is
-re-checked against it.
+plans. The implementation MUST NOT land before the next freeze or in any v2.x
+release. It stays Draft until the major-release decision in D1 exists, and is
+then rechecked against that release's freeze.
 
 ## Risks and rollback
 
