@@ -2,7 +2,7 @@
 id: 20261101T191112Z-major-release-scope
 status: pending-gate1
 topic: major-release-scope-carrying-the-forge-evidence-rule
-candidate_release: proposed-3.0.0-not-confirmed
+candidate_release: v3.0.0
 affected_paths:
   - docs/plans/20261101T191112Z-major-release-scope.md
 depends_on:
@@ -26,9 +26,10 @@ advisory_consultation:
 # Major release scope
 
 Governance mode: NORMAL (planning only). This plan edits no version file, changelog,
-tag or shipped artifact. It **proposes** a version and content and asks the governor to
-confirm them. It names **no date**. The version, date and content stay governor
-decisions: they are excluded from the delegation `20261101T162840Z-governor-reviewer-srra`.
+tag or shipped artifact. The Human Governor decided the version, the merge of MR !3482, the
+target date and the tag authority in `20261101T191657Z-governor-reviewer-pr6j`; this plan
+records those answers. Version, date and release scope were excluded from the delegation
+`20261101T162840Z-governor-reviewer-srra` until that decision.
 
 Authority: the Human Governor approved a major release in principle
 (`20261101T185810Z-governor-reviewer-7mgm`) and told the session to proceed with release
@@ -38,16 +39,19 @@ work. That approval does not choose a version, date or content.
 
 - Latest stable release: v2.13.1 (tag commit `db300c090527817a9d556e13f25d414ab75e09bf`).
 - `origin/main` at drafting: `d14d59562847ac0bcf0203c9c8f58709baf41595`.
-- `agf/CHANGELOG.md` `## [Unreleased]` is empty on `main`. The forge-evidence entry sits on
-  Draft MR !3482 only.
+- `agf/CHANGELOG.md` `## [Unreleased]` held only the forge-evidence entry after MR !3482
+  merged (`00ee06f6`, Gate 2 `20261101T191700Z-governor-reviewer-pr6h`). The other merged
+  adopter-facing items below still have no changelog entry.
 - Since the tag, nothing under `agf/rules`, `agf/schemas`, `tooling/` or CI changed on
   `main` (checked in the inventory plan). Adopter-facing changes on `main` are docs, the
   `MANIFEST.example.yaml` example, `ADOPTING.md` role text, figures and one learning record.
 
-## Proposed version
+## Version (decided)
 
-**3.0.0**, because the forge-evidence rule is BREAKING under `downstream-impact-rule.md`
-and `agf/framework.md` reserves MAJOR for breaking changes. Confirmation is decision V1.
+**3.0.0** (decision V1, `pr6j`), because the forge-evidence rule is BREAKING under
+`downstream-impact-rule.md` and `agf/framework.md` reserves MAJOR for breaking changes.
+The **target date is 2026-11-08** (a target, not a commitment). The **human governor**
+authorizes the tag and publication.
 
 ## IN scope (proposed)
 
@@ -64,7 +68,9 @@ and `agf/framework.md` reserves MAJOR for breaking changes. Confirmation is deci
 ## Undecided content
 
 Pages Draft MRs !3466 (telemetry method), !3467 (Home rewrite) and !3471 (code toolbar CSS):
-include only those that finish independent review and Gate 2 before the freeze (S2).
+decision S2 (`pr6j`, session proposal adopted): each is included only if its independent
+review and Gate 2 finish by **2026-11-05T12:00:00Z** (the freeze point); otherwise it is
+deferred. !3471 edits the global stylesheet and needs the narrow-display visual check.
 
 ## OUT of scope
 
@@ -74,7 +80,7 @@ tooling or schema change. None has a plan that targets this release.
 
 ## Sequence (each step has its own evidence; this plan approves none)
 
-1. **S1: merge !3482** at a CLEAN exact head with Gate 2 (fresh review if the head changes).
+1. **S1: merge !3482.** Done (`00ee06f6`).
 2. **S2: finish or exclude the Pages Drafts.**
 3. **Content-freeze sweep** by the documentation-estate steward over the frozen `main`.
 4. **Publication plan** (separate Gate 1, like `20261030T064744Z-v2131-release-publication`):
@@ -82,19 +88,18 @@ tooling or schema change. None has a plan that targets this release.
    `release-3.0.0` branch and merge request, and tag authorization.
 5. **Publication and verification**, including anonymous downloaded-artifact checks.
 
-## Decisions for the governor
+## Decisions (answered in `20261101T191657Z-governor-reviewer-pr6j`)
 
-- **V1.** Confirm the version number (proposed 3.0.0).
-- **S1.** Confirm that !3482 may merge to `main` now. After that, any release cut from `main`
-  carries the rule, so no docs-only v2.x release from `main` should precede the major one.
-- **S2.** Which Pages Drafts are in, and the freeze point.
-- **D.** The release date (not proposed).
-- **P.** Who may authorize the tag and publication.
+- **V1.** 3.0.0. **S1.** Merge !3482 (done). **S2.** As above. **D.** Target 2026-11-08.
+  **P.** Human governor authorizes the tag and publication.
 
 ## Risks and rollback
 
-A merged !3482 puts the BREAKING rule on `main` ahead of the release (mitigated by V1/S1
-ordering). Rollback of this plan: supersede it. It changes no shipped artifact.
+!3482 is merged, so `main` already carries the BREAKING rule; no docs-only v2.x release is
+planned from `main`. The governor's delegation `srra` ends 2026-11-06T16:00:00Z, before the
+target date, so the publication plan's Gate 1 and Gate 2, and the tag, fall to the human
+governor unless the delegation is renewed. Rollback of this plan: supersede it. It changes no
+shipped artifact.
 
 ## Out of this plan
 
@@ -102,5 +107,6 @@ No version bump, changelog edit, tag, release, publication or issue closure.
 
 ## Gate 1 request
 
-Approve the scope and sequence as input to the publication plan, and answer V1, S1, S2, D
-and P. Approval authorizes drafting the publication plan and nothing more.
+Approve the scope and sequence as input to the publication plan. Approval authorizes
+drafting the publication plan and nothing more: no version bump, changelog edit, tag or
+release.
