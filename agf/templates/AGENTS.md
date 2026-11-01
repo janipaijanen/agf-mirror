@@ -117,6 +117,9 @@ apply per task type.
 | `agf/rules/docs/` | Documentation audience, marketing tone, implementation honesty |
 | `agf/rules/ui/` | Accessibility (WCAG AA), template translatability |
 
+Before writing a merge request or issue title, description or note, read
+`agf/rules/workflow/forge-publication-evidence-rule.md`.
+
 <!-- CUSTOMIZE: list any project-specific rules here -->
 
 ---

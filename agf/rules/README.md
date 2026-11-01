@@ -45,6 +45,7 @@ rules/
 │   ├── review-convergence-rule.md        # Bounded same-invariant review and abstraction reset
 │   ├── branch-and-worktree-rule.md      # Branch naming, pre-push gate, merge options
 │   ├── development-workflow-rule.md     # Five phases: clarify, plan, decompose, implement, review
+│   ├── forge-publication-evidence-rule.md # Merge request and issue text cites durable evidence
 │   ├── immutable-tags-rule.md           # Tags immutable once pushed
 │   ├── semver-no-carry-rule.md          # Version components grow beyond 99
 │   ├── no-auto-package-update.md        # No upgrades without approval
@@ -73,6 +74,7 @@ rules/
 | review-convergence-rule | Pattern 5: Bounded Review Convergence |
 | branch-and-worktree-rule | Principle 4: Pipeline Topology |
 | development-workflow-rule | Pattern 1: Pipeline |
+| forge-publication-evidence-rule | Principle 2: Artifact Ownership |
 | immutable-tags-rule | Principle 3: The Immutability Constraint |
 | semver-no-carry-rule | Appendix: Versioning and Identifiers |
 | no-auto-package-update | ADOPTING.md Step 3.2: Supply chain trust |

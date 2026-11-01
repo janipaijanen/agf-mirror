@@ -7,6 +7,24 @@ distribution.
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING (major release only): merge request and issue text cites durable
+  evidence.** New rule `forge-publication-evidence-rule.md`: a merge request or
+  issue title, description or note MUST NOT rely on a live-chat message as
+  evidence of approval, scope, status, verification or authority. Cite a
+  coordination record, plan, commit, pipeline or other Git or forge item instead.
+  Chat or relay systems may still be the subject of the work. The privacy text
+  adds no prohibition beyond `security-hardening-rule.md` and
+  `external-anonymization-rule.md`. No automated check is added. **Migration:**
+  authors and assistants that cite chat messages as approvals in merge request or
+  issue text switch to the decision record or plan that holds the decision;
+  existing text and records are not rewritten. This entry is not for any v2.x
+  release (governor decision `20261101T105902Z-governor-reviewer-kqgp`; Gate 1
+  `20261101T120448Z-governor-reviewer-saps`). Adopter docs: updated
+  (`agf/docs/site/docs/operate/day-to-day.md`, `agf/templates/AGENTS.md`,
+  `agf/rules/README.md`).
+
 ## [2.13.1] — 2026-10-30
 
 ### Changed

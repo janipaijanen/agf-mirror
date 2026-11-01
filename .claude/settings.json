@@ -9,6 +9,7 @@
     "**/.claude/rules/always/environment-interrogation-rule.md",
     "**/.claude/rules/docs/implementation-honesty-rule.md",
     "**/.claude/rules/workflow/merge-request-description-rule.md",
+    "**/.claude/rules/workflow/forge-publication-evidence-rule.md",
     "**/.claude/rules/workflow/merge-request-workflow-rule.md",
     "**/.claude/rules/workflow/immutable-tags-rule.md",
     "**/.claude/rules/workflow/no-auto-package-update.md",
