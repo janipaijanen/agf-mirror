@@ -51,6 +51,28 @@ depends_on:
   - 20261101T191112Z-major-release-scope
   - 20261030T064744Z-v2131-release-publication
   - 20261030T160040Z-forge-evidence-rule
+  - 20260913T085123Z-work-item-steward-gate1
+  - 20260913T093405Z-row5-s3-priority-ordering-and-challenge-response
+  - 20260914T130217Z-row6-s4-issue123-collision-check-blocking-promotion
+  - 20260915T075705Z-issue130-pending-advisory-consultation-status
+  - 20260916T002012Z-roadmap-refresh-post-v2101-issue130
+  - 20261021T220000Z-retire-windows-support
+  - 20261022T205113Z-instruction-context-reduction
+  - 20261023T045214Z-remove-elixir-references
+  - 20261023T080431Z-instruction-context-followup
+  - 20261023T195516Z-recall-smoke-criterion-and-weak-paraphrases
+  - 20261024T070435Z-timer-reality-polling-alignment
+  - 20261025T183939Z-v211-changelog-and-scope-reconciliation
+  - 20261025T192020Z-supersedes-adopter-docs
+  - 20261027T045944Z-record-only-publication-termination
+  - 20261027T230355Z-v212-release-freeze-corrections
+  - 20261027T235807Z-v212-release-publication
+  - 20261029T204751Z-v213-release-freeze-preparation
+  - 20261029T220500Z-v213-release-publication
+  - 20261030T144439Z-header-repair-plan
+  - 20261030T163253Z-pages-structure-and-voice
+  - 20261030T210529Z-pages-source-consistency-g1-g5
+  - 20261031T224819Z-solo-role-learning-append
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
