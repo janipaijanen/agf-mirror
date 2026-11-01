@@ -16,18 +16,18 @@
   "advisory_consultation": [
     {
       "role": "infosec-sentinel",
-      "status": "pending",
-      "reason": "Review requested with this draft. The change is one stylesheet rule with no script, link, data flow or credential change."
+      "status": "consulted",
+      "reason": "Independent plan review recorded CLEAR for the four-path scope in governor review e5b2 (host report SHA-256 32a1d288729b6327d7dae71f434b2b27182967baf88b2d5654cb7fd1b2e226eb). This revision keeps the scope and trust boundaries unchanged: one stylesheet rule, no script, link, data flow or credential change. The clearance carries only while that holds."
     },
     {
       "role": "contribution-auditor",
       "status": "pending",
-      "reason": "Review requested with this draft. The plan restricts itself to one evidence-bound CSS rule and claims no new framework authority."
+      "reason": "Plan review recorded BLOCK in e5b2 for the first draft (host report SHA-256 c9fc6bc16430e2e2f8f6ad5220cd332122515cd4fbc5051f907027e635843eb6). This revision answers its three points and awaits a narrow delta review."
     },
     {
       "role": "web-ux-reviewer",
       "status": "pending",
-      "reason": "Rendered review in four modes is required before Gate 2; it is not supplied by this draft."
+      "reason": "Plan consultation recorded BLOCK in e5b2 for the first draft; this revision answers it and awaits a narrow delta review. Rendered review in four modes is a separate later requirement and is not supplied by this plan."
     }
   ]
 }
@@ -57,13 +57,27 @@ One rule in `agf/docs/site/stylesheets/agf.css`, using the existing selector and
 ```css
 /* Reserve the width of the code toolbar so the end of a long row can scroll clear of it. */
 .md-typeset pre > code {
-  padding-right: 2.75em;
+  padding-right: calc(2.06em + 0.5rem);
 }
 ```
 
-- The needed minimum is 36 px (toolbar width 32 px plus its 4 px right offset; code padding is now 16 px). At the code font size of 13.6 px, `2.75em` is 37.4 px, which leaves about 1.4 px of margin. Gate 1 approves the rule shape and the bounded range 36 to 44 px. The exact value is fixed at implementation by the offline replay below and stated in the report.
-- The rule has the same specificity as Material's `.md-typeset pre>code` and loads after it (`extra_css`).
+### Why one rule holds in every context (derived from the original-artifact CSS; not rendered)
+
+The toolbar sizes scale with the font size `E` of the enclosing `pre`: it is `1.5E` wide, with padding `2 × 0.2rem`, and it sits `0.25E` from the right edge. So the space it needs on the right of the text is `1.75E + 0.4rem`. The code font size is `0.85E` (`.md-typeset code{font-size:.85em}`), so `1em` in the rule is `0.85E`, and the rule gives `2.06 × 0.85E + 0.5rem = 1.751E + 0.5rem`. That is at least `1.75E + 0.4rem` for every `E`: a fixed margin of `0.1rem` (2 px at 1 rem = 20 px) plus `0.001E`. A fixed pixel or code-em value cannot do this, because `E` changes by context. The first draft's `2.75em` was a mobile-only value. At nested `E = 12.8 px` it gave only 29.9 px against a need of 30.4 px, which was the e5b2 finding.
+
+| Context (source of `E`) | `E` | Toolbar space needed | Padding from the rule | Margin |
+|---|---|---|---|---|
+| Normal content, under 76.25 em wide (`.md-typeset{font-size:.8rem}`) | 16 px | 36.0 px | 38.0 px | 2.0 px |
+| Normal content, 76.25 em and wider (`.md-typeset{font-size:.7rem}`) | 14 px | 32.5 px | 34.5 px | 2.0 px |
+| Inside `.admonition` or `details` (`font-size:.64rem`) | 12.8 px | 30.4 px | 32.4 px | 2.0 px |
+| Print (`.md-typeset{font-size:.68rem}`) | 13.6 px | 31.8 px | 33.8 px | 2.0 px |
+
+These are derived from the CSS of the original failed-run artifact (Material CSS, palette CSS, script bundle and `agf.css` byte-identical to the later S1 artifact) at a 20 px root font size. The 1 rem = 20 px assumption holds below 100 em width (`html{font-size:125%}`); the `137.5%` and `150%` steps at 100 em and 125 em scale `rem` and `E` together, and the margin stays `0.1rem`. They are not rendered measurements, and the plan does not claim otherwise. The table's rows are checked at implementation by the rendered review below.
+
+Nested contexts: my scan of the S1 artifact HTML (174 `pre` blocks in 52 pages, tag stack for `div.admonition` and `details`) found no code block inside an admonition or `details`. Root's finding that nested blocks exist may rest on source or markup I did not scan. The rule must hold for them anyway, so the table includes that row and the rendered review includes one nested case if the actual site has one, or a synthetic nested page in the scratch capture if it has none.
+
 - Not changed: code text, copy payload and copy behaviour, native scrolling, the toolbar position or colours, any script, any link, navigation, Home text, the original reading counter, any role or rule, and the conservative whole-character completeness method.
+- The rule has the same specificity as Material's `.md-typeset pre>code` and loads after it (`extra_css`).
 - The A3 instrument stays as it is. This plan changes no control file and grants no rerun.
 
 ## Allocation
@@ -73,11 +87,11 @@ Author of this plan: planner-architect (Claude). The implementer of the one CSS 
 ## Acceptance checks (before and after)
 
 1. The diff of `agf.css` against main is exactly the one rule and its comment. No other path changes except this plan, its manifest and its report.
-2. Offline replay (derived, labelled as such) on the exact head: the saved `code-p26` telemetry and all 11 blocks of the original page, at 390 px, with the existing button-rectangle predicate and the chosen padding: no uncovered character. The same replay at the old padding reproduces the recorded offsets 73 and 74. A synthetic row ending 1 px inside the toolbar must still fail.
-3. Site-wide survey from the CI HTML artifact: list every code block whose longest row, at 390 px and at 1440 px, newly exceeds the block width because of the extra padding. Report the count and the blocks. Any block that gains a scrollbar it did not have is named for the reviewer.
+2. Offline replay (modelled; assumptions stated: 8 px character advance at the 13.6 px code size as recorded, left padding as recorded, one unscrolled view and one maximum-scroll view, the existing button-rectangle predicate) on the saved `code-p26` telemetry and all 11 blocks of the original page at 390 px with the new padding: no uncovered character. The same replay at the old padding reproduces the recorded offsets 73 and 74. A synthetic row ending 1 px inside the toolbar must still fail. This check was run for the plan: with 38 px the replay leaves no uncovered character on the formula, exports, report-command, 65-character and two-row blocks, and reproduces the old failures at 16 px.
+3. **Site-wide survey, labelled by method.** (a) *Modelled*: from the CI HTML artifact, for each code block, the longest row against the block width at 390 px and at 1440 px under the stated assumptions (character advance 0.588 of the code font size, left padding `1.1764705882em`, the table above). The report lists blocks that newly need a horizontal scroll bar and states that these are derived geometry. (b) *Measured*: the rendered review below reports computed styles and actual client and scroll widths for the checked blocks. The report never presents (a) as a viewport measurement.
 4. Strict build and every hook pass on the exact head. `agov plan projection-check` (strict) passes on the manifest.
 5. Original A1 recount on the CI artifact stays at 982, 1,080 and 1,158 (or the figures of the base then current). CSS cannot change the counted text, and the recount is evidence of that.
-6. Rendered review, in four modes (1440×900 and 390×844, light and dark) on the telemetry page and one other page with long code: whole commands reachable by native scrolling without covered characters; the copy control still reachable by keyboard and by click, and a copy yields the exact block text. At most 8 viewport frames, no full-page frames, for this check. Root decides whether they count against the A3 ceiling.
+6. **Rendered review, eight viewport frames.** Two pages (the telemetry page, and one page whose longest code row is also long at 1440 px) in four modes (1440×900 and 390×844, light and dark). Each frame is the **end-scroll** state: the code block scrolled to its maximum by one native wheel gesture, with the toolbar and the end of the longest rows in view. Structured assertions, not images, separately cover: the initial state (`scrollLeft` 0, geometry recorded before the gesture); the full character union by the existing conservative whole-character method over the initial and end-scroll views; the exact copied text (a pointer click on the copy control, the copied string equal to the block's `textContent`); keyboard reachability of the copy control (Tab focus) and its pointer reachability; and computed `padding-right`, `font-size` and toolbar rectangle for the block. If the web-UX reviewer needs an image of the initial state too, the ceiling becomes 16 frames; the plan names that alternative instead of omitting the evidence. Root decides whether these frames count against the A3 ceiling.
 7. Independent source review and the web-UX review. Binding Gate 2 is a separate decision. No release, version or tag.
 
 ## Effects on A3, for root
@@ -86,7 +100,7 @@ A3's retained observations are bound to source `6d47f8db` and artifact base `5a6
 
 ## Risks and rollback
 
-Risk: 20 px less width for very long rows on every code block, so a block that barely fitted may now scroll horizontally. Check 3 lists them. Risk: the 8 px character advance is recorded only for the page's font. Rollback: revert the single hunk through a governed revert.
+Risk: 20 px less width for very long rows on every code block, so a block that barely fitted may now scroll horizontally. Check 3 lists them. Risk: the 8 px character advance is recorded only for the page's font; the survey and replay are modelled and labelled so. Rollback: revert the single hunk through a governed revert.
 
 ## Not in scope
 
