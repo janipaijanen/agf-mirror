@@ -414,22 +414,12 @@ Next review: 2026-10.
   status: parked, folded under the re-assessment question | review-by: 2027-01-31
 
 - **Required "not verified" statement in Gate 2 handoffs** — a practitioner post
-  (Batch 43) requires each change to carry a verification record that also states
-  what could not be verified. AGF's Gate 2 handoffs already carry validation results
-  and limits by habit. Open question: would a required limits statement improve
-  review, or become boilerplate that a signal-gaming pressure fills in without
-  meaning? Controversial: one anecdotal source, and a presence check could only be
+  (Batch 43) has each change carry a verification record that states the steps taken
+  and what could not be verified. Open question: would a required limits statement in
+  review handoffs help reviewers, or become boilerplate filled in without meaning?
+  Controversial: one self-reported account, and a presence check could only be
   advisory evidence under the tool-authority rule. source: Larson post in
   `docs/sources.md` Batch 43 | status: question, no commitment | review-by: 2027-01-31
-
-- **Runtime enforcement beside governance files** — an open-source runtime platform
-  (Batch 43) enforces per-action authorization, credential brokering and signed audit
-  at execution, which AGF explicitly leaves to the adopter's runtime. Open question:
-  does AGF need a documented, evidence-labelled pattern for pairing role decisions with
-  a runtime's permission checks, or does naming the layer boundary on the runtime
-  comparison page suffice? Controversial: vendor self-description without adopters, and
-  any pairing guidance risks implying coexistence AGF has not validated. source: OAP
-  in `docs/sources.md` Batch 43 | status: question, no commitment | review-by: 2027-01-31
 
 - **AI evaluators and the philosophical-lenses page** — two relayed assistant answers
   to "which frameworks have a page like the philosophical lenses page?" differed:
