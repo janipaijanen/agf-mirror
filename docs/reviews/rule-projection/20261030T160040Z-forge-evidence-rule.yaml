@@ -1,0 +1,72 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+
+plan_id: 20261030T160040Z-forge-evidence-rule
+
+changed_pages_or_runbooks:
+  - agf/docs/site/docs/operate/day-to-day.md
+
+surfaces:
+  normative_owner:
+    disposition: updated
+    stage: planned
+    path: agf/rules/workflow/forge-publication-evidence-rule.md
+    reason: >-
+      New single owner for the evidence boundary: merge request and issue text
+      does not rely on live chat as governance evidence. Its front-matter
+      strength and clause strength are MUST (governor decision D1 option A,
+      20261101T105902Z-governor-reviewer-kqgp); only the evidence clause carries
+      that strength. The merge-request description rule keeps its own
+      scope and gains one neutral pointer. The owner is created by the
+      implementation after Gate 1.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      A concise pointer in the existing section on GitLab bylines, which already
+      tells authors to name a durable coordination record. It names the owner and
+      does not copy the rule. If it restates the behavior, it uses the D1
+      strength; otherwise it stays a neutral pointer.
+
+  runbook_situation_map:
+    disposition: existing pointer sufficient
+    path: agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      The day-to-day page is the runbook-level page for GitLab authoring. No
+      separate runbook step changes.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - agf/templates/AGENTS.md
+      - agf/rules/README.md
+      - AGENTS.md
+      - .claude/rules/INDEX.md
+      - .claude/settings.json
+    reason: >-
+      The shipped loader gains one line in its Rules section covering merge
+      request and issue publication, with the MUST NOT strength or as a neutral
+      pointer; the rules index lists the new rule as a neutral pointer.
+      Foundry-local routes (.claude rule symlink, rule index row, the
+      claudeMdExcludes glob in .claude/settings.json) are neutral pointers. The
+      foundry AGENTS.md route line keeps the stricter governor direction in its
+      own words and cites the generic owner as a floor; it never replaces it.
+      .claude/CLAUDE.md is unchanged; it imports AGENTS.md. All are project-local
+      except the shipped template and rules index.
+
+  validation_drift_evidence:
+    disposition: not mechanically decidable
+    reason: >-
+      Whether text relies on chat as evidence is a human judgment. The rule ships
+      positive and negative examples as review evidence. No validator is added.
+
+  distribution:
+    disposition: existing pointer sufficient
+    paths:
+      - agf/rules/README.md
+      - agf/templates/AGENTS.md
+      - agf/docs/site/docs/operate/day-to-day.md
+    reason: >-
+      These three existing files and the new owner rule ship through existing agf/ distribution coverage. Foundry-local
+      loader files are project-local only.
