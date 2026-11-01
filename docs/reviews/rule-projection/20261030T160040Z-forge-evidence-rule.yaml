@@ -12,9 +12,12 @@ surfaces:
     stage: planned
     path: agf/rules/workflow/forge-publication-evidence-rule.md
     reason: >-
-      New single owner for the invariant that merge request and issue text does
-      not rely on live chat as governance evidence. The merge-request description
-      rule keeps its own scope and gains one pointer. The owner is created by the
+      New single owner for the evidence boundary: merge request and issue text
+      does not rely on live chat as governance evidence. Its front-matter
+      strength and clause strength equal the governor's D1 choice (MUST under
+      option A, SHOULD under option B); the owner is not described as an absolute
+      invariant under option B. The merge-request description rule keeps its own
+      scope and gains one neutral pointer. The owner is created by the
       implementation after Gate 1.
 
   adopter_facing_explanation:
@@ -23,7 +26,8 @@ surfaces:
     reason: >-
       A concise pointer in the existing section on GitLab bylines, which already
       tells authors to name a durable coordination record. It names the owner and
-      does not copy the rule.
+      does not copy the rule. If it restates the behavior, it uses the D1
+      strength; otherwise it stays a neutral pointer.
 
   runbook_situation_map:
     disposition: existing pointer sufficient
@@ -39,9 +43,12 @@ surfaces:
       - agf/rules/README.md
     reason: >-
       The shipped loader gains one route covering merge request and issue
-      publication; the rules index lists the new rule. Foundry-local routes
-      (.claude rule symlink, rule index row, project AGENTS.md list line) follow
-      the same owner and are project-local.
+      publication, with the D1 strength or as a neutral pointer; the rules index
+      lists the new rule as a neutral pointer. Foundry-local routes (.claude rule
+      symlink, rule index row) are neutral pointers. The foundry AGENTS.md route
+      line keeps the stricter governor direction in its own words and cites the
+      generic owner as a floor; it never routes only to a weaker option. All are
+      project-local except the shipped template.
 
   validation_drift_evidence:
     disposition: not mechanically decidable
