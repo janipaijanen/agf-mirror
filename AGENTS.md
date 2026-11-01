@@ -295,6 +295,7 @@ same list with fuller scope wording):
 - any git tag create, push, move, delete, or retag: `workflow/immutable-tags-rule.md`
 - change or open/merge an MR to `main`, `production`, `release/*`: `workflow/merge-request-workflow-rule.md`
 - prepare an MR or write its description, `glab mr create/update`: `workflow/merge-request-description-rule.md`
+- write or review an MR or issue title, description or note, or cite evidence of approval, scope or status in one: `workflow/forge-publication-evidence-rule.md` (in this project, governor direction `20261030T155116Z-governor-reviewer-ghgs` is stricter: MR and issue text refers to no live chat surface at all; the generic rule is a floor and never replaces that direction)
 - act under a delegation or write a delegation artifact: `workflow/deputy-governor-rule.md`
 - plan or Gate 2 review that adds or changes normative guidance in a Pages page, runbook, or AI loader: `workflow/documentation-rule-projection-rule.md`
 - rename, restructure, deprecate, or remove a CLI flag, MCP field, schema field, API parameter, or config key: `workflow/deprecation-policy-rule.md`

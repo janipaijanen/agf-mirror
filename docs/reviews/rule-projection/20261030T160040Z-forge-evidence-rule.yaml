@@ -9,7 +9,6 @@ changed_pages_or_runbooks:
 surfaces:
   normative_owner:
     disposition: updated
-    stage: planned
     path: agf/rules/workflow/forge-publication-evidence-rule.md
     reason: >-
       New single owner for the evidence boundary: merge request and issue text
@@ -17,8 +16,8 @@ surfaces:
       strength and clause strength are MUST (governor decision D1 option A,
       20261101T105902Z-governor-reviewer-kqgp); only the evidence clause carries
       that strength. The merge-request description rule keeps its own
-      scope and gains one neutral pointer. The owner is created by the
-      implementation after Gate 1.
+      scope and gains one neutral pointer. The owner file is created by
+      this implementation.
 
   adopter_facing_explanation:
     disposition: updated
