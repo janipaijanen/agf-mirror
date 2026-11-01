@@ -413,6 +413,23 @@ Next review: 2026-10.
   source: MR !967 (its `docs/sources.md` edit stays only on the retained branch) |
   status: parked, folded under the re-assessment question | review-by: 2027-01-31
 
+- **Required "not verified" statement in Gate 2 handoffs** — a practitioner post
+  (Batch 43) has each change carry a verification record that states the steps taken
+  and what could not be verified. Open question: would a required limits statement in
+  review handoffs help reviewers, or become boilerplate filled in without meaning?
+  Controversial: one self-reported account, and a presence check could only be
+  advisory evidence under the tool-authority rule. source: Larson post in
+  `docs/sources.md` Batch 43 | status: question, no commitment | review-by: 2027-01-31
+
+- **AI evaluators and the philosophical-lenses page** — two relayed assistant answers
+  to "which frameworks have a page like the philosophical lenses page?" differed:
+  one described a set of philosophical branches the page does not contain; the other
+  read the six actual lenses correctly and stated its search limits. Open question: how
+  often do AI evaluators mis-describe AGF pages, and should the evaluation dossier's
+  checks say to read the page itself before comparing it? Controversial: two private
+  conversations that cannot be reproduced or published, so this is an observation, not
+  evidence of a rate. status: observation | review-by: 2027-01-31
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu

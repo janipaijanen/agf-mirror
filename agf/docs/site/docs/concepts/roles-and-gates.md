@@ -17,6 +17,12 @@ not necessarily another person. Your assistant, a person or a session plays it, 
 one participant can play more than one role. Roles are definitions in your
 repository, and they do not run by themselves.
 
+Sixteen role definitions ship with AGF. Sixteen definitions are not sixteen people, sessions or reviews. A project uses only the
+roles it assigns. A solo project starts with you as the human governor and one assistant that plans and implements. Add a specialist
+only when its trigger applies. A solo assistant that plans and implements does not waive review separation: required specialist and
+independent reviews still apply when their triggers do. Planning, review and coordination still take effort, and AGF does not claim
+to remove it.
+
 Three responsibilities matter first. Someone plans the work, someone implements and
 tests it, and someone approves it. Approval of the plan is called Gate 1. Approval
 of the finished change is Gate 2. The person accountable for approvals is the
