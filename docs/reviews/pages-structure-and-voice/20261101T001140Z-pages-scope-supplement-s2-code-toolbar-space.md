@@ -39,7 +39,7 @@ Negative: a row whose last character ends 1 px inside the button box (padding 30
 
 ## Whole-site scroll survey (modelled)
 
-Source: the HTML of the S1 CI artifact (`0489000d`; code blocks do not depend on the stylesheet). 176 `pre` blocks in 25 pages with an `index.html` (the scan counts 174 in 52 routes elsewhere because that counted per file and excluded some copies; this scan counts every `pre`).
+Source: the HTML of the S1 CI artifact (`0489000d`; code blocks do not depend on the stylesheet). 176 `pre` blocks in 25 pages (a regular-expression scan of every `index.html` outside `overrides`). My earlier tag-stack scan counted 174; I did not find the cause of the difference of 2, and it does not change any conclusion here.
 
 - At 390 px, 154 blocks can be covered by one unscrolled view and one maximum-scroll view; 22 are longer than that and are not decided by this rule.
 - Of the 154, toolbar-attributable uncovered characters: **128 in 64 blocks at the old padding; 4 in 2 blocks at the new padding.** The two residual blocks have an 87-character row (maximum scroll about 360 px): the characters hidden under the toolbar in the unscrolled view fall left of the clip in the end view. They are the same row on the `reference/review-findings` page and in the dossier copy of it. This is a limit of the one-wheel, two-view method for very long rows, which this plan does not claim to remove.
