@@ -1,7 +1,7 @@
 ---
 {
   "id": "20261101T001140Z-pages-scope-supplement-s2-code-toolbar-space",
-  "status": "pending-gate1",
+  "status": "approved",
   "topic": "pages-scope-supplement-code-toolbar-space",
   "affected_paths": [
     "agf/docs/site/stylesheets/agf.css",
@@ -21,15 +21,17 @@
     },
     {
       "role": "contribution-auditor",
-      "status": "pending",
-      "reason": "Plan review recorded BLOCK in e5b2 for the first draft (host report SHA-256 c9fc6bc16430e2e2f8f6ad5220cd332122515cd4fbc5051f907027e635843eb6). This revision answers its three points and awaits a narrow delta review."
+      "status": "consulted",
+      "reason": "Plan BLOCK in e5b2 for the first draft (host report SHA-256 c9fc6bc16430e2e2f8f6ad5220cd332122515cd4fbc5051f907027e635843eb6) was answered by this revision. Plan delta CLEAR is recorded in governor decision mdgr and host report tmp/codex-s2-9c92-delta-review.md SHA-256 244247c1cd02d6bcff71591081708e86812f455aced1d3798e7f75761a3f2911."
     },
     {
       "role": "web-ux-reviewer",
-      "status": "pending",
-      "reason": "Plan consultation recorded BLOCK in e5b2 for the first draft; this revision answers it and awaits a narrow delta review. Rendered review in four modes is a separate later requirement and is not supplied by this plan."
+      "status": "consulted",
+      "reason": "Plan BLOCK in e5b2 for the first draft was answered by this revision. Plan delta CLEAR is recorded in governor decision mdgr and the same host report (SHA-256 244247c1cd02d6bcff71591081708e86812f455aced1d3798e7f75761a3f2911). This is a plan consultation only. Rendered review in four modes is a separate later requirement and is not supplied by this plan."
     }
-  ]
+  ],
+  "gate1_approved_by": "20261101T012427Z-governor-reviewer-mdgr",
+  "gate1_approved_at": "2026-11-01T01:24:27Z"
 }
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
@@ -38,7 +40,7 @@
 # Pages scope supplement S2: space for the code toolbar on narrow displays
 
 Governance mode: STRICT, because one stylesheet rule changes how every code block on every public page renders.
-Status `pending-gate1`. This is a draft for Gate 1. It authorizes no source edit, no capture, no browser or service run, no CI beyond the ordinary MR pipeline and no A3 acceptance. It follows root's planning disposition `rjb6` (Option B) and the evidence in `shrn` and `pm5g`.
+Status `approved`. Gate 1 approved by governor decision `20261101T012427Z-governor-reviewer-mdgr` (2026-11-01T01:24:27Z) at !3471 head `9c92f545c95a1abbd3830d40040fb7e4afdf2eaf`, under delegation `jda1`. That decision also names the sole coder-tester for the one-rule implementation. It authorizes no capture, no browser or service run, no Gate 2, merge or release and no A3 credit or reset. It follows root's planning disposition `rjb6` (Option B) and the evidence in `shrn` and `pm5g`.
 
 Lifecycle: supplements `20261030T163253Z-pages-structure-and-voice`; the parent file is not edited. `agf.css` is also named in the approved plan `20261027T052118Z-gitlab-pages-homepage-modernization`; this plan acknowledges that overlap and changes none of that plan's rules. Collision check against freshly fetched target main (`700f4d72`, after the learning merge): the only live plan on main that declares `agf.css` in `affected_paths` is that one. Three older plans name the file in prose only and declare no `affected_paths`.
 
