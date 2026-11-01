@@ -3235,3 +3235,37 @@ second authority channel. Do not install Kungfu, import `.kungfu/` state,
 create an integration issue, or adopt any Work/Attempt/settlement invariant
 without a separately approved plan and a bounded export, reconstruction,
 privacy, concurrency, and removability evaluation.
+
+# Batch 43 (2026-10-31) — practitioner verification pattern and one unverified lead
+
+## Classified
+
+- https://lethain.com/adopting-verification-pattern/
+  type: practice | relation: prior-art | action: watch
+  note: Practitioner post by Larson, dated 2026-10-30; author and date confirmed by
+  a direct read of the original on 2026-11-01 (review 57ej), which is the primary
+  text. It describes a "verification pattern": each pull request carries a
+  `verifications/{pr_num}.md` file in which an AI harness records the steps it took
+  to verify the change and what it could not verify, and a pull request cannot move
+  from draft to ready without it. The post places automated review and possible
+  human feedback in the loop around that file, and also describes a feedback tool,
+  a daily maintenance loop and centralized guidance. It reports an approximate daily
+  pull request count. It reports no controlled comparison of outcomes. Evidence
+  class: self-reported single-organization practitioner account. Not evaluated
+  further here; the linked tools were not read. (direct read 2026-11-01)
+
+- https://openap.org
+  type: unverified lead | action: watch
+  note: A summarized fetch on 2026-10-31 described a runtime platform for agent
+  authorization under the name "Open Agent Primitives"; the fetch flagged a name
+  mismatch with the domain, and a second reader could not open the site directly on
+  2026-11-01. Identity, owner, licence and content are unverified, and no detail is
+  recorded here. Verify the primary page before any further entry. (reported
+  2026-10-31)
+
+## Evaluation boundary
+
+This classification adopts no practice, tool, schema, hook, dependency or
+integration, adds no AGF requirement, and grants neither source any AGF authority.
+It makes no statement about what AGF does or does not provide. The matching
+non-binding question is retained in `docs/radar.md`.
