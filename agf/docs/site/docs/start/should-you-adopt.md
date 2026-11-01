@@ -141,6 +141,8 @@ human approves at both.
 [Roles in plain terms](../concepts/roles-and-gates.md#roles-in-plain-terms)
 explains who does what. The [framework map](framework-map.md) shows the parts.
 [What AGF is / is not](#what-agf-is-is-not) gives the longer statement.
+AGF ships sixteen role definitions, and a solo project starts with three responsibilities. See
+[Which roles does my project need?](../concepts/roles-and-gates.md#which-roles-does-my-project-need).
 
 ## Cost and accountability
 
