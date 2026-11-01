@@ -1,19 +1,23 @@
 ---
 id: 20261101T195927Z-v300-release-publication
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261101T200727Z-governor-reviewer-gksm
+gate1_approved_at: "2026-11-01T20:07:27Z"
 topic: v300-major-release-publication-through-the-standard-main-path
 candidate_release: v3.0.0
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Review not yet requested. Needed before Gate 1: release-truth inventory, changelog
-      text, gate sequence and the delegation-expiry handling.
+      Independent review `20261101T200725Z-contribution-auditor-krtk` returned CLEAR at
+      42eaba5c with two advisory findings (A1, A2), applied in the approval follow-up. An AI
+      reviewer; Gate 1 is the Human Governor's, `20261101T200727Z-governor-reviewer-gksm`.
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Review not yet requested. Needed before Gate 1: publisher, namespace and credential
-      handling reuse the v2.13.1 controls; the review confirms nothing weaker.
+      The same independent review covered the supply-chain and security lens and returned CLEAR
+      (workspace-only lockfile changes, namespace and tag controls as v2.13.1). It is an AI
+      review, not the CI infosec-sentinel.
 affected_paths:
   - AGENTS.md
   - CHANGELOG.md
@@ -120,7 +124,7 @@ than blanket-replacing `2.13.1`.
 | `agf/agents/MANIFEST.yaml` | 11 | 1 |
 | 16 agent files `agf/agents/<role>.yaml` (`framework_version`), excluding MANIFEST | one per file | 16 |
 | `agf/docs/governance/governance.md` | 5 | 1 |
-| `agf/docs/governance/manifest.md` | 11, 38, 76 | 3 |
+| `agf/docs/governance/manifest.md` | 11, 38, 76 (line 76 is the `to_version` template example) | 3 |
 | `agf/learnings/foundry.yaml` | 38 | 1 |
 | `agf/templates/AGENTS.md` | 3 | 1 |
 | `agf/templates/learning-record.yaml` | 8 | 1 |
@@ -131,8 +135,9 @@ Same boundaries as v2.13.1: metadata only; no change to role status or `played_b
 bodies or historical learning entries. `Cargo.toml` changes the workspace version and three
 internal dependency versions. Regenerate `Cargo.lock` through Cargo and allow exactly the five
 workspace package version changes (agov, agov-core, agov-coord, agov-validators, agov-mcp);
-leave external dependencies and checksums byte-identical. Any other lock change stops for
-diagnosis. The release MR has the A paths plus the two changelogs.
+leave external dependencies and checksums byte-identical. Literal check: `git diff -U0
+tooling/rust/Cargo.lock` shows exactly five changed lines, each `version = "2.13.1"` becoming
+`version = "3.0.0"`. Any other lock change stops for diagnosis. The release MR has the A paths plus the two changelogs.
 
 **B. Latest-published fields, unchanged until verified publication** (then a separate
 status-sync MR): `agf/docs/governance/manifest.md` line 18 and the tagged date;
