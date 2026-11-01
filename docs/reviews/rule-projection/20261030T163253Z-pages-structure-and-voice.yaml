@@ -1,0 +1,161 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial
+# Copyright (c) 2026 Jani Päijänen
+{
+  "plan_id": "20261030T163253Z-pages-structure-and-voice",
+  "changed_pages_or_runbooks": [
+    "agf/docs/site/docs/concepts/roles-and-gates.md",
+    "agf/docs/site/docs/concepts/position.md",
+    "agf/docs/site/docs/start/should-you-adopt.md",
+    "agf/docs/site/docs/start/adopter-faq.md",
+    "agf/docs/site/docs/adopt/downstream-impact.md",
+    "agf/docs/site/use-cases.md",
+    "agf/docs/site/docs/start/commission.md",
+    "agf/docs/site/docs/start/first-governed-change.md",
+    "agf/docs/site/docs/adopt/install-and-layouts.md",
+    "agf/docs/site/docs/operate/day-to-day.md",
+    "agf/docs/site/docs/operate/runbook.md",
+    "agf/docs/site/docs/adopt/upgrade-from-v1.md",
+    "agf/docs/site/docs/adopt/exit-and-decommission.md"
+  ],
+  "surfaces": {
+    "normative_owner": {
+      "disposition": "slices 1 to 3 (merged on main 2c4ff431): slice1: existing pointer sufficient (applicable owners, unchanged by slice 1); slice2: existing pointer sufficient (applicable owners, unchanged by slice 2); slice3: existing pointer sufficient (applicable owners, unchanged by slice 3); slice4: existing pointer sufficient (applicable owners, unchanged by slice 4)",
+      "paths": [
+        "agf/framework.md",
+        "agf/ADOPTING.md",
+        "agf/agents/MANIFEST.example.yaml",
+        "agf/schemas/agent.schema.json",
+        "agf/agents/planner-architect.yaml",
+        "agf/agents/coder-tester.yaml",
+        "agf/agents/governor-reviewer.yaml",
+        "agf/agents/build-engineer.yaml",
+        "agf/agents/infosec-sentinel.yaml",
+        "agf/agents/contribution-auditor.yaml",
+        "agf/agents/fact-checker.yaml",
+        "agf/agents/web-ux-reviewer.yaml",
+        "agf/agents/independent-implementation-reviewer.yaml",
+        "agf/rules/workflow/deputy-governor-rule.md",
+        "agf/rules/always/tool-authority-boundary-rule.md",
+        "agf/rules/ui/accessibility-rule.md"
+      ],
+      "reason": "[slices 1 to 3, merged on main 2c4ff431] [slice1] Slice 1 (Who does what?) edits no owner. Owner-by-owner preservation: framework.md owns the three core roles and the conditional Build Engineer activation; ADOPTING.md section 1.1 owns the role-assignment guidance, the temporary human Coder-Tester and Governor-Reviewer conflict and the informal advisory agents, and its role-selection table owns the situations the new roles table mirrors; the role definitions own the quoted activation_condition triggers, the web-ux-reviewer escalation to the governor-reviewer and the governor-reviewer self-approval prohibition; MANIFEST.example.yaml owns the template-versus-live-manifest distinction; agent.schema.json owns the optional activation_condition field; the deputy rule owns the narrow opt-in Gate 2 route that the page points to; tool-authority-boundary-rule.md owns the statement that tool output is advisory unless a named rule grants blocking authority; accessibility-rule.md owns the WCAG AA bar. The new text restates each, adds no obligation and no delegable category. The base sentence 'No agent both implements and approves its own work.' is replaced under governor decision 5sh2 by the text derived from ADOPTING.md section 1.1; its disposition is in docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md. Later slices extend this inventory with their own pages and owners. [slice2] Slice 2 (Should I adopt?) edits no owner. Owner-by-owner preservation: framework.md owns the three core roles; ADOPTING.md owns the role-selection table and Step 1.1 (the solo trial lists planner-architect, coder-tester and governor-reviewer; Phase 1 temporarily permits one person to play both Coder-Tester and Governor-Reviewer, which the FAQ gate-split answer now states instead of a blanket prohibition); the three role definitions own the responsibilities named; the deputy rule owns the narrow opt-in Gate 2 route (default-off, provisional, written delegation with scope, severity ceiling and expiry, full red list, no self-approval, no Gate 1, release or binding-risk delegation, ultimate approval authority with the human governor). Decide states the default human approval path and points to that route; the FAQ keeps the no-self-approval statement beside the route. Dispositions of every changed or replaced sentence are in docs/reviews/pages-structure-and-voice/20261031-slice-2-preservation-and-anchor-map.md. The A1 Evaluate answer-key sections of should-you-adopt.md keep their lengths (one 8-word phrase replaced by 8 words). Earlier slices' pages are frozen. Later slices extend this inventory. [slice3] Slice 3 edits no owner. The edits are wording and ordering only and change no requirement, prohibition or permission. Dispositions are in docs/reviews/pages-structure-and-voice/20261031-slice-3-preservation-and-anchor-map.md. Earlier slices' pages are frozen. [slice4] Slice 4 edits no owner. The edits are wording and ordering only and change no requirement, prohibition or permission. Dispositions are in docs/reviews/pages-structure-and-voice/20261031-slice-4-preservation-and-anchor-map.md. Earlier slices' pages are frozen."
+    },
+    "adopter_facing_explanation": {
+      "disposition": "updated",
+      "paths": [
+        "agf/docs/site/docs/concepts/roles-and-gates.md",
+        "agf/docs/site/docs/concepts/position.md",
+        "agf/docs/site/docs/start/should-you-adopt.md",
+        "agf/docs/site/docs/start/adopter-faq.md",
+        "agf/docs/site/docs/adopt/downstream-impact.md",
+        "agf/docs/site/use-cases.md",
+        "agf/docs/site/docs/start/commission.md",
+        "agf/docs/site/docs/start/first-governed-change.md",
+        "agf/docs/site/docs/adopt/install-and-layouts.md",
+        "agf/docs/site/docs/operate/day-to-day.md",
+        "agf/docs/site/docs/operate/runbook.md",
+        "agf/docs/site/docs/adopt/upgrade-from-v1.md",
+        "agf/docs/site/docs/adopt/exit-and-decommission.md"
+      ],
+      "reason": "[slices 1 to 3, merged on main 2c4ff431] [slice1] roles-and-gates.md gains a plain-language role explanation, a roster table with quoted triggers, a three-path specialist request section and a corrected opening. position.md defines an agent as a role definition and names the human player case. Under governor decision pbp8 it also corrects four reversed left and right direction words so the prose matches the unchanged runtime-governance-boundary.svg. These are projections of the owners above and do not redefine them. [slice2] should-you-adopt.md: the decision (fit, non-fit, commitments) now precedes the inventory; new short pointer sections (Understand the basics, Cost and accountability, Technical fit, Assistant workflows, Selected use cases) route to the canonical owners; the intro states the default human approval path with a pointer to the deputy route; roles match the owners. adopter-faq.md: the AI-governor answer keeps the deputy route and no-self-approval together; the gate-split answer projects ADOPTING section 1.1 faithfully and is shorter. downstream-impact.md: a plain-language summary of attention, repository changes, responsibility and privacy, terms and exit before the implementation inventory, plus the Licensing pointer. use-cases.md: the two assistant paragraphs now separate loading rule files from role assignment and require claims for non-trivial tasks and, where required, a recorded and acknowledged temporary allocation for concurrent assistants (neither a claim nor loading rules grants role or approval authority; per decision nmrr the earlier phrase \"explicit allocation or claims\" is rejected); the detailed examples are otherwise unchanged. should-you-adopt.md also calls the applicability catalog an incomplete pilot and leaves its coverage numbers on that page. These are projections of the owners and do not redefine them. [slice3] commission.md is titled Set up AGF and names the accountable person before the role name; first-governed-change.md says what Gate 1 and Gate 2 are before the figure; install-and-layouts.md aligns the governor prerequisite and link labels. These are projections of the owners and do not redefine them. [slice4] day-to-day.md: two figure-explanation paragraphs are shortened and the approver boundary is stated (the assigned approver decides; an AI assistant that prepared or implemented the work cannot approve its own work). The new coordination-hygiene bullet \"Evidence is not approval\" projects the coordination, gate and deputy owners: conversation, receipt acknowledgements, reviewer agreement and passing checks do not by themselves approve a change; approval needs a governed, published decision by the authorized actor (a role or a principal) for that gate, in the form its owner defines; the message kind alone is not enough. It introduces no new decision form or permission, and it remains subject to gate-valid decision forms and written deputy conditions. It corrects the first draft, which said \"authorized role\" only, so the old and new authority sentences are not semantically identical. runbook.md: the ordinary governed work row moves first with a pointer sentence. upgrade-from-v1.md: a short lead says who decides; the checklist may be followed directly or by an assistant the human directs, and neither path skips a safeguard. exit-and-decommission.md: a short lead names the human governor as the decider and points to Table 1; the figure explanation is shortened. All removal and preservation caveats are kept. These are projections of the owners and do not redefine them."
+    },
+    "runbook_situation_map": {
+      "disposition": "slices 1 to 3 (merged on main 2c4ff431): not applicable; slice4: updated",
+      "paths": [
+        "agf/docs/site/docs/operate/runbook.md"
+      ],
+      "reason": "[slices 1 to 3, merged on main 2c4ff431] [slice1] Slice 1 changes no runbook or situation map. The specialist request steps are an explanation on the roles page, not a procedure in the operations hub. Slice 4 handles the operating hub. [slice2] Slice 2 changes no runbook or situation map. Slice 4 handles the operating hub. [slice3] Slice 3 changes no runbook. [slice4] The ordinary-work row moves first and a one-sentence pointer is added. No procedure changes."
+    },
+    "ai_landing_loaders": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "AGENTS.md",
+        "agf/templates/AGENTS.md",
+        ".claude/CLAUDE.md"
+      ],
+      "reason": "[slices 1 to 3, merged on main 2c4ff431] [slice1] Loader routes and role authority are unchanged. No loader edit is in scope. [slice2] Loader routes and role authority are unchanged. No loader edit is in scope. [slice3] Loader routes and role authority are unchanged. No loader edit is in scope. [slice4] Loader routes and role authority are unchanged. No loader edit is in scope."
+    },
+    "validation_drift_evidence": {
+      "disposition": "advisory only",
+      "paths": [
+        "agf/rules/workflow/documentation-rule-projection-rule.md",
+        "docs/reviews/pages-structure-and-voice/slice-report-extractor.py",
+        "docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md",
+        "docs/reviews/pages-structure-and-voice/20261031-slice-2-preservation-and-anchor-map.md",
+        "docs/reviews/pages-structure-and-voice/20261031-slice-3-preservation-and-anchor-map.md",
+        "docs/reviews/pages-structure-and-voice/20261031-slice-4-preservation-and-anchor-map.md"
+      ],
+      "reason": "[slices 1 to 3, merged on main 2c4ff431] [slice1] Strict agov plan projection-check checks structure and distribution. The committed extractor and its report give reproducible keyword-sentence, heading-id and anchor-link evidence. They cannot establish semantic equality. Independent factual review of the new sections against the owners, and independent rendered review, remain required. [slice2] Strict agov plan projection-check checks structure and distribution. The committed extractor and its report give reproducible keyword-sentence, heading-id and anchor-link evidence. They cannot establish semantic equality. Independent factual review and independent rendered review remain required. [slice3] Strict agov plan projection-check checks structure and distribution. The committed extractor gives reproducible keyword-sentence, heading-id and anchor evidence; it cannot establish semantic equality. Independent factual and rendered review remain required. [slice4] Strict agov plan projection-check checks structure and distribution. The committed extractor gives reproducible keyword-sentence, heading-id and anchor evidence; it cannot establish semantic equality. Independent factual and rendered review remain required."
+    },
+    "distribution": {
+      "disposition": "existing pointer sufficient",
+      "paths": [
+        "agf/docs/site/docs/concepts/roles-and-gates.md",
+        "agf/docs/site/docs/concepts/position.md",
+        "agf/framework.md",
+        "agf/ADOPTING.md",
+        "agf/agents/MANIFEST.example.yaml",
+        "agf/schemas/agent.schema.json",
+        "agf/agents/planner-architect.yaml",
+        "agf/agents/coder-tester.yaml",
+        "agf/agents/governor-reviewer.yaml",
+        "agf/agents/build-engineer.yaml",
+        "agf/agents/infosec-sentinel.yaml",
+        "agf/agents/contribution-auditor.yaml",
+        "agf/agents/fact-checker.yaml",
+        "agf/agents/web-ux-reviewer.yaml",
+        "agf/agents/independent-implementation-reviewer.yaml",
+        "agf/rules/workflow/deputy-governor-rule.md",
+        "agf/rules/always/tool-authority-boundary-rule.md",
+        "agf/rules/ui/accessibility-rule.md",
+        "agf/templates/AGENTS.md",
+        "agf/docs/site/docs/start/should-you-adopt.md",
+        "agf/docs/site/docs/start/adopter-faq.md",
+        "agf/docs/site/docs/adopt/downstream-impact.md",
+        "agf/docs/site/use-cases.md",
+        "agf/docs/site/docs/start/commission.md",
+        "agf/docs/site/docs/start/first-governed-change.md",
+        "agf/docs/site/docs/adopt/install-and-layouts.md",
+        "agf/docs/site/docs/operate/day-to-day.md",
+        "agf/docs/site/docs/operate/runbook.md",
+        "agf/docs/site/docs/adopt/upgrade-from-v1.md",
+        "agf/docs/site/docs/adopt/exit-and-decommission.md"
+      ],
+      "reason": "[slices 1 to 3, merged on main 2c4ff431] [slice1] The two edited pages and the cited owners ship in the AGF distribution. Recheck archive inclusion at implementation acceptance. The review artifacts, the extractor and the Foundry-local loaders are project-local. [slice2] The four edited slice-2 pages (should-you-adopt.md, adopter-faq.md, downstream-impact.md and use-cases.md; per decision nmrr the earlier count of three is corrected) and the cited owners ship in the AGF distribution. Recheck archive inclusion at implementation acceptance. The review artifacts, the extractor and the Foundry-local loaders are project-local. [slice3] The edited pages and cited owners ship in the AGF distribution. The review artifacts and the extractor are project-local. [slice4] The edited pages and cited owners ship in the AGF distribution. The review artifacts and the extractor are project-local.",
+      "not_applicable": [
+        {
+          "path": "AGENTS.md",
+          "reason": "Foundry-local loader, not a promised adopter payload."
+        },
+        {
+          "path": ".claude/CLAUDE.md",
+          "reason": "Foundry-local loader, not a promised adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/slice-report-extractor.py",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/20261031-slice-1-preservation-and-anchor-map.md",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        },
+        {
+          "path": "docs/reviews/rule-projection/20261030T163253Z-pages-structure-and-voice.yaml",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/20261031-slice-2-preservation-and-anchor-map.md",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/20261031-slice-3-preservation-and-anchor-map.md",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        },
+        {
+          "path": "docs/reviews/pages-structure-and-voice/20261031-slice-4-preservation-and-anchor-map.md",
+          "reason": "Foundry-local review evidence, not an adopter payload."
+        }
+      ]
+    }
+  }
+}

@@ -36,12 +36,15 @@ unit tests structurally miss.
 **One assistant across sessions, or several assistants working in parallel.**
 The framework places no requirement on how many AI tools are involved. A single
 assistant — Claude Code, Codex CLI, Cursor, Windsurf, or any tool that loads
-the rule files — can fill every role sequentially across work sessions; the
-coordination channel preserves continuity between them.
+the rule files — can play eligible AI roles one after another across work
+sessions, within each role's limits. Loading files does not assign a role or
+grant approval authority; the human governor remains accountable for approvals.
+The coordination channel preserves continuity between sessions.
 
-When several assistants are active simultaneously, each holds a distinct role
-and exchanges work through the same channel. One assistant commits a handoff
-entry and pushes it; another pulls and picks it up. The medium is git: plain
+When several assistants are active, each works within an authorized role
+assignment and a separate work boundary. Non-trivial tasks need claims, and any
+required temporary allocation must be recorded and acknowledged. They exchange
+work through the same channel. One assistant commits a handoff entry and pushes it; another pulls and picks it up. The medium is git: plain
 files in the repository, no shared runtime, no message API, no session
 continuity required between the tools. Each assistant is configured
 independently with the framework rules and reads only what the coordination

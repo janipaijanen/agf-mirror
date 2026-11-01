@@ -121,28 +121,24 @@ governor become ceremony.
 
 Yes, when the arrangement is explicit, authorized, and sequential. Person A
 may approve the plan at Gate 1 and Person B may review the implementation at
-Gate 2. This can add an independent implementation review, but AGF does not
-require two people.
+Gate 2. AGF does not require two people, and its validated minimum remains one
+governor at a time. Treat split-person gates as a pilot and write a learning
+record when you try it.
 
-Use this minimum checklist:
+If you split the gates, record who owns each gate and the repository, change,
+and period it covers. Give the Gate 2 reviewer the exact approved plan, the
+Gate 1 decision, its conditions, and the accepted risks. At Gate 2, compare both
+the diff and the evidence with that exact plan. Send scope changes back to
+Gate 1 instead of rewriting the plan at Gate 2. Name one primary governor or
+project authority who resolves disagreement.
 
-- record who owns each gate, including the repository, change, and time period
-  covered by that authority;
-- give the Gate 2 reviewer the exact approved plan, Gate 1 decision, conditions,
-  and accepted risks;
-- at Gate 2, compare the diff and evidence with that exact plan;
-- send scope changes back to Gate 1 instead of silently rewriting the plan at
-  Gate 2;
-- name one primary governor or project authority who resolves disagreement;
-- do not let either approver approve implementation they personally performed
-  while acting as coder-tester.
-
-This is a handoff of one decision role between people, not two simultaneous
-governors with unclear precedence. AGF v2's validated minimum remains one
-governor at a time. Treat split-person gates as a team operating pattern or
-pilot, not as a universally validated design, and write a learning record when
-you try it. See [roles and gates](../concepts/roles-and-gates.md) for the
-canonical rotation, delegation, and conflict-of-interest guidance.
+Prefer an approver who did not implement the change. The adoption guide
+([section 1.1](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/ADOPTING.md#11-assign-roles))
+allows one person to play both Coder-Tester and Governor-Reviewer temporarily
+in Phase 1, when separation is not possible. Record that choice. An
+implementing assistant never approves its own work. See
+[roles and gates](../concepts/roles-and-gates.md) for the canonical rotation,
+delegation, and conflict-of-interest guidance.
 
 ## Can AI act as a governor?
 
@@ -159,6 +155,16 @@ mode. A project may experiment with stronger AI delegation only as a local
 extension, with a human explicitly accepting the risk, defining what the AI is
 allowed to approve, and staying accountable for the outcome. If nobody human is
 prepared to bear that risk, the project does not have a governor.
+
+AGF does ship one narrow route for eligible Gate 2 decisions. It is off by
+default and provisional. A named deputy may approve certain Gate 2 items under
+a written delegation with scope, severity ceiling, and expiry. The
+[deputy-governor rule](https://gitlab.com/janipaijanen/agents-govern-framework/-/blob/main/agf/rules/workflow/deputy-governor-rule.md)
+keeps a red list that is never delegable. A deputy does not approve its own
+work: role definitions still forbid self-approval. The route does not make an
+AI the governor, and the human governor retains ultimate approval authority.
+See
+[approval authority and optional deputies](../concepts/roles-and-gates.md#approval-authority-and-optional-deputies).
 
 ## How much governor time should we expect?
 
@@ -325,9 +331,12 @@ authority you name in `identifier_namespace`, for example a GitLab project or
 organisation namespace. If individual attribution creates more privacy risk
 than audit value, use a team alias, rotating duty alias, or batch grant instead.
 
-Delegation does not transfer gate authority. A principal may authorize patch
-preparation, evidence collection, or test runs; Gate 1, Gate 2, release
-approval, and binding risk acceptance still require the governor-reviewer.
+A delegation grant does not transfer gate authority. A principal may authorize
+patch preparation, evidence collection, or test runs. These grants never
+delegate Gate 1, release approval, or binding risk acceptance, and a grant alone
+never delegates a Gate 2 decision. The only delegated Gate 2 approval route
+described here is the narrow opt-in deputy route in
+[approval authority and optional deputies](../concepts/roles-and-gates.md#approval-authority-and-optional-deputies).
 
 This convention is optional and docs-only in v2.x. Tooling may accept the
 fields syntactically, but it does not enforce delegation semantics yet.

@@ -8,7 +8,7 @@
  viewBox="0.00 0.00 687.29 529.96" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 508.36)">
 <title>Coordination channel</title>
-<desc>Claims, handoffs, reviews, decision records, completions, and notes connect governed roles while decision records alone carry gating authority.</desc>
+<desc>Claims, handoffs, reviews, decision records, completions, and notes connect governed roles. Authority follows the authorized actor and the governed decision, not the message kind alone.</desc>
 <polygon fill="white" stroke="transparent" points="-21.6,21.6 -21.6,-508.36 665.69,-508.36 665.69,21.6 -21.6,21.6"/>
 <g id="clust1" class="cluster">
 <title>cluster_shapekey</title>

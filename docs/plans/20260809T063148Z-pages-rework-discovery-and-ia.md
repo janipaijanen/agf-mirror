@@ -1,6 +1,9 @@
 ---
 id: 20260809T063148Z-pages-rework-discovery-and-ia
-status: pending-gate1
+status: superseded
+superseded_by: 20261030T163253Z-pages-structure-and-voice
+superseded_decision: 20261030T170103Z-governor-reviewer-rp8p
+superseded_at: "2026-10-30T17:01:03Z"
 topic: pages-rework-discovery-and-ia
 advisory_consultation:
   - role: contribution-auditor

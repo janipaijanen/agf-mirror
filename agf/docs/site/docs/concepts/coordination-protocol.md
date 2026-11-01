@@ -203,6 +203,11 @@ immediate.
 
 [Open the full-size Gate 1-to-Gate 2 handoff sequence (SVG)](../../reference/figures/gate-handoff-sequence.svg)
 
+Conversation, receipt acknowledgements, reviewer agreement and passing checks do
+not by themselves approve a change. Approval requires a published decision by
+the authorized actor, a role or a principal, for that gate under the applicable
+rules. The message kind alone does not decide who may approve.
+
 *Palette note: AI actions and handoffs use rounded blue nodes, human Gate
 review and the decision record use amber diamonds, and acknowledgement and
 completion records use dashed grey nodes. The same meanings are carried by
@@ -223,79 +228,123 @@ being merged.
 
 ## Miniature example thread
 
-A complete four-file thread from Gate 1 approval to task closure.
+A complete five-file thread from Gate 1 approval to task closure. It is illustrative: it grants no approval or merge authority, and schema validity does not show that a real pipeline, publication or approval occurred.
 
-**Step 1 — Gate 1 plan approved** (`20260614T120000Z-pa-add-export-feature.md`)
+**Step 1 — Gate 1 plan filed** (`20260614T120000Z-planner-architect-k3m7.md`)
 
 ```markdown
 ---
-id: 20260614T120000Z-pa-add-export-feature
+kind: handoff
 from: planner-architect
 to: governor-reviewer
-kind: handoff
+id: 20260614T120000Z-planner-architect-k3m7
+timestamp: 2026-06-14T12:00:00Z
+immutable: true
+references-to: []
 topic: add-export-feature
-status: pending
 requires-ack: false
+handoff:
+  next_agent: governor-reviewer
+  status: ready
+  task:
+    - Review the Gate 1 plan for the CSV export route and decide whether implementation may start.
+  must_read:
+    - docs/plans/add-export-feature.md
+  do_not_touch:
+    - src/
 ---
 
-Gate 1 plan filed for CSV export route.
-See docs/plans/add-export-feature.md.
+Gate 1 plan filed for the CSV export route. See `docs/plans/add-export-feature.md`.
 ```
 
-**Step 2 — Governor approves** (`20260614T121500Z-gr-add-export-feature.md`)
+**Step 2 — Governor approves the plan (Gate 1)** (`20260614T121500Z-governor-reviewer-p4w9.md`)
 
 ```markdown
 ---
-id: 20260614T121500Z-gr-add-export-feature
+kind: decision-record
 from: governor-reviewer
 to: planner-architect
-kind: decision-record
-topic: add-export-feature
-status: approved
+id: 20260614T121500Z-governor-reviewer-p4w9
+timestamp: 2026-06-14T12:15:00Z
+immutable: true
 references-to:
-  - 20260614T120000Z-pa-add-export-feature.md
+  - 20260614T120000Z-planner-architect-k3m7.md
+topic: add-export-feature
+requires-ack: false
 ---
 
-Gate 1 approved. Proceed with implementation.
+Gate 1 approved. Implementation may start on a feature branch.
 ```
 
-**Step 3 — Coder-tester files Gate 2** (`20260614T150000Z-ct-add-export-feature.md`)
+**Step 3 — Coder-tester files the Gate 2 handoff** (`20260614T150000Z-coder-tester-r2c5.md`)
 
 ```markdown
 ---
-id: 20260614T150000Z-ct-add-export-feature
+kind: handoff
 from: coder-tester
 to: governor-reviewer
-kind: handoff
-topic: add-export-feature
-status: pending
-requires-ack: false
+id: 20260614T150000Z-coder-tester-r2c5
+timestamp: 2026-06-14T15:00:00Z
+immutable: true
 references-to:
-  - 20260614T121500Z-gr-add-export-feature.md
+  - 20260614T121500Z-governor-reviewer-p4w9.md
+topic: add-export-feature
+requires-ack: false
+handoff:
+  next_agent: governor-reviewer
+  status: ready
+  task:
+    - Review the implementation at the exact head below and decide whether it may merge (Gate 2).
+  must_read:
+    - docs/plans/add-export-feature.md
+  do_not_touch:
+    - agf/
 ---
 
-Gate 2 handoff. Branch: feat/add-export-feature.
-Tests pass. MR link: <url>.
+Gate 2 handoff. Branch `feat/add-export-feature`; tests pass; merge request link: `<url>`.
+Exact head: `0123456789abcdef0123456789abcdef01234567` (illustrative, not a real commit).
 ```
 
-**Step 4 — Closure** (`20260614T160000Z-ct-add-export-feature-done.md`)
+**Step 4 — Governor approves the result (Gate 2)** (`20260614T153000Z-governor-reviewer-t8h1.md`)
 
 ```markdown
 ---
-id: 20260614T160000Z-ct-add-export-feature-done
-from: coder-tester
-to: all
-kind: completion
-topic: add-export-feature
-status: resolved
+kind: decision-record
+from: governor-reviewer
+to: coder-tester
+id: 20260614T153000Z-governor-reviewer-t8h1
+timestamp: 2026-06-14T15:30:00Z
+immutable: true
 references-to:
-  - 20260614T150000Z-ct-add-export-feature.md
+  - 20260614T150000Z-coder-tester-r2c5.md
+topic: add-export-feature
+requires-ack: false
 ---
 
-Merged. MR squash-merged to main at commit abc1234.
+Gate 2 approved for exact head `0123456789abcdef0123456789abcdef01234567` (illustrative, not a real commit), named in the handoff. The change may merge.
 ```
 
-The four files form a navigable chain: plan → approval → implementation → closure.
+**Step 5 — Closure** (`20260614T160000Z-coder-tester-v6n3.md`)
+
+```markdown
+---
+kind: completion
+from: coder-tester
+to: all
+id: 20260614T160000Z-coder-tester-v6n3
+timestamp: 2026-06-14T16:00:00Z
+immutable: true
+references-to:
+  - 20260614T153000Z-governor-reviewer-t8h1.md
+  - 20260614T150000Z-coder-tester-r2c5.md
+topic: add-export-feature
+requires-ack: false
+---
+
+Merged after Gate 2 approval. The export route is on the main branch.
+```
+
+The five files form a navigable chain: plan → approval → implementation → Gate 2 decision → closure.
 Each `references-to:` field links backward; `agov session resume` and
 `agov coord graph-index` follow the chain forward.
 

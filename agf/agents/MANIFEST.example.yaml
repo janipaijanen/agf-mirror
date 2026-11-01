@@ -86,3 +86,7 @@ agents:
   independent-implementation-reviewer:
     status: skipped
     reason: "copy this file to MANIFEST.yaml and set your project's real roles"
+
+  documentation-estate-steward:
+    status: skipped
+    reason: "copy this file to MANIFEST.yaml and set your project's real roles"

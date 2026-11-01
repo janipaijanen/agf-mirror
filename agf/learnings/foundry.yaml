@@ -5941,6 +5941,68 @@ learnings:
       evidence_refs:
         - 'docs/plans/20260905T210255Z-universal-agent-autonomous-polling.md: non-reentrant scheduled polling requirement.'
 
+  - id: "20261031T223724Z-uq2c"
+    date: "2026-10-31"
+    category: gap
+    scope: framework
+    title: "Explain the solo operating arrangement before the role library"
+    description: >
+      During a user-relayed external AI assessment, the reviewer inferred
+      heavy per-change overhead from the number of shipped role definitions.
+      After source-backed clarification, the user reported that the reviewer
+      withdrew that inference and distinguished definitional inventory from
+      operational work. This is one reported assessment exchange, not an
+      independent adoption study or verified evidence that the assessor read
+      every cited page. The maintainer reported no perceived burden or cost
+      in their own use; this is relevant experience, not a general benchmark.
+      Existing guidance permits a solo human governor and one assistant
+      performing eligible planning and implementation responsibilities.
+      Shipped definitions, locally assigned roles, players or sessions, and
+      required reviews are different quantities. Any inventory count used in
+      adoption guidance must name the exact target revision; a stale review
+      branch is not evidence of the current shipped or target configuration.
+      The exchange also exposed two reasoning boundaries: schema conformance
+      is distinct from cross-project empirical corroboration, and detecting
+      and routing a defect is not completed remediation. A concrete published
+      coordination-example validation finding remains a separate work item;
+      this learning does not mark it corrected.
+    agents_involved:
+      - planner-architect
+      - coder-tester
+      - governor-reviewer
+    framework_section: "Role activation, adoption calibration and evidence status"
+    business_impact:
+      type: neutral
+      description: >
+        One reported evaluation misunderstanding was corrected. No onboarding
+        time, review effort, model-token use, billing impact, net savings or
+        adoption outcome was measured. The comprehension and filtering cost
+        of the library remains an open measurement question.
+    recommendation: >
+      Present the solo operating arrangement before the role inventory and
+      distinguish available role definitions from assigned responsibilities,
+      people or sessions and work required for a change. Preserve mandatory
+      specialist and independent-review triggers, gate authority and the
+      documented option to retain the full rule set. Do not imply that a
+      smaller packaged starter ships, that pruning is required, or that a
+      role definition alone starts a model. Treat onboarding or token cost
+      as a hypothesis until measured; do not infer either heavy burden or
+      zero overhead from inventory size. Keep schema validity, capability
+      maturity and empirical evidence status separate, and report correction
+      completion only after its required review, validation and publication.
+      Implement the bounded wording through the separately reviewed current
+      documentation supplement; this record activates no role, changes no
+      rule and grants no gate or capture authority.
+    severity: minor
+    status: proposed
+    confidence:
+      level: single-adopter
+      evidence_count: 1
+      evidence_refs:
+        - "docs/coordination/20261031T221343Z-coder-tester-gr3g.md"
+        - "docs/coordination/20261031T221859Z-planner-architect-r4jk.md"
+        - "docs/coordination/20261031T222441Z-planner-architect-mgg7.md"
+
 sentinel_ack:
   - finding_id: "ISEC-CROSSRECORD-001"
     decision: "false_positive"
