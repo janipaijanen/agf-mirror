@@ -1,6 +1,8 @@
 ---
 id: 20261101T191112Z-major-release-scope
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261101T192401Z-governor-reviewer-qhjr
+gate1_approved_at: "2026-11-01T19:24:01Z"
 topic: major-release-scope-carrying-the-forge-evidence-rule
 candidate_release: v3.0.0
 affected_paths:
@@ -10,15 +12,17 @@ depends_on:
   - 20261030T160040Z-forge-evidence-rule
 advisory_consultation:
   - role: contribution-auditor
-    status: pending
+    status: consulted
     reason: >-
-      Review not yet requested. The scope plan fixes what a BREAKING release
-      carries; the request goes with the Gate 1 handoff.
+      Independent review `20261101T192358Z-contribution-auditor-mqrr` returned CLEAR at
+      49d0d52a with three advisory findings (F1 to F3), applied in the approval follow-up.
+      An AI reviewer, not a human audit; Gate 1 is `20261101T192401Z-governor-reviewer-qhjr`.
   - role: infosec-sentinel
-    status: pending
+    status: consulted
     reason: >-
-      Review not yet requested. The plan changes no code or secret surface; the
-      request goes with the Gate 1 handoff so the governor can waive or route it.
+      The same independent review covered the security lens and returned CLEAR. The plan
+      changes no code, secret or privacy surface. It is an AI review, not the CI
+      infosec-sentinel.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -42,9 +46,12 @@ work. That approval does not choose a version, date or content.
 - `agf/CHANGELOG.md` `## [Unreleased]` held only the forge-evidence entry after MR !3482
   merged (`00ee06f6`, Gate 2 `20261101T191700Z-governor-reviewer-pr6h`). The other merged
   adopter-facing items below still have no changelog entry.
-- Since the tag, nothing under `agf/rules`, `agf/schemas`, `tooling/` or CI changed on
-  `main` (checked in the inventory plan). Adopter-facing changes on `main` are docs, the
-  `MANIFEST.example.yaml` example, `ADOPTING.md` role text, figures and one learning record.
+- Since the tag, nothing under `agf/schemas`, `tooling/` or CI changed on `main`. The only
+  rule, template and loader changes are the forge rule and its projections (the rule file, the
+  description-rule pointer, the rules README, one template line and the foundry-local
+  `INDEX.md` row, `settings.json` glob and `AGENTS.md` route). Other adopter-facing changes are
+  docs, the `MANIFEST.example.yaml` example, `ADOPTING.md` role text, figures and one learning
+  record.
 
 ## Version (decided)
 
@@ -59,11 +66,14 @@ authorizes the tag and publication.
    its projections and the migration note. Independent review CLEAR at `7da8b01d`. Gate 2
    and merge are separate decisions (S1).
 2. **Everything already merged to `main` since v2.13.1** (a standard release ships `main`
-   as it stands): Pages slices 1 to 4, communication-authority and source-consistency
-   G1 to G5 edits, role-table corrections in `ADOPTING.md`, `install-and-layouts` and
-   `quick-reference`, the `MANIFEST.example.yaml` skipped-role example, scope supplement S1,
-   the solo-role learning record and the changelog SPDX header repair. Each needs a changelog
-   entry with an `Adopter docs:` line, because the Unreleased section is empty.
+   as it stands). The publication plan enumerates it from all `agf/docs/**` and `ADOPTING.md`
+   changes in `git diff db300c09 origin/main`. Known groups: Pages slices 1 to 4,
+   communication-authority and source-consistency G1 to G5 edits, role-table corrections in
+   `ADOPTING.md`, `install-and-layouts` and `quick-reference`, the `MANIFEST.example.yaml`
+   skipped-role example, governance manifest and roadmap pages, scope supplement S1, the
+   solo-role learning record and the changelog SPDX header repair. Each needs a changelog
+   entry with an `Adopter docs:` line. One `[3.0.0]` entry carries the BREAKING marker and the
+   migration note for the forge rule; no other item is BREAKING.
 
 ## Undecided content
 
