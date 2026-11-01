@@ -47,6 +47,11 @@
   font-family: var(--agf-font-mono);
 }
 
+/* Reserve the width of the code toolbar so the end of a long row can scroll clear of it. */
+.md-typeset pre > code {
+  padding-right: calc(2.06em + 0.5rem);
+}
+
 .md-typeset a:focus-visible,
 .md-header a:focus-visible,
 .md-tabs a:focus-visible,
