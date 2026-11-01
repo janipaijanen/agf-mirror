@@ -1,6 +1,8 @@
 ---
 id: 20261030T160040Z-forge-evidence-rule
-status: pending-gate1
+status: approved
+gate1_approved_by: 20261101T120448Z-governor-reviewer-saps
+gate1_approved_at: "2026-11-01T12:04:48Z"
 topic: forge-publication-evidence-boundary-rule
 depends_on:
   - 20260913T085123Z-work-item-steward-gate1
@@ -41,17 +43,19 @@ advisory_consultation:
   - role: infosec-sentinel
     status: consulted
     reason: >-
-      Three independent review rounds returned BLOCK findings. Round 1, exact
-      66e5ab2e: `20261030T160913Z-contribution-auditor-gdjm`. Round 2, exact
-      5e2f8221: `20261030T165922Z-contribution-auditor-q48r`. Round 3, exact
-      ff368bdb: an independent InfoSec and privacy review (two blocking findings
-      on the privacy examples and on the attribution of existing exclusions,
-      two advisory), recorded in `20261101T111215Z-contribution-auditor-6kn8`.
-      Round 4, exact 6fe9948f: an independent re-review returned CLEAR with
-      three advisory wording findings, recorded in the round-4 review record
-      named in the round-4 handoff. This revision applies those wording fixes.
-      It is NOT cleared: the revised exact head still needs a decision on
-      further independent re-review.
+      Four independent review rounds. Rounds 1 to 3 returned BLOCK findings, all
+      answered. Round 1, exact 66e5ab2e: `20261030T160913Z-contribution-auditor-gdjm`.
+      Round 2, exact 5e2f8221: `20261030T165922Z-contribution-auditor-q48r`.
+      Round 3, exact ff368bdb: an independent InfoSec and privacy review (two
+      blocking findings on the privacy examples and on the attribution of
+      existing exclusions, two advisory), recorded in
+      `20261101T111215Z-contribution-auditor-6kn8`. Round 4, exact 6fe9948f: an
+      independent re-review returned CLEAR with three advisory wording findings,
+      recorded in `20261101T112422Z-contribution-auditor-432p`. A narrow
+      exact-diff review at 5a33651b returned CLEAR with three advisory items,
+      recorded in `20261101T114325Z-contribution-auditor-m2ee`. The reviews are
+      by AI agents, not the CI infosec-sentinel. Gate 1 was decided in
+      `20261101T120448Z-governor-reviewer-saps`.
   - role: contribution-auditor
     status: consulted
     reason: >-
@@ -63,10 +67,11 @@ advisory_consultation:
       `20261101T111215Z-contribution-auditor-6kn8`. Round 4, exact 6fe9948f:
       an independent re-review resolved every earlier finding and returned
       BLOCK on one stale sentence that let the implementation land before the
-      next freeze, plus advisory wording findings, recorded in the round-4
-      review record named in the round-4 handoff. This revision fixes them. It
-      is NOT cleared: the revised exact head still needs a decision on further
-      independent re-review.
+      next freeze, plus advisory wording findings, recorded in
+      `20261101T112422Z-contribution-auditor-432p`. That was fixed, and a narrow
+      exact-diff review at 5a33651b returned CLEAR with three advisory items,
+      recorded in `20261101T114325Z-contribution-auditor-m2ee`. Gate 1 was
+      decided in `20261101T120448Z-governor-reviewer-saps`.
 ---
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 OR LicenseRef-AgentsGovern-Commercial -->
 <!-- Copyright (c) 2026 Jani Päijänen -->
@@ -378,8 +383,6 @@ and Gate 2.
 
 ## Gate 1 request
 
-Approve this plan; D1 is already decided as option A. Both advisory rows record
-the earlier BLOCK findings (rounds 1 to 3) and are not cleared; independent
-re-review of the revised exact head is requested before the Gate 1 decision.
-Status stays `pending-gate1` until a `governor-reviewer` record approves Gate 1
-and names the exact reviewed head.
+Approved at exact head 5a33651b in `20261101T120448Z-governor-reviewer-saps`; D1 is
+option A. The advisory rows record all four review rounds (rounds 1 to 4). The
+approval authorizes no implementation merge, release, tag, version or date.
