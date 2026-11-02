@@ -7,6 +7,8 @@ distribution.
 
 ## [Unreleased]
 
+## [3.0.0] — 2026-11-03
+
 ### Changed
 
 - **BREAKING (major release only): merge request and issue text cites durable
@@ -19,11 +21,58 @@ distribution.
   `external-anonymization-rule.md`. No automated check is added. **Migration:**
   authors and assistants that cite chat messages as approvals in merge request or
   issue text switch to the decision record or plan that holds the decision;
-  existing text and records are not rewritten. This entry is not for any v2.x
-  release (governor decision `20261101T105902Z-governor-reviewer-kqgp`; Gate 1
+  existing text and records are not rewritten. Released in 3.0.0 (governor decision `20261101T105902Z-governor-reviewer-kqgp`; Gate 1
   `20261101T120448Z-governor-reviewer-saps`). Adopter docs: updated
   (`agf/docs/site/docs/operate/day-to-day.md`, `agf/templates/AGENTS.md`,
   `agf/rules/README.md`).
+- **Documentation Pages restructured around the reader's questions.** Role and
+  authority pages (`position.md`, `roles-and-gates.md`) were corrected to match
+  their figures and the deputy rule; the adoption decision route (Decide) and
+  FAQ were aligned with the corrected role wording; the first-setup and
+  first-governed-change walkthroughs were rewritten around the default path;
+  day-to-day operation, runbook, upgrade and exit pages were reworked. Setup
+  and role wording was mirrored into `ADOPTING.md`, the example manifest and
+  the quick reference, including that the learning-record and contribution
+  roles are required on their triggers. Adopter docs: updated
+  (`agf/docs/site/docs/concepts/position.md`,
+  `agf/docs/site/docs/concepts/roles-and-gates.md`,
+  `agf/docs/site/docs/start/should-you-adopt.md`,
+  `agf/docs/site/docs/start/adopter-faq.md`,
+  `agf/docs/site/docs/start/commission.md`,
+  `agf/docs/site/docs/start/first-governed-change.md`,
+  `agf/docs/site/docs/adopt/install-and-layouts.md`,
+  `agf/docs/site/docs/adopt/downstream-impact.md`,
+  `agf/docs/site/docs/adopt/exit-and-decommission.md`,
+  `agf/docs/site/docs/adopt/upgrade-from-v1.md`,
+  `agf/docs/site/docs/operate/day-to-day.md`,
+  `agf/docs/site/docs/operate/runbook.md`,
+  `agf/docs/site/docs/advanced/customizing-the-framework.md`,
+  `agf/docs/site/use-cases.md`, `agf/ADOPTING.md`,
+  `agf/agents/MANIFEST.example.yaml`, `agf/docs/reference/quick-reference.md`).
+- **Coordination channel figure and communication wording.** The coordination
+  figure and its source were updated, and the coordination-protocol page now
+  says approval needs a published decision by the authorized actor. A dossier
+  notice and wording fixes were added across the Pages. Adopter docs: updated
+  (`agf/docs/site/docs/concepts/coordination-protocol.md`,
+  `agf/docs/site/reference/figures.md`,
+  `agf/docs/site/overrides/main.html`).
+- **Home page rewritten** from the reviewed proposal; anchors and both calls to
+  action are preserved. Adopter docs: updated (`agf/docs/site/index.md`).
+- **Telemetry method explained.** The tooling and tokens page now states what
+  the telemetry measures and its limits. Adopter docs: updated
+  (`agf/docs/site/docs/adopt/tooling-and-tokens.md`).
+- **Code blocks reserve toolbar width.** One CSS rule adds right padding to code
+  inside `pre` so the copy control does not cover text on narrow displays.
+  Adopter docs: updated (`agf/docs/site/stylesheets/agf.css`).
+- **Verified publication status for v2.13.1** is reflected in the governance
+  manifest page and the roadmap. Adopter docs: updated
+  (`agf/docs/governance/manifest.md`, `agf/docs/site/roadmap.md`).
+
+### Added
+
+- **Solo-role guidance learning record** (calibrated solo role guidance) in the
+  foundry learning file. Adopter docs: updated (`agf/learnings/foundry.yaml`).
+
 
 ## [2.13.1] — 2026-10-30
 
