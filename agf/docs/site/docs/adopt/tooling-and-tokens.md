@@ -234,20 +234,15 @@ from source on its own.
 
 ## Why meter at the governance gate
 
-"You cannot optimise what you do not meter, and you cannot meter what flows
-through no chokepoint."
+Instrumented `agov` invocations can record command and workflow labels and
+CLI-produced output size in a local JSONL log. These labels describe logged
+operations; they do not authenticate the assistant or attribute API spending
+to a role or approval decision.
 
-Every agent invocation passes through one or more AGF gates: coordination
-validation, handoff routing, session resume. Capturing token consumption at
-those chokepoints produces attribution data that API-level billing cannot: cost
-per role, per coordination message kind, per gate pass. API billing shows total
-spend; gate-level metering shows which governance activity caused it.
-
-This matters for efficiency decisions. "AI is expensive" is not actionable.
-"Session-resume accounts for 40% of coordination overhead and runs 12 times
-per day" is. The `agov token roi report` command reads the local JSONL telemetry
-and surfaces savings per command, giving teams the visibility to reduce
-coordination overhead without reducing coordination discipline.
+Use `agov token roi report` to inspect logged output volume and the estimates
+stored in those records. Large or repeated outputs can suggest where to
+investigate overhead. The report does not measure model token consumption,
+prove which governance activity caused spending, or establish savings.
 
 Governance also enables greater agent autonomy safely: scoped permissions,
 recorded gate decisions, and reviewable coordination history make the
@@ -272,12 +267,31 @@ Where estimates are needed for tooling planning, use:
 approx_tokens = ceil(character_count / 4)
 ```
 
-**What the foundry project has measured:** The AGF foundry project (which
-develops the framework itself) runs the `agov` tooling in every agent polling
-loop. The `agov coord validate` and `agov coord brief` commands each run in
-under 100 milliseconds and produce output that is one to two orders of magnitude
-shorter than reading the underlying coordination files with an AI agent (foundry
-estimate; your channel size will vary).
+### What our telemetry measures
+
+*Assessment date: 31 October 2026 UTC. Evidence status: Empirically informed;
+operational observations, not a controlled savings study.*
+
+Read the measurements and estimates in `agov token roi report` separately:
+
+| Report item | What it describes | Limit |
+|---|---|---|
+| Records and output characters | Logged events and CLI-produced text; supplied records carry their supplied fields/values | Internal wrapper checks can add events; transport or client truncation can prevent output from reaching the assistant |
+| Approximate tokens | A character-based proxy, using `ceil(chars / 4)` | Neither a model tokenizer count nor billed token usage |
+| Potential saved | Built-in assumed workflow baselines and/or estimates supplied in records | Built-in estimates clamp each negative difference to zero; supplied estimate fields are summed as unsigned values, not signed net savings |
+
+Our foundry assessment identified wrapper version checks, truncated large
+reports and gaps in per-assistant log routing. A log's filename does not prove
+exclusive assistant identity or complete coverage. Historical producer versions
+were not established for every record. The Codex and Claude
+streams covered different periods and could not support an assistant ranking.
+
+Use these reports to inspect output volume and collection gaps. They do not
+establish tokens actually consumed, money saved or a general productivity
+benefit. A savings claim needs a measured manual alternative for the same
+task and quality, and must count overhead and negative differences too.
+For a public example, retain the UTC interval, tool version, source provenance,
+baseline assumptions and known omissions alongside a reviewed dated snapshot.
 
 The telemetry system collects saved-token estimates in a local JSONL file. Live
 token ROI telemetry belongs under `tmp/` using a stable per-assistant filename:
