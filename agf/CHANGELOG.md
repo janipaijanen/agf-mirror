@@ -62,8 +62,8 @@ distribution.
 - **Coordination channel figure and communication wording.** The coordination
   figure and its source were updated, and the coordination-protocol page now
   says approval needs a published decision by the authorized actor and has a
-  corrected worked example thread. A site-wide banner linking the AI evaluation
-  dossier and wording fixes were added across the Pages. Adopter docs: updated
+  corrected worked example thread. A banner on every page except the dossier itself, linking the AI
+  evaluation dossier, and wording fixes were added across the Pages. Adopter docs: updated
   (`agf/docs/site/docs/concepts/coordination-protocol.md`,
   `agf/docs/site/reference/figures.md`,
   `agf/docs/site/overrides/main.html`,

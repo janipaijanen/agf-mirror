@@ -21,7 +21,7 @@ change since v2.13.1 (version fields only).
 ### Changed
 
 - **Repository-level records.** Sources and radar batch 43 and the v2.13.1
-  published-status update to the roadmap. The forge-evidence rule pointers in
+  published-status update to the roadmap, and the forge-evidence rule pointers in
   `AGENTS.md` and the Claude loader files. The adopter documentation changes are
   listed in `agf/CHANGELOG.md`.
 
