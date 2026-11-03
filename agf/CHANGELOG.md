@@ -21,10 +21,13 @@ distribution.
   `external-anonymization-rule.md`. No automated check is added. **Migration:**
   authors and assistants that cite chat messages as approvals in merge request or
   issue text switch to the decision record or plan that holds the decision;
-  existing text and records are not rewritten. Released in 3.0.0 (governor decision `20261101T105902Z-governor-reviewer-kqgp`; Gate 1
+  existing text and records are not rewritten. Released in 3.0.0 (governor
+  decision `20261101T105902Z-governor-reviewer-kqgp`; Gate 1
   `20261101T120448Z-governor-reviewer-saps`). Adopter docs: updated
-  (`agf/docs/site/docs/operate/day-to-day.md`, `agf/templates/AGENTS.md`,
-  `agf/rules/README.md`).
+  (`agf/rules/workflow/forge-publication-evidence-rule.md`,
+  `agf/rules/workflow/merge-request-description-rule.md`,
+  `agf/rules/README.md`, `agf/docs/site/docs/operate/day-to-day.md`,
+  `agf/templates/AGENTS.md`).
 - **Documentation Pages restructured around the reader's questions.** Role and
   authority pages (`position.md`, `roles-and-gates.md`) were corrected to match
   their figures and the deputy rule; the adoption decision route (Decide) and
@@ -32,8 +35,11 @@ distribution.
   first-governed-change walkthroughs were rewritten around the default path;
   day-to-day operation, runbook, upgrade and exit pages were reworked. Setup
   and role wording was mirrored into `ADOPTING.md`, the example manifest and
-  the quick reference, including that the learning-record and contribution
-  roles are required on their triggers. Adopter docs: updated
+  the quick reference. Setup guidance now treats the learning-record and
+  contribution roles as required on their triggers (previously "as needed"), so
+  adopters with an existing manifest should review those two roles. The example
+  manifest gains a skipped `documentation-estate-steward` entry. Adopter docs:
+  updated
   (`agf/docs/site/docs/concepts/position.md`,
   `agf/docs/site/docs/concepts/roles-and-gates.md`,
   `agf/docs/site/docs/start/should-you-adopt.md`,
@@ -51,13 +57,21 @@ distribution.
   `agf/agents/MANIFEST.example.yaml`, `agf/docs/reference/quick-reference.md`).
 - **Coordination channel figure and communication wording.** The coordination
   figure and its source were updated, and the coordination-protocol page now
-  says approval needs a published decision by the authorized actor. A dossier
-  notice and wording fixes were added across the Pages. Adopter docs: updated
+  says approval needs a published decision by the authorized actor and has a
+  corrected worked example thread. A dossier notice and wording fixes were added
+  across the Pages. Adopter docs: updated
   (`agf/docs/site/docs/concepts/coordination-protocol.md`,
   `agf/docs/site/reference/figures.md`,
-  `agf/docs/site/overrides/main.html`).
+  `agf/docs/site/overrides/main.html`,
+  `agf/docs/figures/coordination-channel.svg`,
+  `agf/docs/figures/src/coordination-channel.dot`,
+  `agf/docs/site/reference/figures/coordination-channel.svg`).
 - **Home page rewritten** from the reviewed proposal; anchors and both calls to
   action are preserved. Adopter docs: updated (`agf/docs/site/index.md`).
+- **Applicability catalog counts updated.** The page now counts 69 governed
+  artifacts (53 rules and 16 agent role definitions) and 60 not yet classified,
+  after the new rule. Adopter docs: updated
+  (`agf/docs/site/docs/adopt/applicability-catalog.md`).
 - **Telemetry method explained.** The tooling and tokens page now states what
   the telemetry measures and its limits. Adopter docs: updated
   (`agf/docs/site/docs/adopt/tooling-and-tokens.md`).
@@ -70,9 +84,9 @@ distribution.
 
 ### Added
 
-- **Solo-role guidance learning record** (calibrated solo role guidance) in the
-  foundry learning file. Adopter docs: updated (`agf/learnings/foundry.yaml`).
-
+- **Learning record: explain the solo operating arrangement before the role
+  library**, in the foundry learning file `agf/learnings/foundry.yaml`. Adopter
+  docs: not applicable (project-owned learning record, not shipped guidance).
 
 ## [2.13.1] — 2026-10-30
 
