@@ -3269,3 +3269,52 @@ This classification adopts no practice, tool, schema, hook, dependency or
 integration, adds no AGF requirement, and grants neither source any AGF authority.
 It makes no statement about what AGF does or does not provide. The matching
 non-binding question is retained in `docs/radar.md`.
+
+# Batch 44 (2026-11-04) — agent-harness prototype and a local state-inference engine
+
+## Classified
+
+- https://github.com/deepseek-ai/dsh-superagent-prototype
+  type: tooling, practice | relation: prior-art, complement | action: watch
+  note: Public repository (MIT licence per the repository sidebar, not read in full),
+  read at the root page at commit `8c32a9dc5d72c033816c6a8110b37f40cf94fba4` and its
+  `docs/002-authorization.md` page on 2026-11-04 through a summarizing fetch; no code
+  was run and no other file was read. Its README describes "a proactive coding agent for
+  one GitHub repository, packaged as a bundle for DeepSeek Harness" that acts "only when
+  asked or when a rule the team wrote allows it", with a web panel for "what needs a
+  person". The README labels it a "Research prototype for reference only, not an official
+  DeepSeek product" and says some designs in the accompanying article "are directions for
+  future development and are not implemented". The authorization page describes host-side
+  allow lists and per-scope admission tables, an accept mode with `off`, `observe` and
+  `auto` values, rule-matched autonomous acceptance recorded in a per-work-item mandate,
+  and recorded decisions. It states that conditions on an executor's results do not decide
+  who may authorize work. The summary found no description there of a dedicated audit log
+  or of separate planner, implementer and reviewer roles. Evidence class: self-reported
+  primary source, one summarized read, behaviour untested; star and fork counts seen
+  (about 17.6k and 1.9k) are snapshot figures. The accompanying article was not read.
+  (read 2026-11-04)
+
+- https://github.com/fl0ri0/fruth
+  type: tooling | relation: prior-art | action: watch
+  note: Public single-maintainer repository (Apache-2.0 per the README; version 0.1.9,
+  described there as "experimental"), read at the root page at commit
+  `6aa834fcdce3997a923ebae4e62b84e4a536ee77` on 2026-11-04 through a summarizing fetch; no code was run and no linked
+  document was read. The README describes a local browser interface and control plane
+  for local model backends that records requests, work, artifacts and reviews as
+  append-only "frozen" response frames, and states that "Fruth separates model
+  proposals from runtime authority", that semantic roles are "advisory decision lenses"
+  with no authority, and that "Product direction and release decisions remain human."
+  It also states that "Durable means supported persistence and continuation of recorded
+  state; it does not mean infallible conclusions." The project calls itself "vibe-coded"
+  and "human-led and AI-enhanced", and says it implies no formal security audit or
+  support organization. Evidence class: self-reported primary source, one summarized
+  read, behaviour untested; the page showed 1 star and no last-commit date, and the
+  linked self-attack, validation and reference-run documents were not read. (read
+  2026-11-04)
+
+## Evaluation boundary
+
+This classification adopts no practice, tool, schema, hook, dependency or integration,
+adds no AGF requirement, and grants neither source any AGF authority. It makes no statement
+about what AGF does or does not provide. The non-binding question on the first source is
+retained in `docs/radar.md`; the second source has none.
