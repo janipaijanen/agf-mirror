@@ -7,22 +7,21 @@ views or inputs; they do not create roadmap commitments independently.
 
 | Field | Value |
 |---|---|
-| Status | v2.13.1 is the latest published, independently verified stable release. The Improvement Propeller is Level 5 Deployable (`20260918T162825Z-governor-reviewer-8hs2`). |
-| Observed at | 2026-10-30T10:10:32Z |
-| Observation baseline | Annotated tag `v2.13.1` (`e00836eae1dd2d7d112c64a182846aff7ca5d763`) at `db300c090527817a9d556e13f25d414ab75e09bf` |
+| Status | v3.0.0 is the latest published, independently verified stable release. The Improvement Propeller is Level 5 Deployable (`20260918T162825Z-governor-reviewer-8hs2`). |
+| Observed at | 2026-11-04T06:12:43Z |
+| Observation baseline | Annotated tag `v3.0.0` (`a153be74807aaf7dbc6814bce66f7256b151df31`) at `4465ef99081f5530a9775dfc8dde1436033c6fe1` |
 | Roadmap authority | This file owns roadmap status and sequencing. Binding plans and governor decisions authorize work; exact tags and release evidence establish what shipped. |
 
 ## Released baseline
 
-**Latest stable release: v2.13.1.** Published 2026-10-30 from the verified
+**Latest stable release: v3.0.0.** Published 2026-11-04 from the verified
 annotated tag. Its 23-job tag pipeline passed. The GitLab Release, generic
 package, OCI image, checksums, provenance, packaged executables, and anonymous
-downloads were independently verified
-(`20261030T100719Z-coder-tester-ekep`). Earlier releases remain available
+downloads were independently verified. Earlier releases remain available
 and are not removed from history.
 
 The public artifacts are available from the
-[v2.13.1 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.13.1).
+[v3.0.0 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v3.0.0).
 
 No later version number or release scope is binding merely because it appears
 in an issue label, proposal, or advisory horizon. A later release requires its
