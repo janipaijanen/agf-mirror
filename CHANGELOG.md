@@ -10,6 +10,21 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-11-04
+
+**Major release.** The canonical adopter entry is in
+[`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[3.0.0]`. It contains one BREAKING
+item: the forge-publication-evidence rule (merge request and issue text cites
+durable evidence), with its migration note. No tooling behavior, schema or CI
+change since v2.13.1 (version fields only).
+
+### Changed
+
+- **Repository-level records.** Sources and radar batch 43 and the v2.13.1
+  published-status update to the roadmap, and the forge-evidence rule pointers in
+  `AGENTS.md` and the Claude loader files. The adopter documentation changes are
+  listed in `agf/CHANGELOG.md`.
+
 ## [2.13.1] - 2026-10-30
 
 **Documentation reader-journey patch.** The canonical adopter entry is in
