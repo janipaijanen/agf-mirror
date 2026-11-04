@@ -12,19 +12,19 @@ inheriting foundry's development commitments.
 
 | Field | Value |
 |---|---|
-| Status | v2.13.1 is the latest published, independently verified stable release. Foundry's Improvement Propeller is Level 5 Deployable. |
-| Observed at | 2026-10-30T10:10:32Z |
-| Observation baseline | Annotated tag `v2.13.1` (`e00836eae1dd2d7d112c64a182846aff7ca5d763`) at `db300c090527817a9d556e13f25d414ab75e09bf` |
+| Status | v3.0.0 is the latest published, independently verified stable release. Foundry's Improvement Propeller is Level 5 Deployable. |
+| Observed at | 2026-11-04T06:12:43Z |
+| Observation baseline | Annotated tag `v3.0.0` (`a153be74807aaf7dbc6814bce66f7256b151df31`) at `4465ef99081f5530a9775dfc8dde1436033c6fe1` |
 | Governed source | `docs/roadmap.md`, the approved queue-convergence plan, and the governor decisions cited there |
 | Authority | Informational projection. The internal roadmap, binding plans and decisions, exact tags, and release evidence are authoritative. |
 
 ## Current released baseline
 
-**Latest fully published stable release: v2.13.1.** Published 2026-10-30 from
+**Latest fully published stable release: v3.0.0.** Published 2026-11-04 from
 the verified annotated tag. Its 23-job tag pipeline passed. The GitLab Release,
 generic package, OCI image, checksums, provenance, packaged executables, and
 anonymous downloads were independently verified. Use the
-[v2.13.1 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v2.13.1)
+[v3.0.0 GitLab Release](https://gitlab.com/janipaijanen/agents-govern-framework/-/releases/v3.0.0)
 for public artifacts.
 
 No later version or candidate scope is committed merely because it appears in
