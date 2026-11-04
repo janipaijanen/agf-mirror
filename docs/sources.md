@@ -3270,7 +3270,7 @@ integration, adds no AGF requirement, and grants neither source any AGF authorit
 It makes no statement about what AGF does or does not provide. The matching
 non-binding question is retained in `docs/radar.md`.
 
-# Batch 44 (2026-11-04) — agent-harness prototype with rule-based autonomy
+# Batch 44 (2026-11-04) — agent-harness prototype and a local state-inference engine
 
 ## Classified
 
@@ -3294,9 +3294,27 @@ non-binding question is retained in `docs/radar.md`.
   (about 17.6k and 1.9k) are snapshot figures. The accompanying article was not read.
   (read 2026-11-04)
 
+- https://github.com/fl0ri0/fruth
+  type: tooling | relation: prior-art | action: watch
+  note: Public single-maintainer repository (Apache-2.0 per the README; version 0.1.9,
+  described there as "experimental"), read at the root page at commit
+  `6aa834fcdce3997a923ebae4e62b84e4a536ee77` on 2026-11-04 through a summarizing fetch; no code was run and no linked
+  document was read. The README describes a local browser interface and control plane
+  for local model backends that records requests, work, artifacts and reviews as
+  append-only "frozen" response frames, and states that "Fruth separates model
+  proposals from runtime authority", that semantic roles are "advisory decision lenses"
+  with no authority, and that "Product direction and release decisions remain human."
+  It also states that "Durable means supported persistence and continuation of recorded
+  state; it does not mean infallible conclusions." The project calls itself "vibe-coded"
+  and "human-led and AI-enhanced", and says it implies no formal security audit or
+  support organization. Evidence class: self-reported primary source, one summarized
+  read, behaviour untested; the page showed 1 star and no last-commit date, and the
+  linked self-attack, validation and reference-run documents were not read. (read
+  2026-11-04)
+
 ## Evaluation boundary
 
 This classification adopts no practice, tool, schema, hook, dependency or integration,
-adds no AGF requirement, and grants the source no AGF authority. It makes no statement
-about what AGF does or does not provide. The matching non-binding question is retained
-in `docs/radar.md`.
+adds no AGF requirement, and grants neither source any AGF authority. It makes no statement
+about what AGF does or does not provide. The non-binding question on the first source is
+retained in `docs/radar.md`; the second source has none.
