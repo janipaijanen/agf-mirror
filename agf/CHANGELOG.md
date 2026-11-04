@@ -7,7 +7,7 @@ distribution.
 
 ## [Unreleased]
 
-## [3.0.0] — 2026-11-03
+## [3.0.0] — 2026-11-04
 
 ### Changed
 

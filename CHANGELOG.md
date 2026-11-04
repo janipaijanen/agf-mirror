@@ -10,7 +10,7 @@ agents-govern 1.x lives at [`agents-govern/CHANGELOG.md`](agents-govern/CHANGELO
 
 ## [Unreleased]
 
-## [3.0.0] - 2026-11-03
+## [3.0.0] - 2026-11-04
 
 **Major release.** The canonical adopter entry is in
 [`agf/CHANGELOG.md`](agf/CHANGELOG.md) under `[3.0.0]`. It contains one BREAKING
