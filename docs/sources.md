@@ -3269,3 +3269,34 @@ This classification adopts no practice, tool, schema, hook, dependency or
 integration, adds no AGF requirement, and grants neither source any AGF authority.
 It makes no statement about what AGF does or does not provide. The matching
 non-binding question is retained in `docs/radar.md`.
+
+# Batch 44 (2026-11-04) — agent-harness prototype with rule-based autonomy
+
+## Classified
+
+- https://github.com/deepseek-ai/dsh-superagent-prototype
+  type: tooling, practice | relation: prior-art, complement | action: watch
+  note: Public repository (MIT licence per the repository sidebar, not read in full),
+  read at the root page at commit `8c32a9dc5d72c033816c6a8110b37f40cf94fba4` and its
+  `docs/002-authorization.md` page on 2026-11-04 through a summarizing fetch; no code
+  was run and no other file was read. Its README describes "a proactive coding agent for
+  one GitHub repository, packaged as a bundle for DeepSeek Harness" that acts "only when
+  asked or when a rule the team wrote allows it", with a web panel for "what needs a
+  person". The README labels it a "Research prototype for reference only, not an official
+  DeepSeek product" and says some designs in the accompanying article "are directions for
+  future development and are not implemented". The authorization page describes host-side
+  allow lists and per-scope admission tables, an accept mode with `off`, `observe` and
+  `auto` values, rule-matched autonomous acceptance recorded in a per-work-item mandate,
+  and recorded decisions. It states that conditions on an executor's results do not decide
+  who may authorize work. The summary found no description there of a dedicated audit log
+  or of separate planner, implementer and reviewer roles. Evidence class: self-reported
+  primary source, one summarized read, behaviour untested; star and fork counts seen
+  (about 17.6k and 1.9k) are snapshot figures. The accompanying article was not read.
+  (read 2026-11-04)
+
+## Evaluation boundary
+
+This classification adopts no practice, tool, schema, hook, dependency or integration,
+adds no AGF requirement, and grants the source no AGF authority. It makes no statement
+about what AGF does or does not provide. The matching non-binding question is retained
+in `docs/radar.md`.

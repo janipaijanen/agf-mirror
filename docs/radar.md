@@ -430,6 +430,16 @@ Next review: 2026-10.
   conversations that cannot be reproduced or published, so this is an observation, not
   evidence of a rate. status: observation | review-by: 2027-01-31
 
+- **Rule-based autonomy and an observe-first mode** — a public agent-harness prototype
+  (Batch 44) lets a team's written rules authorize proactive work, with an `observe`
+  mode that records what would have been accepted before moving to `auto`. Open
+  question: would a recorded dry-run period before a delegation or autonomy grant help
+  adopters, or add ceremony beside the delegation rule? Controversial: a research
+  prototype that says some of its designs are not implemented, read once through a
+  summary, and a dry-run record could only be advisory evidence under the tool-authority
+  rule. source: `docs/sources.md` Batch 44 | status: question, no commitment |
+  review-by: 2027-02-28
+
 ## Watch sources (checked at each review)
 
 - EC digital-strategy pages (AI Act, CRA guidance) and artificialintelligenceact.eu
