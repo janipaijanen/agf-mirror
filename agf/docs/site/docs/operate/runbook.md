@@ -65,7 +65,9 @@ approve gates, or reconstruct reasoning that was never externalized.
 In a GitLab-hosted project, “forge” means merge requests, discussions and
 notes, issues and issue comments, pipelines, jobs, releases, and shared remote
 refs. Use the GitLab UI, API, or `glab` to inspect those surfaces. The core
-procedure remains the same on another forge.
+procedure remains the same on another forge. Text you write on those surfaces
+cites durable records, not chat; the owner is
+`agf/rules/workflow/forge-publication-evidence-rule.md`.
 
 ### Claude adapter
 
