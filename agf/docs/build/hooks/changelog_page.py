@@ -16,8 +16,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from mkdocs.exceptions import PluginError
-
 # agf/CHANGELOG.md links into the site as `docs/site/<path>`, relative to agf/.
 # The generated page sits in reference/, so those targets become `../<path>`.
 SITE_LINK_RE = re.compile(r"\]\(docs/site/")
@@ -33,7 +31,7 @@ def on_pre_build(config, **kwargs) -> None:
     dist_root = Path(config.config_file_path).resolve().parent.parent.parent
     source = dist_root / "CHANGELOG.md"
     if not source.is_file():
-        raise PluginError(f"changelog_page: source file not found: {source}")
+        raise FileNotFoundError(f"changelog_page: source file not found: {source}")
 
     target = Path(config.docs_dir).resolve() / "reference" / "changelog.md"
     target.parent.mkdir(parents=True, exist_ok=True)

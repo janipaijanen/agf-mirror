@@ -13,8 +13,6 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-from mkdocs.exceptions import PluginError
-
 HOOK_PATH = Path(__file__).with_name("changelog_page.py")
 SPEC = importlib.util.spec_from_file_location("changelog_page", HOOK_PATH)
 assert SPEC and SPEC.loader
@@ -73,7 +71,7 @@ class ChangelogPageTest(unittest.TestCase):
         self.assertIn("](https://example.invalid/x)", text)
 
     def test_missing_source_aborts_the_build_and_writes_no_page(self) -> None:
-        with self.assertRaises(PluginError) as ctx:
+        with self.assertRaises(FileNotFoundError) as ctx:
             HOOK.on_pre_build(self.config)
 
         self.assertIn("source file not found", str(ctx.exception))
