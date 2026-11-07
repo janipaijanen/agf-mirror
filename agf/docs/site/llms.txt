@@ -29,6 +29,8 @@ and review discipline around that work.
 - `/docs/adopt/exit-and-decommission/` — reversible adoption and removal.
 - `/reference/release-artifacts/` — release artifact expectations.
 - `/reference/tooling-conformance/` — language-neutral tooling conformance.
+- `/reference/changelog/` — release changelog, generated at docs build time from
+  `agf/CHANGELOG.md`.
 
 ## Repository Boundaries
 

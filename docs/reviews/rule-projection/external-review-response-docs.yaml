@@ -1,0 +1,65 @@
+# Six-surface projection evidence for the changelog slice of plan
+# external-review-response-docs, per
+# agf/rules/workflow/documentation-rule-projection-rule.md.
+# Plan: docs/plans/external-review-response-docs.md (item 1 only; items 2 and 3
+# are not implemented in this change).
+
+plan_id: external-review-response-docs
+changed_pages_or_runbooks:
+  - agf/docs/site/evaluate.md
+
+surfaces:
+  normative_owner:
+    disposition: not applicable
+    reason: >-
+      The change adds no normative statement. It states where the changelog is
+      published and that the canonical GitLab repository is authoritative; no
+      MUST/SHOULD/blocking language is introduced and no rule owner changes.
+
+  adopter_facing_explanation:
+    disposition: updated
+    path: agf/docs/site/evaluate.md
+    reason: >-
+      One table row in the Identity check names the generated changelog page
+      and the authoritative repository. The page itself, reference/changelog.md,
+      is generated at build time and is not a separately authored file.
+
+  runbook_situation_map:
+    disposition: not applicable
+    reason: >-
+      No operating step is added or changed. The changelog page is a reference
+      surface only.
+
+  ai_landing_loaders:
+    disposition: updated
+    paths:
+      - agf/docs/site/llms.txt
+    reason: >-
+      `llms.txt` gains one line pointing machine readers at the changelog page.
+    not_applicable:
+      - path: AGENTS.md
+        reason: >-
+          No rule or obligation changes, so the loader needs no new pointer.
+      - path: agf/templates/AGENTS.md
+        reason: Same as AGENTS.md; ships unchanged.
+      - path: .claude/CLAUDE.md
+        reason: Same as AGENTS.md; a loader pointer file with no rule content.
+
+  validation_drift_evidence:
+    disposition: implemented
+    path: agf/docs/build/hooks/test_changelog_page.py
+    reason: >-
+      The generator hook ships four unit tests (verbatim content, link
+      rewriting, stale-page replacement, missing source aborts the build). The
+      strict `mkdocs build` also fails on a broken link in the generated page.
+      Whether the prose in evaluate.md is accurate remains reviewer judgment.
+
+  distribution:
+    disposition: confirmed
+    paths:
+      - agf/docs/site/evaluate.md
+      - agf/docs/site/llms.txt
+    reason: >-
+      Both files sit under `agf/docs/site/**`. To be confirmed against the
+      `agf/docs/site/**` glob in `agf/dist/release-manifest.yaml` by the
+      projection check run below.
