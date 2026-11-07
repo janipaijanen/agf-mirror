@@ -28,6 +28,7 @@ Confirm you are reviewing the right project before proceeding.
 | **Canonical repository** | `https://gitlab.com/janipaijanen/agents-govern-framework` |
 | **Published docs** | `https://janipaijanen.gitlab.io/agents-govern-framework/` |
 | **Current version** | See [Release information](reference/release-info.md), generated from `agf/VERSION` at docs build time. Also shown in the page header (top-right corner). |
+| **Changelog** | [Changelog](reference/changelog.md), generated from `agf/CHANGELOG.md` at docs build time. The canonical GitLab repository is the authoritative source. |
 
 This project **is not**:
 

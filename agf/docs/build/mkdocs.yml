@@ -58,6 +58,7 @@ extra_css:
 
 hooks:
   - hooks/release_info.py
+  - hooks/changelog_page.py
   - hooks/ai_evaluation_dossier.py
   - hooks/figure_accessibility.py
 
@@ -106,6 +107,7 @@ nav:
       - Review findings: reference/review-findings.md
       - Tooling conformance: reference/tooling-conformance.md
       - Release information: reference/release-info.md
+      - Changelog: reference/changelog.md
       - Disclaimer: reference/disclaimer.md
   - About AGF:
       - Evaluate: evaluate.md
