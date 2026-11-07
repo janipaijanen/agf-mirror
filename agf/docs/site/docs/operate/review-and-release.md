@@ -202,7 +202,9 @@ the manifest marks which is which. The upgrade is an ordinary governed
 change: branch, replace, diff-review what upstream changed, Gate 2,
 merge. Pin the version; read the changelog for BREAKING entries — the
 downstream-impact discipline requires upstream to classify every change
-and provide migration notes for breaking ones.
+and provide migration notes for breaking ones. The 3.0.0 major release has one
+BREAKING item, `agf/rules/workflow/forge-publication-evidence-rule.md`; its
+migration note is in the 3.0.0 entry of `agf/CHANGELOG.md`.
 
 ## Audit cadence
 
